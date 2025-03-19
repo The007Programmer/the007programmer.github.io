@@ -9,6 +9,5 @@
 - INCM: Safe but incomplete; code may lack full functionality or features, but is stable for version control.
 - REFA: Refactor or restructure code for improved readability, maintainability, or efficiency, with no changes to core functionality.
 - RESD: Revert previous changes due to instability or issues encountered during testing; restores the code to a prior stable state.
-- UPDT: Update or minor change to improve functionality or performance; typically used for non-critical updates or optimizations.
 - BUGF: Bug fix or issue resolution, fixing known problems in the code without adding new functionality.
 - DOCS: Documentation update, including comments, README files, or other forms of documentation to improve clarity and understanding.
