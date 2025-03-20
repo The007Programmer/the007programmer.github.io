@@ -3,10 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="stylesheet.css">
     <title>Portfolio</title>
 </head>
 <body>
-    <h1>Your Portfolio</h1>
-    <p>Welcome to my portfolio page.</p>
+    <header>
+        <h1>Your Portfolio</h1>
+        <nav>
+            <ul>
+                <li><a href="#about">About</a></li>
+                <li><a href="#projects">Projects</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="about">
+            <h2>About Me</h2>
+            <p>A brief introduction about yourself goes here.</p>
+        </section>
+        
+        <section id="projects">
+            <h2>Projects</h2>
+            <div class="project-container">
+                <article class="project">
+                    <h3>Project Title 1</h3>
+                    <p>Description of your project. Include details such as purpose, technologies used, and your role.</p>
+                </article>
+                <article class="project">
+                    <h3>Project Title 2</h3>
+                    <p>Description of your project. Include details such as purpose, technologies used, and your role.</p>
+                </article>
+                <!-- Additional project entries can be added here -->
+            </div>
+        </section>
+        
+        <section id="contact">
+            <h2>Contact</h2>
+            <p>Get in touch via email or follow me on social platforms:</p>
+            <ul class="contact-list">
+                <li>Email: <a href="mailto:your.email@example.com">your.email@example.com</a></li>
+                <li>LinkedIn: <a href="#">Your LinkedIn</a></li>
+                <li>GitHub: <a href="#">Your GitHub</a></li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 Your Name. All rights reserved.</p>
+    </footer>
 </body>
 </html>
