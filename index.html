@@ -36,8 +36,9 @@
             left: 0;
             width: 100%;
             z-index: 100;
-            padding: 1rem 0;
-            transition: all 0.5s ease; /* Smoother transition */
+            padding: 1.5rem 0; /* Increased padding */
+            transition: all 0.5s ease;
+            border-bottom: 1px solid rgba(238, 46, 49, 0.1); /* Add subtle border */
         }
 
         nav.scrolled {
@@ -46,13 +47,15 @@
 
         /* Add this new class for full opacity */
         nav.scrolled-full {
-            background-color: rgba(17, 24, 39, 0.95);
+            background-color: rgba(17, 24, 39, 0.98); /* Increased opacity */
+            backdrop-filter: blur(8px); /* Add blur effect */
+            border-bottom: 1px solid rgba(238, 46, 49, 0.2); /* More visible border when scrolled */
         }
 
         nav ul {
             display: flex;
             justify-content: center;
-            gap: 2rem;
+            gap: 4rem; /* Increased gap between nav items */
             list-style: none;
         }
 
@@ -63,18 +66,20 @@
         nav a {
             color: #F4C095; /* Light gray-green for navigation links */
             text-decoration: none;
-            transition: color 0.3s ease;
-            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-size: 1.1rem; /* Slightly larger font */
+            padding: 0.5rem 1rem; /* Add padding around links */
+            border-radius: 10px; /* Rounded corners */
         }
 
         nav a:hover {
             color: #EE2E31; /* Accent color on hover */
+            background-color: rgba(238, 46, 49, 0.1); /* Add background on hover */
         }
 
         section {
             position: relative;
             padding: 4rem 0;
-            border-radius: 15px;
         }
 
         /* Add subtle section dividers */
@@ -104,109 +109,114 @@
         #about .container {
             max-width: 800px; /* Limit the width for better readability */
             margin: 0 auto; /* Center the container */
-            border-radius: 15px;
         }
 
         /* Project Section Styles */
         #projects {
             position: relative;
-            height: 100vh;
+            height: 800px; /* Fixed height instead of vh */
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start; /* Change from center to flex-start */
-            perspective: 1500px;
+            justify-content: space-between; /* Changed from flex-start */
             overflow: hidden;
-            padding-top: 2rem; /* Add this to move content down */
-        }
-
-        #projects h2 {
-            margin-bottom: -1em; /* Keep consistent with other sections */
-            position: relative;
-            z-index: 1;
-            text-align: center;
+            padding: 2rem;
+            max-width: 1800px; /* Add max-width to contain the section */
+            margin: 0 auto;
         }
 
         .project-container {
             position: relative;
             width: 100%;
-            height: calc(100% - 8rem); /* Adjust height to account for header */
+            height: 600px; /* Fixed height instead of vh */
             transform-style: preserve-3d;
-            transition: transform 0.5s ease;
-            margin-top: 0; /* Remove negative margin */
+            perspective: 3000px;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
         .project-card {
             position: absolute;
-            width: 400px;
-            height: 500px;
+            width: min(700px, 60%); /* Use percentage instead of vw */
+            height: 500px; /* Fixed height */
             left: 50%;
             top: 50%;
-            transform-origin: center;
             transform-style: preserve-3d;
-            transition: all 0.5s ease;
-            backdrop-filter: blur(5px);
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
+            padding: 2rem;
             border-radius: 15px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
         }
 
         .project-card.active {
-            transform: translate(-50%, -50%) translateZ(200px);
+            transform: translate(-50%, -50%) translateZ(0);
             opacity: 1;
+            z-index: 3;
         }
 
         .project-card.previous {
-            transform: translate(-50%, -50%) translateX(-100%) translateZ(-200px) rotateY(45deg);
-            opacity: 0.6;
+            transform: translate(-50%, -50%) translateX(-110%) translateZ(-300px) rotateY(35deg); /* Adjusted positioning */
+            opacity: 0.7;
+            z-index: 2;
             filter: blur(2px);
         }
 
         .project-card.next {
-            transform: translate(-50%, -50%) translateX(100%) translateZ(-200px) rotateY(-45deg);
-            opacity: 0.6;
+            transform: translate(-50%, -50%) translateX(110%) translateZ(-300px) rotateY(-35deg); /* Adjusted positioning */
+            opacity: 0.7;
+            z-index: 2;
             filter: blur(2px);
+        }
+
+        .project-card.far-previous,
+        .project-card.far-next {
+            transform: translate(-50%, -50%) translateZ(-1000px); /* Reduced Z distance */
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1;
         }
 
         .project-image {
             width: 100%;
-            height: 200px; /* Adjust as needed */
-            object-fit: cover; /* Maintain aspect ratio and cover the area */
+            height: 250px; /* Reduced from 400px */
+            object-fit: cover;
             border-radius: 10px;
         }
 
-        .project-link {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #EE2E31; /* Red accent */
-            color: #F4C095; /* Beachy sand color */
-            text-decoration: none;
-            border-radius: 10px;
-            margin-top: 10px;
+        .project-content {
+            padding: 1.5rem 0;
         }
 
         .scroll-navigation {
-            position: absolute;
-            bottom: 4rem; /* Increased from 2rem to add more space above Contact section */
-            left: 50%;
-            transform: translateX(-50%);
+            position: relative; /* Changed from static */
             display: flex;
             gap: 2rem;
             z-index: 10;
+            padding: 1rem 0;
+            margin-top: auto; /* Push to bottom of flex container */
         }
 
         .scroll-button {
-            background: rgba(238, 46, 49, 0.8);
-            border: none;
-            padding: 1rem 2rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(238, 46, 49, 0.1);
+            border: 2px solid rgba(238, 46, 49, 0.3);
             color: #F4C095;
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-size: 1.25rem;
+            min-width: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .scroll-button:hover {
-            background: rgba(238, 46, 49, 1);
+            background: rgba(238, 46, 49, 0.2);
+            border-color: rgba(238, 46, 49, 0.5);
+            transform: translateY(-2px);
         }
 
         /* Custom Scrollbar Styles */
@@ -220,7 +230,7 @@
 
         ::-webkit-scrollbar-thumb {
             background: #F4C095;
-            border-radius: 10px;
+            border-radius: 5px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
@@ -234,12 +244,10 @@
 
         input, textarea {
             color: #F4C095 !important;
-            border-radius: 10px !important;
         }
 
         button {
             color: #F4C095 !important;
-            border-radius: 10px;
         }
 
         footer {
@@ -259,7 +267,7 @@
             align-items: center;
             padding: 1.5rem;
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
+            border-radius: 10px;
             transition: all 0.3s ease;
             backdrop-filter: blur(5px);
             width: 120px;
@@ -328,7 +336,7 @@
             height: 3rem;
             background-color: rgba(238, 46, 49, 0.1);
             color: #F4C095;
-            border-radius: 15px;
+            border-radius: 50%;
             transition: all 0.3s ease;
             border: none;
         }
@@ -362,6 +370,113 @@
         .name-title span:hover {
             transform: translateY(-5px);
             color: #F4C095;
+        }
+
+        /* Update contact form spacing */
+        #contact input,
+        #contact textarea {
+            margin-bottom: 1.5rem; /* Increased from 1rem (mb-4) */
+            padding: 1rem; /* Increased from 0.5rem (p-2) */
+        }
+
+        .submit-container {
+            margin-top: 2rem; /* Add more space above the submit button */
+        }
+
+        /* Add these styles in your <style> tag */
+        .tech-category, .service-category {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 1.5rem;
+            backdrop-filter: blur(5px);
+        }
+
+        .os-tree {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            margin-top: 2rem;
+        }
+
+        .os-branch {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .os-children {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+            position: relative;
+        }
+
+        .os-children::before {
+            content: '';
+            position: absolute;
+            top: -2rem;
+            left: 50%;
+            width: 2px;
+            height: 2rem;
+            background: #EE2E31;
+        }
+
+        .os-item.main {
+            background: rgba(238, 46, 49, 0.1);
+            transform: scale(1.1);
+        }
+
+        .os-item.child {
+            position: relative;
+        }
+
+        .os-item.child::before {
+            content: '';
+            position: absolute;
+            top: -1rem;
+            left: 50%;
+            width: 2px;
+            height: 1rem;
+            background: #EE2E31;
+        }
+
+        .tech-item small {
+            display: block;
+            margin-top: 0.25rem;
+            color: #F4C095;
+        }
+
+        /* Add these styles to your existing CSS */
+        * {
+            -webkit-user-select: none;  /* Safari */
+            -moz-user-select: none;     /* Firefox */
+            -ms-user-select: none;      /* IE10+/Edge */
+            user-select: none;          /* Standard */
+        }
+
+        /* Allow selection only for form inputs and textareas */
+        input,
+        textarea {
+            -webkit-user-select: text;  /* Safari */
+            -moz-user-select: text;     /* Firefox */
+            -ms-user-select: text;      /* IE10+/Edge */
+            user-select: text;          /* Standard */
+        }
+
+        /* Update media queries for smaller screens */
+        @media (max-height: 800px) {
+            #projects {
+                min-height: 600px;
+            }
+            
+            .project-card {
+                height: 400px;
+            }
+            
+            .project-image {
+                height: 200px;
+            }
         }
     </style>
 </head>
@@ -417,39 +532,176 @@
         <h2 class="text-3xl font-bold accent mb-8 text-center">Experience</h2>
         
         <div class="container mx-auto px-4">
-            <!-- Languages -->
-            <div class="mb-12">
-                <h3 class="text-2xl mb-4 text-center">Languages & Technologies</h3>
-                <div class="flex flex-wrap justify-center gap-6">
-                    <div class="tech-item">
-                        <i class="fab fa-python text-4xl"></i>
-                        <span>Python</span>
+            <!-- Languages & Technologies -->
+            <div class="mb-16">
+                <h3 class="text-2xl mb-6 text-center">Languages & Technologies</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+                    <!-- Frameworks -->
+                    <div class="tech-category">
+                        <h4 class="text-xl mb-4 text-center accent">Frameworks</h4>
+                        <div class="flex flex-wrap justify-center gap-4">
+                            <div class="tech-item">
+                                <i class="fab fa-react text-4xl"></i>
+                                <span>React</span>
+                            </div>
+                            <div class="tech-item">
+                                <i class="fab fa-node-js text-4xl"></i>
+                                <span>Node.js</span>
+                            </div>
+                            <div class="tech-item">
+                                <i class="fas fa-fire text-4xl"></i>
+                                <span>Flask</span>
+                            </div>
+                        </div>
                     </div>
-                    <!-- Add more language items -->
+
+                    <!-- Programming Languages -->
+                    <div class="tech-category">
+                        <h4 class="text-xl mb-4 text-center accent">Programming Languages</h4>
+                        <div class="flex flex-wrap justify-center gap-4">
+                            <div class="tech-item">
+                                <i class="fab fa-python text-4xl"></i>
+                                <span>Python</span>
+                                <small class="text-sm opacity-75">Intermediate</small>
+                            </div>
+                            <div class="tech-item">
+                                <i class="fab fa-java text-4xl"></i>
+                                <span>Java</span>
+                                <small class="text-sm opacity-75">Beginner</small>
+                            </div>
+                            <div class="tech-item">
+                                <i class="fas fa-code text-4xl"></i>
+                                <span>Bash</span>
+                                <small class="text-sm opacity-75">Beginner</small>
+                            </div>
+                            <div class="tech-item">
+                                <i class="fas fa- text-4xl"></i>
+                                <span>C++</span>
+                                <small class="text-sm opacity-75">Beginner</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Development Tools -->
+                    <div class="tech-category">
+                        <h4 class="text-xl mb-4 text-center accent">Dev Tools</h4>
+                        <div class="flex flex-wrap justify-center gap-4">
+                            <div class="tech-item">
+                                <i class="fab fa-git-alt text-4xl"></i>
+                                <span>Git</span>
+                            </div>
+                            <div class="tech-item">
+                                <i class="fas fa-code-branch text-4xl"></i>
+                                <span>VSCode</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Operating Systems -->
-            <div class="mb-12">
-                <h3 class="text-2xl mb-4 text-center">Operating Systems</h3>
-                <div class="flex flex-wrap justify-center gap-6">
-                    <div class="os-item">
-                        <i class="fab fa-linux text-4xl"></i>
-                        <span>Linux</span>
+            <div class="mb-16">
+                <h3 class="text-2xl mb-6 text-center">Operating Systems</h3>
+                <div class="os-tree">
+                    <div class="os-branch linux">
+                        <div class="os-item main">
+                            <i class="fab fa-linux text-4xl"></i>
+                            <span>Linux</span>
+                        </div>
+                        <div class="os-children">
+                            <div class="os-item child">
+                                <i class="fas fa-user-secret text-3xl"></i>
+                                <span>Kali Linux</span>
+                            </div>
+                            <div class="os-item child">
+                                <i class="fab fa-ubuntu text-3xl"></i>
+                                <span>Ubuntu</span>
+                            </div>
+                            <div class="os-item child">
+                                <i class="fas fa-leaf text-3xl"></i>
+                                <span>Linux Mint</span>
+                            </div>
+                            <div class="os-item child">
+                                <i class="fas fa-server text-3xl"></i>
+                                <span>Ubuntu Server</span>
+                            </div>
+                        </div>
                     </div>
-                    <!-- Add more OS items -->
+                    <div class="os-branch windows">
+                        <div class="os-item main">
+                            <i class="fab fa-windows text-4xl"></i>
+                            <span>Windows</span>
+                        </div>
+                        <div class="os-children">       
+                            <div class="os-item child">
+                                <i class="fas fa-desktop text-3xl"></i>
+                                <span>Windows 11</span>
+                            </div>
+                            <div class="os-item child">
+                                <i class="fas fa-server text-3xl"></i>
+                                <span>Windows 10</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Services -->
+            <!-- Services & Tools -->
             <div class="mb-12">
-                <h3 class="text-2xl mb-4 text-center">Services & Tools</h3>
-                <div class="flex flex-wrap justify-center gap-6">
-                    <div class="service-item">
-                        <i class="fab fa-aws text-4xl"></i>
-                        <span>AWS</span>
+                <h3 class="text-2xl mb-6 text-center">Services & Tools</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <!-- Cloud Platforms -->
+                    <div class="service-category">
+                        <h4 class="text-xl mb-4 text-center accent">Cloud</h4>
+                        <div class="flex flex-wrap justify-center gap-4">
+                            <div class="service-item">
+                                <i class="fab fa-circle-nodes text-4xl"></i>
+                                <span>Tailscale</span>
+                            </div>
+                        </div>
                     </div>
-                    <!-- Add more service items -->
+
+                    <!-- DevOps Tools -->
+                    <div class="service-category">
+                        <h4 class="text-xl mb-4 text-center accent">DevOps</h4>
+                        <div class="flex flex-wrap justify-center gap-4">
+                            <div class="service-item">
+                                <i class="fab fa-github text-4xl"></i>
+                                <span>Actions</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Databases -->
+                    <div class="service-category">
+                        <h4 class="text-xl mb-4 text-center accent">Databases</h4>
+                        <div class="flex flex-wrap justify-center gap-4">
+                            <div class="service-item">
+                                <i class="fas fa-database text-4xl"></i>
+                                <span>MySQL</span>
+                            </div>
+                            <div class="service-item">
+                                <i class="fas fa-server text-4xl"></i>
+                                <span>MongoDB</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Tools -->
+                    <div class="service-category">
+                        <h4 class="text-xl mb-4 text-center accent">Security</h4>
+                        <div class="flex flex-wrap justify-center gap-4">
+                            <div class="service-item">
+                                <i class="fab fa-wshark text-4xl"></i>
+                                <span>Wireshark</span>
+                            </div>
+                            <div class="service-item">
+                                <i class="fab fa-cloud text-4xl"></i>
+                                <span>Airgeddon</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -457,25 +709,47 @@
 
     <!-- Projects Section -->
     <section id="projects">
-        <h2 class="text-3xl font-bold accent mb-4 text-center">Projects</h2>
+        <h2 class="text-3xl font-bold accent mb-8 text-center">Projects</h2>
         <div class="project-container">
-            <div class="project-card active">
+            <div class="project-card">
                 <img src="project1.jpg" alt="Project 1" class="project-image">
-                <h3>Project 1</h3>
-                <p>Description of project 1</p>
-                <a href="#" class="project-link">View on GitHub</a>
+                <div class="project-content">
+                    <h3 class="text-2xl font-bold mb-4">Project 1</h3>
+                    <p class="mb-4">Description of project 1</p>
+                    <a href="#" class="project-link">View Project</a>
+                </div>
             </div>
-            <div class="project-card next">
+            <div class="project-card">
                 <img src="project2.jpg" alt="Project 2" class="project-image">
-                <h3>Project 2</h3>
-                <p>Description of project 2</p>
-                <a href="#" class="project-link">View on GitHub</a>
+                <div class="project-content">
+                    <h3 class="text-2xl font-bold mb-4">Project 2</h3>
+                    <p class="mb-4">Description of project 2</p>
+                    <a href="#" class="project-link">View Project</a>
+                </div>
             </div>
-            <div class="project-card previous">
+            <div class="project-card">
                 <img src="project3.jpg" alt="Project 3" class="project-image">
-                <h3>Project 3</h3>
-                <p>Description of project 3</p>
-                <a href="#" class="project-link">View on GitHub</a>
+                <div class="project-content">
+                    <h3 class="text-2xl font-bold mb-4">Project 3</h3>
+                    <p class="mb-4">Description of project 3</p>
+                    <a href="#" class="project-link">View Project</a>
+                </div>
+            </div>
+            <div class="project-card">
+                <img src="project4.jpg" alt="Project 4" class="project-image">
+                <div class="project-content">
+                    <h3 class="text-2xl font-bold mb-4">Project 4</h3>
+                    <p class="mb-4">Description of project 4</p>
+                    <a href="#" class="project-link">View Project</a>
+                </div>
+            </div>
+            <div class="project-card">
+                <img src="project5.jpg" alt="Project 5" class="project-image">
+                <div class="project-content">
+                    <h3 class="text-2xl font-bold mb-4">Project 5</h3>
+                    <p class="mb-4">Description of project 5</p>
+                    <a href="#" class="project-link">View Project</a>
+                </div>
             </div>
         </div>
         <div class="scroll-navigation">
@@ -553,49 +827,80 @@
         
         const projectContainer = document.querySelector('.project-container');
         const projects = document.querySelectorAll('.project-card');
-        const leftButton = document.querySelector('.scroll-left');
-        const rightButton = document.querySelector('.scroll-right');
+        const totalProjects = projects.length;
         let currentIndex = 0;
+        let isAnimating = false;
 
-        // Update projects function
         function updateProjects() {
+            if (isAnimating) return;
+            isAnimating = true;
+
             projects.forEach((project, index) => {
+                // Remove all click handlers first
+                project.onclick = null;
+                
+                // Reset classes
                 project.className = 'project-card';
                 
-                if (index === currentIndex) {
-                    project.classList.add('active');
-                } else if (index === (currentIndex + 1) % projects.length) {
-                    project.classList.add('next');
-                } else if (index === (currentIndex - 1 + projects.length) % projects.length) {
-                    project.classList.add('previous');
+                // Calculate relative position
+                const position = (index - currentIndex + totalProjects) % totalProjects;
+                
+                switch(position) {
+                    case 0:
+                        project.classList.add('active');
+                        break;
+                    case 1:
+                        project.classList.add('next');
+                        // Add click handler for next card
+                        project.onclick = () => {
+                            if (!isAnimating) rotateRight();
+                        };
+                        project.style.cursor = 'pointer';
+                        break;
+                    case totalProjects - 1:
+                        project.classList.add('previous');
+                        // Add click handler for previous card
+                        project.onclick = () => {
+                            if (!isAnimating) rotateLeft();
+                        };
+                        project.style.cursor = 'pointer';
+                        break;
+                    default:
+                        // Hide other cards
+                        project.classList.add(position < totalProjects - 1 ? 'far-next' : 'far-previous');
+                        project.style.cursor = 'default';
                 }
             });
+
+            // Prevent animation interruption
+            setTimeout(() => {
+                isAnimating = false;
+            }, 800); // Match this with your CSS transition duration
         }
 
-        // Button navigation
-        leftButton.addEventListener('click', () => {
-            currentIndex = (currentIndex - 1 + projects.length) % projects.length;
+        function rotateLeft() {
+            if (isAnimating) return;
+            currentIndex = (currentIndex - 1 + totalProjects) % totalProjects;
             updateProjects();
-        });
+        }
 
-        rightButton.addEventListener('click', () => {
-            currentIndex = (currentIndex + 1) % projects.length;
+        function rotateRight() {
+            if (isAnimating) return;
+            currentIndex = (currentIndex + 1) % totalProjects;
             updateProjects();
-        });
+        }
+
+        // Navigation buttons
+        document.querySelector('.scroll-left').addEventListener('click', rotateLeft);
+        document.querySelector('.scroll-right').addEventListener('click', rotateRight);
 
         // Keyboard navigation
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') {
-                currentIndex = (currentIndex - 1 + projects.length) % projects.length;
-                updateProjects();
-            }
-            if (e.key === 'ArrowRight') {
-                currentIndex = (currentIndex + 1) % projects.length;
-                updateProjects();
-            }
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowLeft') rotateLeft();
+            if (e.key === 'ArrowRight') rotateRight();
         });
 
-        // Initialize the projects
+        // Initial setup
         updateProjects();
     </script>
 
