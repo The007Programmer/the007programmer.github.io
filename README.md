@@ -2,6 +2,8 @@
 
 ## Will add more information later.
 
+## Note: working with css and js in one file as of current.
+
 ### Commits Key
 - SAFE: Stable and production-ready code; can be safely deployed.
 - TEST: Code meant for testing or experimental changes; safe but does not affect the main program directly; stable for version control.

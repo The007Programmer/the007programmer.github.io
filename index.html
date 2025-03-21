@@ -3,55 +3,583 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="stylesheet.css">
     <title>Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #071E22; /* Dark background */
+            color: #F4C095; /* Beachy sand color */
+        }
+
+        /* Custom accent color */
+        .accent {
+            color: #EE2E31; /* Red accent */
+        }
+
+        /* Full height landing page */
+        .full-screen {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        /* Navigation bar styles */
+        nav {
+            background-color: transparent;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 100;
+            padding: 1rem 0;
+            transition: all 0.5s ease; /* Smoother transition */
+        }
+
+        nav.scrolled {
+            background-color: rgba(17, 24, 39, 0); /* Start transparent */
+        }
+
+        /* Add this new class for full opacity */
+        nav.scrolled-full {
+            background-color: rgba(17, 24, 39, 0.95);
+        }
+
+        nav ul {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        nav ul li {
+            transition: color 0.3s ease; /* Changed from filter to color transition */
+        }
+
+        nav a {
+            color: #F4C095; /* Light gray-green for navigation links */
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover {
+            color: #EE2E31; /* Accent color on hover */
+        }
+
+        section {
+            position: relative;
+            padding: 4rem 0;
+        }
+
+        /* Add subtle section dividers */
+        section:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 1px;
+            background: linear-gradient(
+                to right,
+                transparent,
+                rgba(238, 46, 49, 0.3),
+                rgba(238, 46, 49, 0.5),
+                rgba(238, 46, 49, 0.3),
+                transparent
+            );
+        }
+
+        /* About Section Styles */
+        #about {
+            text-align: center; /* Center the content */
+        }
+
+        #about .container {
+            max-width: 800px; /* Limit the width for better readability */
+            margin: 0 auto; /* Center the container */
+        }
+
+        /* Project Section Styles */
+        #projects {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Change from center to flex-start */
+            perspective: 1500px;
+            overflow: hidden;
+            padding-top: 2rem; /* Add this to move content down */
+        }
+
+        #projects h2 {
+            margin-bottom: -1em; /* Keep consistent with other sections */
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .project-container {
+            position: relative;
+            width: 100%;
+            height: calc(100% - 8rem); /* Adjust height to account for header */
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease;
+            margin-top: 0; /* Remove negative margin */
+        }
+
+        .project-card {
+            position: absolute;
+            width: 400px;
+            height: 500px;
+            left: 50%;
+            top: 50%;
+            transform-origin: center;
+            transform-style: preserve-3d;
+            transition: all 0.5s ease;
+            backdrop-filter: blur(5px);
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .project-card.active {
+            transform: translate(-50%, -50%) translateZ(200px);
+            opacity: 1;
+        }
+
+        .project-card.previous {
+            transform: translate(-50%, -50%) translateX(-100%) translateZ(-200px) rotateY(45deg);
+            opacity: 0.6;
+            filter: blur(2px);
+        }
+
+        .project-card.next {
+            transform: translate(-50%, -50%) translateX(100%) translateZ(-200px) rotateY(-45deg);
+            opacity: 0.6;
+            filter: blur(2px);
+        }
+
+        .project-image {
+            width: 100%;
+            height: 200px; /* Adjust as needed */
+            object-fit: cover; /* Maintain aspect ratio and cover the area */
+            border-radius: 10px;
+        }
+
+        .project-link {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #EE2E31; /* Red accent */
+            color: #F4C095; /* Beachy sand color */
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .scroll-navigation {
+            position: absolute;
+            bottom: 4rem; /* Increased from 2rem to add more space above Contact section */
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 2rem;
+            z-index: 10;
+        }
+
+        .scroll-button {
+            background: rgba(238, 46, 49, 0.8);
+            border: none;
+            padding: 1rem 2rem;
+            color: #F4C095;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .scroll-button:hover {
+            background: rgba(238, 46, 49, 1);
+        }
+
+        /* Custom Scrollbar Styles */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #071E22;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #F4C095;
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #EE2E31;
+        }
+
+        /* Update these CSS rules */
+        .w-full {
+            color: #F4C095;
+        }
+
+        input, textarea {
+            color: #F4C095 !important;
+        }
+
+        button {
+            color: #F4C095 !important;
+        }
+
+        footer {
+            color: #F4C095;
+        }
+
+        .project-card h3 {
+            text-align: center;
+            margin: 1rem 0;
+            color: #F4C095;
+        }
+
+        /* Add these styles for the Experience section */
+        .tech-item, .os-item, .service-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            width: 120px;
+            height: 120px;
+            justify-content: center;
+        }
+
+        .tech-item:hover, .os-item:hover, .service-item:hover {
+            transform: translateY(-5px);
+            background: rgba(238, 46, 49, 0.1);
+        }
+
+        .tech-item span, .os-item span, .service-item span {
+            margin-top: 0.5rem;
+            color: #F4C095;
+        }
+
+        .tech-item i, .os-item i, .service-item i {
+            color: #EE2E31;
+        }
+
+        #contact h2 {
+            text-align: center;
+        }
+
+        /* Add this to your existing styles */
+        .submit-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .profile-image-container {
+            margin-bottom: 1rem;
+            width: 250px; /* Increased from 200px */
+            height: 250px; /* Increased from 200px */
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid #EE2E31;
+            box-shadow: 0 0 20px rgba(238, 46, 49, 0.3);
+        }
+
+        .profile-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .profile-image:hover {
+            transform: scale(1.1);
+        }
+
+        /* Add this to your existing styles */
+        .social-links {
+            display: flex;
+            gap: 2rem;
+            margin-top: 3rem; /* Increased from 2rem */
+        }
+
+        .social-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 3rem;
+            height: 3rem;
+            background-color: rgba(238, 46, 49, 0.1);
+            color: #F4C095;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .social-button:hover {
+            background-color: rgba(238, 46, 49, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .social-button i {
+            font-size: 1.5rem;
+        }
+
+        .text-xl.mt-4 {
+            margin-top: 0.5rem; /* Reduced from 1rem (mt-4) */
+        }
+
+        .name-title {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #EE2E31;
+            letter-spacing: 0.1em; /* Add slight spacing between letters */
+            margin-bottom: 2rem;
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>Your Portfolio</h1>
-        <nav>
-            <ul>
-                <li><a href="#about">About</a></li>
-                <li><a href="#projects">Projects</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-        </nav>
+
+    <!-- Navigation -->
+    <nav>
+        <ul>
+            <li><a href="#about">About</a></li>
+            <li><a href="#experience">Experience</a></li>
+            <li><a href="#projects">Projects</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <!-- Landing Page -->
+    <header class="full-screen">
+        <h1 class="name-title">Aahil Shaikh</h1>
+        <div class="profile-image-container">
+            <img src="photo.jpg" alt="Aahil Shaikh" class="profile-image">
+        </div>
+        <p class="text-xl mt-4">
+            Hi, I'm a <span class="typed-words"></span>
+        </p>
+        <div class="social-links mt-6">
+            <a href="https://github.com/The007Programmer" class="social-button">
+                <i class="fab fa-github"></i>
+            </a>
+            <a href="https://stackoverflow.com/users/yourid" class="social-button">
+                <i class="fab fa-stack-overflow"></i>
+            </a>
+            <a href="https://linkedin.com/in/aahil-shaikh-04b9ba356/" class="social-button">
+                <i class="fab fa-linkedin"></i>
+            </a>
+        </div>
     </header>
 
-    <main>
-        <section id="about">
-            <h2>About Me</h2>
-            <p>A brief introduction about yourself goes here.</p>
-        </section>
-        
-        <section id="projects">
-            <h2>Projects</h2>
-            <div class="project-container">
-                <article class="project">
-                    <h3>Project Title 1</h3>
-                    <p>Description of your project. Include details such as purpose, technologies used, and your role.</p>
-                </article>
-                <article class="project">
-                    <h3>Project Title 2</h3>
-                    <p>Description of your project. Include details such as purpose, technologies used, and your role.</p>
-                </article>
-                <!-- Additional project entries can be added here -->
-            </div>
-        </section>
-        
-        <section id="contact">
-            <h2>Contact</h2>
-            <p>Get in touch via email or follow me on social platforms:</p>
-            <ul class="contact-list">
-                <li>Email: <a href="mailto:your.email@example.com">your.email@example.com</a></li>
-                <li>LinkedIn: <a href="#">Your LinkedIn</a></li>
-                <li>GitHub: <a href="#">Your GitHub</a></li>
-            </ul>
-        </section>
-    </main>
+    <!-- About Section -->
+    <section id="about">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold accent mb-4">About Me</h2>
+            <p class="text-lg">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. ...
+            </p>
+        </div>
+    </section>
 
-    <footer>
-        <p>&copy; 2023 Your Name. All rights reserved.</p>
+    <!-- Experience Section -->
+    <section id="experience" class="py-16">
+        <h2 class="text-3xl font-bold accent mb-8 text-center">Experience</h2>
+        
+        <div class="container mx-auto px-4">
+            <!-- Languages -->
+            <div class="mb-12">
+                <h3 class="text-2xl mb-4 text-center">Languages & Technologies</h3>
+                <div class="flex flex-wrap justify-center gap-6">
+                    <div class="tech-item">
+                        <i class="fab fa-python text-4xl"></i>
+                        <span>Python</span>
+                    </div>
+                    <!-- Add more language items -->
+                </div>
+            </div>
+
+            <!-- Operating Systems -->
+            <div class="mb-12">
+                <h3 class="text-2xl mb-4 text-center">Operating Systems</h3>
+                <div class="flex flex-wrap justify-center gap-6">
+                    <div class="os-item">
+                        <i class="fab fa-linux text-4xl"></i>
+                        <span>Linux</span>
+                    </div>
+                    <!-- Add more OS items -->
+                </div>
+            </div>
+
+            <!-- Services -->
+            <div class="mb-12">
+                <h3 class="text-2xl mb-4 text-center">Services & Tools</h3>
+                <div class="flex flex-wrap justify-center gap-6">
+                    <div class="service-item">
+                        <i class="fab fa-aws text-4xl"></i>
+                        <span>AWS</span>
+                    </div>
+                    <!-- Add more service items -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects">
+        <h2 class="text-3xl font-bold accent mb-4 text-center">Projects</h2>
+        <div class="project-container">
+            <div class="project-card active">
+                <img src="project1.jpg" alt="Project 1" class="project-image">
+                <h3>Project 1</h3>
+                <p>Description of project 1</p>
+                <a href="#" class="project-link">View on GitHub</a>
+            </div>
+            <div class="project-card next">
+                <img src="project2.jpg" alt="Project 2" class="project-image">
+                <h3>Project 2</h3>
+                <p>Description of project 2</p>
+                <a href="#" class="project-link">View on GitHub</a>
+            </div>
+            <div class="project-card previous">
+                <img src="project3.jpg" alt="Project 3" class="project-image">
+                <h3>Project 3</h3>
+                <p>Description of project 3</p>
+                <a href="#" class="project-link">View on GitHub</a>
+            </div>
+        </div>
+        <div class="scroll-navigation">
+            <button class="scroll-button scroll-left">&lt;</button>
+            <button class="scroll-button scroll-right">&gt;</button>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold accent mb-4">Contact Me</h2>
+            <form class="max-w-lg mx-auto">
+                <input type="text" placeholder="Your Name" class="w-full p-2 mb-4 rounded bg-gray-700">
+                <input type="email" placeholder="Your Email" class="w-full p-2 mb-4 rounded bg-gray-700">
+                <textarea placeholder="Your Message" class="w-full p-2 mb-4 rounded bg-gray-700"></textarea>
+                <div class="submit-container">
+                    <button class="bg-red-500 hover:bg-red-700 font-bold py-2 px-4 rounded">Send Message</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-center py-4">
+        <p>&copy; 2025 Aahil Shaikh</p>
     </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+    <script>
+        var typed = new Typed('.typed-words', {
+            strings: ["Developer", "Photographer", "Artist"],
+            typeSpeed: 40,
+            backSpeed: 40,
+            loop: true
+        });
+    </script>
+
+    <script>
+        // JavaScript to show/hide the navigation bar
+        window.addEventListener('scroll', function() {
+            let nav = document.querySelector('nav');
+            let landingHeight = document.querySelector('.full-screen').offsetHeight;
+            let scrollPercent = (window.scrollY / landingHeight);
+            
+            if (window.scrollY > 50) {
+                nav.classList.add('scrolled');
+                // Calculate opacity based on scroll position
+                let opacity = Math.min(scrollPercent * 0.95, 0.95);
+                nav.style.backgroundColor = `rgba(17, 24, 39, ${opacity})`;
+                
+                if (window.scrollY >= landingHeight) {
+                    nav.classList.add('scrolled-full');
+                } else {
+                    nav.classList.remove('scrolled-full');
+                }
+            } else {
+                nav.classList.remove('scrolled');
+                nav.style.backgroundColor = 'transparent';
+            }
+        });
+
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Remove all existing project-related JavaScript and replace with this:
+        
+        const projectContainer = document.querySelector('.project-container');
+        const projects = document.querySelectorAll('.project-card');
+        const leftButton = document.querySelector('.scroll-left');
+        const rightButton = document.querySelector('.scroll-right');
+        let currentIndex = 0;
+
+        // Update projects function
+        function updateProjects() {
+            projects.forEach((project, index) => {
+                project.className = 'project-card';
+                
+                if (index === currentIndex) {
+                    project.classList.add('active');
+                } else if (index === (currentIndex + 1) % projects.length) {
+                    project.classList.add('next');
+                } else if (index === (currentIndex - 1 + projects.length) % projects.length) {
+                    project.classList.add('previous');
+                }
+            });
+        }
+
+        // Button navigation
+        leftButton.addEventListener('click', () => {
+            currentIndex = (currentIndex - 1 + projects.length) % projects.length;
+            updateProjects();
+        });
+
+        rightButton.addEventListener('click', () => {
+            currentIndex = (currentIndex + 1) % projects.length;
+            updateProjects();
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                currentIndex = (currentIndex - 1 + projects.length) % projects.length;
+                updateProjects();
+            }
+            if (e.key === 'ArrowRight') {
+                currentIndex = (currentIndex + 1) % projects.length;
+                updateProjects();
+            }
+        });
+
+        // Initialize the projects
+        updateProjects();
+    </script>
+
 </body>
 </html>
