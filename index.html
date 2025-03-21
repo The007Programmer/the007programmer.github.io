@@ -345,8 +345,18 @@
             font-size: 3rem;
             font-weight: bold;
             color: #EE2E31;
-            letter-spacing: 0.1em; /* Add slight spacing between letters */
             margin-bottom: 2rem;
+            display: inline-block;
+        }
+
+        .name-title span {
+            display: inline-block;
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        .name-title span:hover {
+            transform: translateY(-5px);
+            color: #F4C095;
         }
     </style>
 </head>
@@ -364,7 +374,10 @@
 
     <!-- Landing Page -->
     <header class="full-screen">
-        <h1 class="name-title">Aahil Shaikh</h1>
+        <h1 class="name-title">
+            <span>A</span><span>a</span><span>h</span><span>i</span><span>l</span>
+            <span>S</span><span>h</span><span>a</span><span>i</span><span>k</span><span>h</span>
+        </h1>
         <div class="profile-image-container">
             <img src="photo.jpg" alt="Aahil Shaikh" class="profile-image">
         </div>
