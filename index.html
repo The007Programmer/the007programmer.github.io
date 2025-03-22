@@ -72,7 +72,7 @@
             transition: all 0.3s ease;
             font-size: 1.1rem; /* Slightly larger font */
             padding: 0.5rem 1rem; /* Add padding around links */
-            border-radius: 10px; /* Rounded corners */
+            border-radius: 15px; /* Rounded corners */
         }
 
         nav a:hover {
@@ -152,7 +152,7 @@
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(8px);
             padding: 2rem;
-            border-radius: 15px;
+            border-radius: 20px;
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
         }
 
@@ -162,20 +162,18 @@
             z-index: 3;
         }
 
-        .project-card.previous {
+        .project-card.previous,
+        .project-card.next {
             transform: translate(-50%, -50%) rotateY(45deg) translateX(-90%) translateZ(-400px);
             opacity: 0.7;
             z-index: 2;
             filter: blur(2px);
-            cursor: pointer;
+            pointer-events: none; /* Disable interaction with unfocused cards */
+            cursor: default;
         }
 
         .project-card.next {
             transform: translate(-50%, -50%) rotateY(-45deg) translateX(90%) translateZ(-400px);
-            opacity: 0.7;
-            z-index: 2;
-            filter: blur(2px);
-            cursor: pointer;
         }
 
         .project-card.far-previous,
@@ -190,7 +188,7 @@
             width: 100%;
             height: 250px; /* Reduced from 400px */
             object-fit: cover;
-            border-radius: 10px;
+            border-radius: 15px;
         }
 
         .project-content {
@@ -203,12 +201,12 @@
             height: 100%;
             top: 0;
             left: 0;
-            pointer-events: none; /* Prevent interference with cards */
-            z-index: 4;
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 0 2rem;
+            pointer-events: none; /* Prevent interference with cards */
+            z-index: 4;
         }
 
         .scroll-button {
@@ -227,12 +225,6 @@
             align-items: center;
             justify-content: center;
             backdrop-filter: blur(5px);
-        }
-
-        .scroll-button:hover {
-            background: rgba(238, 46, 49, 0.2);
-            border-color: rgba(238, 46, 49, 0.5);
-            transform: scale(1.1);
         }
 
         /* Custom Scrollbar Styles */
@@ -260,10 +252,12 @@
 
         input, textarea {
             color: #F4C095 !important;
+            border-radius: 15px !important;
         }
 
         button {
             color: #F4C095 !important;
+            border-radius: 15px !important;
         }
 
         footer {
@@ -283,7 +277,7 @@
             align-items: center;
             padding: 1.5rem;
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
+            border-radius: 15px;
             transition: all 0.3s ease;
             backdrop-filter: blur(5px);
             width: 120px;
@@ -402,7 +396,7 @@
         /* Add these styles in your <style> tag */
         .tech-category, .service-category {
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
+            border-radius: 20px;
             padding: 1.5rem;
             backdrop-filter: blur(5px);
         }
@@ -641,6 +635,16 @@
         section {
             overflow: hidden;
         }
+
+        .project-link {
+            border-radius: 12px;
+            padding: 0.5rem 1rem;
+            display: inline-block;
+        }
+
+        .submit-container button {
+            border-radius: 15px;
+        }
     </style>
 </head>
 <body>
@@ -873,11 +877,13 @@
     <!-- Projects Section -->
     <section id="projects">
         <h2 class="text-3xl font-bold accent mb-8 text-center">Projects</h2>
+        
         <div class="project-container">
             <div class="scroll-navigation">
                 <button class="scroll-button scroll-left" type="button">&lt;</button>
                 <button class="scroll-button scroll-right" type="button">&gt;</button>
             </div>
+            <!-- Project cards here -->
             <div class="project-card">
                 <img src="project1.jpg" alt="Project 1" class="project-image">
                 <div class="project-content">
