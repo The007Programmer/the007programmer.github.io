@@ -157,7 +157,7 @@
         }
 
         .project-card.active {
-            transform: translate(-50%, -50%) rotateY(0deg);
+            transform: translate(-50%, -50%) rotateY(0deg) translateZ(0);
             opacity: 1;
             z-index: 3;
         }
@@ -167,6 +167,7 @@
             opacity: 0.7;
             z-index: 2;
             filter: blur(2px);
+            cursor: pointer;
         }
 
         .project-card.next {
@@ -174,6 +175,7 @@
             opacity: 0.7;
             z-index: 2;
             filter: blur(2px);
+            cursor: pointer;
         }
 
         .project-card.far-previous,
@@ -196,29 +198,41 @@
         }
 
         .scroll-navigation {
-            position: relative;
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-top: 2rem;
+            position: absolute;
             width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none; /* Prevent interference with cards */
+            z-index: 4;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
         }
 
         .scroll-button {
-            padding: 1rem 2rem;
+            pointer-events: auto; /* Re-enable button clicks */
+            padding: 1.5rem;
             background: rgba(238, 46, 49, 0.1);
             border: 2px solid rgba(238, 46, 49, 0.3);
             color: #F4C095;
-            border-radius: 10px;
+            border-radius: 50%;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 1.25rem;
+            font-size: 1.5rem;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
         }
 
         .scroll-button:hover {
             background: rgba(238, 46, 49, 0.2);
             border-color: rgba(238, 46, 49, 0.5);
-            transform: translateY(-2px);
+            transform: scale(1.1);
         }
 
         /* Custom Scrollbar Styles */
@@ -303,9 +317,9 @@
         }
 
         .profile-image-container {
-            margin-bottom: 1rem;
-            width: 250px; /* Increased from 200px */
-            height: 250px; /* Increased from 200px */
+            margin-bottom: 2rem;
+            width: 400px; /* Increased from 300px */
+            height: 400px; /* Increased from 300px */
             border-radius: 50%;
             overflow: hidden;
             border: 3px solid #EE2E31;
@@ -860,6 +874,10 @@
     <section id="projects">
         <h2 class="text-3xl font-bold accent mb-8 text-center">Projects</h2>
         <div class="project-container">
+            <div class="scroll-navigation">
+                <button class="scroll-button scroll-left" type="button">&lt;</button>
+                <button class="scroll-button scroll-right" type="button">&gt;</button>
+            </div>
             <div class="project-card">
                 <img src="project1.jpg" alt="Project 1" class="project-image">
                 <div class="project-content">
@@ -900,10 +918,6 @@
                     <a href="#" class="project-link">View Project</a>
                 </div>
             </div>
-        </div>
-        <div class="scroll-navigation">
-            <button class="scroll-button scroll-left">&lt;</button>
-            <button class="scroll-button scroll-right">&gt;</button>
         </div>
     </section>
 
@@ -985,7 +999,6 @@
             isAnimating = true;
 
             projects.forEach((project, index) => {
-                project.onclick = null;
                 project.className = 'project-card';
                 
                 const position = (index - currentIndex + totalProjects) % totalProjects;
@@ -996,11 +1009,9 @@
                         break;
                     case 1:
                         project.classList.add('next');
-                        project.onclick = () => !isAnimating && rotateRight();
                         break;
                     case totalProjects - 1:
                         project.classList.add('previous');
-                        project.onclick = () => !isAnimating && rotateLeft();
                         break;
                     default:
                         project.classList.add(position < totalProjects - 1 ? 'far-next' : 'far-previous');
@@ -1026,13 +1037,28 @@
             }
         }
 
-        document.querySelector('.scroll-left').addEventListener('click', rotateLeft);
-        document.querySelector('.scroll-right').addEventListener('click', rotateRight);
+        // Fix button event listeners
+        document.querySelector('.scroll-button.scroll-left').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (!isAnimating) {
+                rotateLeft();
+            }
+        });
+
+        document.querySelector('.scroll-button.scroll-right').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (!isAnimating) {
+                rotateRight();
+            }
+        });
+
+        // Keep keyboard navigation
         document.addEventListener('keydown', e => {
             if (e.key === 'ArrowLeft') rotateLeft();
             if (e.key === 'ArrowRight') rotateRight();
         });
 
+        // Initialize
         updateProjects();
     </script>
 
