@@ -26,6 +26,8 @@
             justify-content: center;
             align-items: center;
             text-align: center;
+            width: 100%;
+            max-width: 100%;
         }
 
         /* Navigation bar styles */
@@ -50,6 +52,7 @@
             background-color: rgba(17, 24, 39, 0.98); /* Increased opacity */
             backdrop-filter: blur(8px); /* Add blur effect */
             border-bottom: 1px solid rgba(238, 46, 49, 0.2); /* More visible border when scrolled */
+            width: 100%;
         }
 
         nav ul {
@@ -80,6 +83,10 @@
         section {
             position: relative;
             padding: 4rem 0;
+            width: 80%;
+            max-width: 1600px;
+            margin: 0 auto;
+            overflow: hidden;
         }
 
         /* Add subtle section dividers */
@@ -109,36 +116,35 @@
         #about .container {
             max-width: 800px; /* Limit the width for better readability */
             margin: 0 auto; /* Center the container */
+            width: 100%;
         }
 
         /* Project Section Styles */
         #projects {
             position: relative;
-            height: 800px; /* Fixed height instead of vh */
+            height: 800px;
+            width: 80%; /* Match the separator width */
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 4rem 0;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between; /* Changed from flex-start */
-            overflow: hidden;
-            padding: 2rem;
-            max-width: 1800px; /* Add max-width to contain the section */
-            margin: 0 auto;
         }
 
         .project-container {
             position: relative;
             width: 100%;
-            height: 600px; /* Fixed height instead of vh */
+            height: 600px;
             transform-style: preserve-3d;
             perspective: 3000px;
-            max-width: 1400px;
-            margin: 0 auto;
         }
 
         .project-card {
             position: absolute;
-            width: min(700px, 60%); /* Use percentage instead of vw */
-            height: 500px; /* Fixed height */
+            width: min(700px, 60%); /* Adjusted to percentage of container */
+            height: 500px;
             left: 50%;
             top: 50%;
             transform-style: preserve-3d;
@@ -151,20 +157,20 @@
         }
 
         .project-card.active {
-            transform: translate(-50%, -50%) translateZ(0);
+            transform: translate(-50%, -50%) rotateY(0deg);
             opacity: 1;
             z-index: 3;
         }
 
         .project-card.previous {
-            transform: translate(-50%, -50%) translateX(-110%) translateZ(-300px) rotateY(35deg); /* Adjusted positioning */
+            transform: translate(-50%, -50%) rotateY(45deg) translateX(-90%) translateZ(-400px);
             opacity: 0.7;
             z-index: 2;
             filter: blur(2px);
         }
 
         .project-card.next {
-            transform: translate(-50%, -50%) translateX(110%) translateZ(-300px) rotateY(-35deg); /* Adjusted positioning */
+            transform: translate(-50%, -50%) rotateY(-45deg) translateX(90%) translateZ(-400px);
             opacity: 0.7;
             z-index: 2;
             filter: blur(2px);
@@ -172,7 +178,7 @@
 
         .project-card.far-previous,
         .project-card.far-next {
-            transform: translate(-50%, -50%) translateZ(-1000px); /* Reduced Z distance */
+            transform: translate(-50%, -50%) translateZ(-800px);
             opacity: 0;
             pointer-events: none;
             z-index: 1;
@@ -190,16 +196,16 @@
         }
 
         .scroll-navigation {
-            position: relative; /* Changed from static */
+            position: relative;
             display: flex;
+            justify-content: center;
             gap: 2rem;
-            z-index: 10;
-            padding: 1rem 0;
-            margin-top: auto; /* Push to bottom of flex container */
+            margin-top: 2rem;
+            width: 100%;
         }
 
         .scroll-button {
-            padding: 0.75rem 1.5rem;
+            padding: 1rem 2rem;
             background: rgba(238, 46, 49, 0.1);
             border: 2px solid rgba(238, 46, 49, 0.3);
             color: #F4C095;
@@ -207,10 +213,6 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 1.25rem;
-            min-width: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         .scroll-button:hover {
@@ -393,38 +395,67 @@
 
         .os-tree {
             display: flex;
-            justify-content: center;
-            gap: 4rem;
-            margin-top: 2rem;
+            justify-content: space-evenly;
+            gap: 8rem; /* Increased from 4rem */
+            width: 100%;
+            max-width: 1200px;
+            margin: 4rem auto; /* Increased from 2rem */
+            position: relative;
+        }
+
+        .os-tree::before {
+            content: '';
+            position: absolute;
+            top: 60px; /* Align with main OS icons */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%; /* Width of horizontal connector */
+            height: 2px;
+            background: linear-gradient(
+                to right,
+                transparent,
+                rgba(238, 46, 49, 0.5),
+                rgba(238, 46, 49, 0.5),
+                transparent
+            );
         }
 
         .os-branch {
             display: flex;
             flex-direction: column;
             align-items: center;
+            position: relative;
+            min-width: 300px; /* Ensure minimum width */
         }
 
         .os-children {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-            margin-top: 2rem;
+            gap: 2rem; /* Increased from 1rem */
+            margin-top: 3rem; /* Increased from 2rem */
             position: relative;
+            width: 100%;
         }
 
         .os-children::before {
             content: '';
             position: absolute;
-            top: -2rem;
+            top: -3rem; /* Increased from -2rem */
             left: 50%;
+            transform: translateX(-50%);
             width: 2px;
-            height: 2rem;
-            background: #EE2E31;
+            height: 3rem; /* Increased from 2rem */
+            background: linear-gradient(
+                to bottom,
+                rgba(238, 46, 49, 0.8),
+                rgba(238, 46, 49, 0.3)
+            );
         }
 
         .os-item.main {
             background: rgba(238, 46, 49, 0.1);
-            transform: scale(1.1);
+            transform: scale(1.2); /* Increased from 1.1 */
+            margin-bottom: 1rem;
         }
 
         .os-item.child {
@@ -434,11 +465,16 @@
         .os-item.child::before {
             content: '';
             position: absolute;
-            top: -1rem;
+            top: -1.5rem; /* Increased from -1rem */
             left: 50%;
+            transform: translateX(-50%);
             width: 2px;
-            height: 1rem;
-            background: #EE2E31;
+            height: 1.5rem; /* Increased from 1rem */
+            background: linear-gradient(
+                to bottom,
+                rgba(238, 46, 49, 0.5),
+                rgba(238, 46, 49, 0.3)
+            );
         }
 
         .tech-item small {
@@ -477,6 +513,119 @@
             .project-image {
                 height: 200px;
             }
+        }
+
+        @media (max-width: 1200px) {
+            .project-card {
+                width: 600px;
+                height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .project-card {
+                width: 90%;
+                height: 350px;
+            }
+        }
+
+        /* Update section widths and margins */
+        section {
+            position: relative;
+            padding: 4rem 0;
+            width: 80%;
+            max-width: 1600px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        /* Add margin blur effect */
+        section {
+            position: relative;
+            padding: 4rem 0;
+            width: 80%;
+            max-width: 1600px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        /* Add these new styles for the blur effect */
+        section::before,
+        section::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 50px;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        section::before {
+            left: -50px;
+            background: linear-gradient(
+                to right,
+                #071E22,
+                rgba(7, 30, 34, 0.99),
+                rgba(7, 30, 34, 0.7),
+                rgba(7, 30, 34, 0)
+            );
+        }
+
+        section::after {
+            right: -50px;
+            background: linear-gradient(
+                to left,
+                #071E22,
+                rgba(7, 30, 34, 0.99),
+                rgba(7, 30, 34, 0.7),
+                rgba(7, 30, 34, 0)
+            );
+        }
+
+        /* Update specific section containers */
+        #about .container,
+        #experience .container,
+        #contact .container {
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Update experience section grid layout */
+        .grid.grid-cols-1 {
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Update OS tree layout */
+        .os-tree {
+            width: 100%;
+            max-width: 1200px;
+            margin: 2rem auto;
+            gap: 2rem;
+        }
+
+        /* Update contact form width */
+        #contact form {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Exception for full-screen landing */
+        .full-screen {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        /* Update navigation to match section width when scrolled */
+        nav.scrolled-full {
+            width: 100%;
+        }
+
+        /* Add overflow control */
+        section {
+            overflow: hidden;
         }
     </style>
 </head>
@@ -836,13 +985,9 @@
             isAnimating = true;
 
             projects.forEach((project, index) => {
-                // Remove all click handlers first
                 project.onclick = null;
-                
-                // Reset classes
                 project.className = 'project-card';
                 
-                // Calculate relative position
                 const position = (index - currentIndex + totalProjects) % totalProjects;
                 
                 switch(position) {
@@ -851,56 +996,43 @@
                         break;
                     case 1:
                         project.classList.add('next');
-                        // Add click handler for next card
-                        project.onclick = () => {
-                            if (!isAnimating) rotateRight();
-                        };
-                        project.style.cursor = 'pointer';
+                        project.onclick = () => !isAnimating && rotateRight();
                         break;
                     case totalProjects - 1:
                         project.classList.add('previous');
-                        // Add click handler for previous card
-                        project.onclick = () => {
-                            if (!isAnimating) rotateLeft();
-                        };
-                        project.style.cursor = 'pointer';
+                        project.onclick = () => !isAnimating && rotateLeft();
                         break;
                     default:
-                        // Hide other cards
                         project.classList.add(position < totalProjects - 1 ? 'far-next' : 'far-previous');
-                        project.style.cursor = 'default';
                 }
             });
 
-            // Prevent animation interruption
             setTimeout(() => {
                 isAnimating = false;
-            }, 800); // Match this with your CSS transition duration
+            }, 800);
         }
 
         function rotateLeft() {
-            if (isAnimating) return;
-            currentIndex = (currentIndex - 1 + totalProjects) % totalProjects;
-            updateProjects();
+            if (!isAnimating) {
+                currentIndex = (currentIndex - 1 + totalProjects) % totalProjects;
+                updateProjects();
+            }
         }
 
         function rotateRight() {
-            if (isAnimating) return;
-            currentIndex = (currentIndex + 1) % totalProjects;
-            updateProjects();
+            if (!isAnimating) {
+                currentIndex = (currentIndex + 1) % totalProjects;
+                updateProjects();
+            }
         }
 
-        // Navigation buttons
         document.querySelector('.scroll-left').addEventListener('click', rotateLeft);
         document.querySelector('.scroll-right').addEventListener('click', rotateRight);
-
-        // Keyboard navigation
         document.addEventListener('keydown', e => {
             if (e.key === 'ArrowLeft') rotateLeft();
             if (e.key === 'ArrowRight') rotateRight();
         });
 
-        // Initial setup
         updateProjects();
     </script>
 
