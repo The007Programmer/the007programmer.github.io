@@ -154,6 +154,7 @@
             padding: 2rem;
             border-radius: 20px;
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            z-index: 2;
         }
 
         .project-card.active {
@@ -206,7 +207,7 @@
             align-items: center;
             padding: 0 2rem;
             pointer-events: none; /* Prevent interference with cards */
-            z-index: 4;
+            z-index: 20; /* Increased significantly */
         }
 
         .scroll-button {
@@ -224,7 +225,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            backdrop-filter: blur(5px);
+            backdrop-filter: none; /* Remove button blur */
+            z-index: 20; /* Match navigation z-index */
+            isolation: isolate; /* Create new stacking context */
         }
 
         /* Custom Scrollbar Styles */
@@ -566,7 +569,7 @@
             bottom: 0;
             width: 50px;
             pointer-events: none;
-            z-index: 2;
+            z-index: 5; /* Reduced from higher value */
         }
 
         section::before {
@@ -889,7 +892,7 @@
                 <div class="project-content">
                     <h3 class="text-2xl font-bold mb-4">ufw-ip-manager</h3>
                     <p class="mb-4">ip manager</p>
-                    <a href="https://github.com/The007Programmer/ufw-ip-manager" class="project-link">View Project</a>
+                    <a href="https://github.com/The007Programmer/ufw-ip-manager" class="project-link">View Pd\=-ject</a>0
                 </div>
             </div>
             <div class="project-card">
@@ -966,11 +969,11 @@
             
             if (window.scrollY > 50) {
                 nav.classList.add('scrolled');
-                // Calculate opacity based on scroll position
-                let opacity = Math.min(scrollPercent * 0.95, 0.95);
+                // Full opacity when reaching end of landing
+                let opacity = Math.min(scrollPercent, 0.98);
                 nav.style.backgroundColor = `rgba(17, 24, 39, ${opacity})`;
                 
-                if (window.scrollY >= landingHeight) {
+                if (scrollPercent >= 0.95) { // Changed from landingHeight
                     nav.classList.add('scrolled-full');
                 } else {
                     nav.classList.remove('scrolled-full');
