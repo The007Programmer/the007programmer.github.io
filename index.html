@@ -387,6 +387,295 @@
             justify-content: center;
             backdrop-filter: blur(5px);
         }
+
+        /* Update Experience Section Styles */
+        .experience-section {
+            min-height: 100vh;
+            padding: 6rem 4rem;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 4rem;
+        }
+
+        /* Timeline Styles */
+        .timeline-container {
+            margin: 2rem 0 4rem 0;
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 2rem 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 100%;
+            background: var(--accent);
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .timeline-item {
+            margin-bottom: 4rem;
+            width: 100%;
+            position: relative;
+        }
+
+        .timeline-item:nth-child(odd) {
+            padding-right: calc(50% + 2rem);
+        }
+
+        .timeline-item:nth-child(even) {
+            padding-left: calc(50% + 2rem);
+            margin-left: auto;
+        }
+
+        .timeline-content {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid rgba(238, 46, 49, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: var(--accent);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.3s ease;
+        }
+
+        .timeline-dot:hover {
+            transform: translate(-50%, -50%) scale(1.5);
+        }
+
+        /* Skills Grid Updates */
+        .skills-container {
+            margin-top: 4rem;
+            padding: 0 2rem;
+        }
+
+        .skill-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .skill-category {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid rgba(238, 46, 49, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .skill-category:hover {
+            transform: translateY(-5px);
+        }
+
+        .skill-category h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+            text-align: center;
+        }
+
+        .skill-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+
+        .skill-item {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 1.5rem;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .skill-item:hover {
+            background: var(--bg-secondary);
+            transform: translateY(-3px);
+        }
+
+        .skill-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .skill-name {
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        .skill-level {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            color: var(--accent);
+        }
+
+        .os-subgroup {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 1rem;
+        }
+
+        .os-subgroup h4 {
+            color: var(--accent);
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
+        /* Update Experience Section Header */
+        .section-title {
+            font-size: clamp(2rem, 5vw, 3rem);
+            text-align: center;
+            margin-bottom: 4rem;
+            background: linear-gradient(45deg, var(--text), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Timeline Content Styling */
+        .timeline-content {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid rgba(238, 46, 49, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .timeline-content h3 {
+            color: var(--accent);
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .timeline-content h4 {
+            font-size: 1.5rem;
+            margin: 0.5rem 0;
+            background: linear-gradient(45deg, var(--text), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .timeline-content p {
+            line-height: 1.6;
+            opacity: 0.8;
+        }
+
+        /* Skills Grid Styling */
+        .skills-container {
+            margin-top: 4rem;
+            padding: 0 2rem;
+        }
+
+        .skill-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .skill-category {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid rgba(238, 46, 49, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .skill-category:hover {
+            transform: translateY(-5px);
+        }
+
+        .skill-category h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+            text-align: center;
+        }
+
+        .skill-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+
+        .skill-item {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 1.5rem;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .skill-item:hover {
+            background: var(--bg-secondary);
+            transform: translateY(-3px);
+        }
+
+        .skill-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .skill-name {
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        .skill-level {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            color: var(--accent);
+        }
+
+        .os-subgroup {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 1rem;
+        }
+
+        .os-subgroup h4 {
+            color: var(--accent);
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 1.2rem;
+        }
     </style>
 </head>
 <body>
@@ -506,12 +795,144 @@
                     </div>
                 </div>
             </div>
+
             
             <!-- Add more project cards here -->
             
             <div class="scroll-navigation">
                 <button class="scroll-button scroll-left" type="button">&lt;</button>
                 <button class="scroll-button scroll-right" type="button">&gt;</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="experience" class="experience-section">
+        <h2 class="section-title">Experience</h2>
+        
+        <!-- Timeline Section -->
+        <div class="timeline-container">
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h3>2023 - Present</h3>
+                        <h4>Software Development</h4>
+                        <p>Leading full-stack development initiatives with a focus on secure architecture. 
+                           Implementing robust security measures across web applications and cloud infrastructure.</p>
+                    </div>
+                    <div class="timeline-dot"></div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h3>2022 - 2023</h3>
+                        <h4>Security Research</h4>
+                        <p>Conducted extensive penetration testing and vulnerability assessments. 
+                           Developed automated security tools and contributed to open-source security projects.</p>
+                    </div>
+                    <div class="timeline-dot"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Skills Grid Section -->
+        <div class="skills-container">
+            <div class="skill-categories">
+                <!-- Programming Languages -->
+                <div class="skill-category">
+                    <h3>Programming Languages</h3>
+                    <div class="skill-list">
+                        <div class="skill-item">
+                            <div class="skill-icon">🐍</div>
+                            <div class="skill-name">Python</div>
+                            <div class="skill-level">Advanced</div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-icon">📱</div>
+                            <div class="skill-name">HTML</div>
+                            <div class="skill-level">Intermediate</div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-icon">🎨</div>
+                            <div class="skill-name">CSS</div>
+                            <div class="skill-level">Intermediate</div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-icon">⚡</div>
+                            <div class="skill-name">C++</div>
+                            <div class="skill-level">Beginner</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Operating Systems -->
+                <div class="skill-category">
+                    <h3>Operating Systems</h3>
+                    <div class="skill-list">
+                        <div class="os-subgroup">
+                            <h4>Windows</h4>
+                            <div class="skill-item">
+                                <div class="skill-icon">🪟</div>
+                                <div class="skill-name">Windows 11</div>
+                            </div>
+                            <div class="skill-item">
+                                <div class="skill-icon">🪟</div>
+                                <div class="skill-name">Windows 10</div>
+                            </div>
+                        </div>
+                        <div class="os-subgroup">
+                            <h4>Linux</h4>
+                            <div class="skill-item">
+                                <div class="skill-icon">🐧</div>
+                                <div class="skill-name">Kali Linux</div>
+                            </div>
+                            <div class="skill-item">
+                                <div class="skill-icon">🐧</div>
+                                <div class="skill-name">Ubuntu</div>
+                            </div>
+                            <div class="skill-item">
+                                <div class="skill-icon">🐧</div>
+                                <div class="skill-name">Linux Mint</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Services -->
+                <div class="skill-category">
+                    <h3>Services & Tools</h3>
+                    <div class="skill-list">
+                        <div class="skill-item">
+                            <div class="skill-icon">🦈</div>
+                            <div class="skill-name">Wireshark</div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="skill-icon">📡</div>
+                            <div class="skill-name">Airgeddon</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Online Services -->
+                <div class="skill-category">
+                    <h3>Online Services</h3>
+                    <div class="skill-list">
+                        <div class="skill-item">
+                            <div class="skill-icon">🌐</div>
+                            <div class="skill-name">Tailscale</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Databases -->
+                <div class="skill-category">
+                    <h3>Databases</h3>
+                    <div class="skill-list">
+                        <div class="skill-item">
+                            <div class="skill-icon">🗄️</div>
+                            <div class="skill-name">MongoDB</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
