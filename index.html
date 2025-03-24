@@ -281,35 +281,36 @@
             height: 650px;
             left: 50%;
             top: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(8px);
             border-radius: 20px;
             border: 1px solid rgba(238, 46, 49, 0.1);
             padding: 2rem;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             opacity: 0;
             visibility: hidden;
             display: flex;
             flex-direction: column;
             gap: 2rem;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .project-card.active {
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%) scale(1);
             opacity: 1;
             visibility: visible;
             z-index: 3;
         }
 
         .project-card.previous {
-            transform: translate(calc(-50% - 60%), -50%) scale(0.85);
+            transform: translate(-150%, -50%) scale(0.8);
             opacity: 0.5;
             visibility: visible;
             z-index: 2;
         }
 
         .project-card.next {
-            transform: translate(calc(-50% + 60%), -50%) scale(0.85);
+            transform: translate(50%, -50%) scale(0.8);
             opacity: 0.5;
             visibility: visible;
             z-index: 2;
@@ -983,27 +984,21 @@
         const projectCards = document.querySelectorAll('.project-card');
         let currentIndex = 0;
 
+        // Update card cycling logic
         function updateCards() {
             projectCards.forEach((card, index) => {
+                // Remove all classes first
                 card.className = 'project-card';
                 
-                if (index === currentIndex) {
-                    card.classList.add('active');
-                } else if (index === currentIndex - 1 || 
-                          (currentIndex === 0 && index === projectCards.length - 1)) {
-                    card.classList.add('previous');
-                } else if (index === currentIndex + 1 || 
-                          (currentIndex === projectCards.length - 1 && index === 0)) {
-                    card.classList.add('next');
-                }
+                // Calculate relative position
+                const position = (index - currentIndex + projectCards.length) % projectCards.length;
                 
-                // Ensure proper visibility
-                if (!card.classList.contains('active') && 
-                    !card.classList.contains('previous') && 
-                    !card.classList.contains('next')) {
-                    card.style.visibility = 'hidden';
-                } else {
-                    card.style.visibility = 'visible';
+                if (position === 0) {
+                    card.classList.add('active');
+                } else if (position === projectCards.length - 1) {
+                    card.classList.add('previous');
+                } else if (position === 1) {
+                    card.classList.add('next');
                 }
             });
         }
