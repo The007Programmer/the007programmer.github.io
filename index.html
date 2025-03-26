@@ -38,8 +38,8 @@
 
         /* Custom Cursor */
         .cursor {
-            width: 20px;
-            height: 20px;
+            width: 24px; /* Increased from 20px */
+            height: 24px;
             background: var(--accent-red); /* Fill with color */
             border-radius: 50%;
             position: fixed;
@@ -51,8 +51,8 @@
         }
 
         .cursor-follower {
-            width: 40px;
-            height: 40px;
+            width: 48px; /* Increased from 40px */
+            height: 48px;
             border: 2px solid var(--accent-red);
             border-radius: 50%;
             position: fixed;
@@ -201,10 +201,15 @@
             right: -8px;
             top: 0;
             animation: blink 0.7s infinite;
+            font-weight: 500;
+            color: var(--accent-red); /* Make it red for better visibility */
+            font-size: 1.2em; /* Make it slightly larger than the text */
+            opacity: 0.8;
+            transform: translateY(-2px); /* Slight adjustment to align with text */
         }
 
         @keyframes blink {
-            0%, 100% { opacity: 1; }
+            0%, 100% { opacity: 0.8; }
             50% { opacity: 0; }
         }
 
@@ -362,6 +367,125 @@
             background: var(--light-teal);
             transform: translateY(-5px);
         }
+
+        .about-image {
+            width: 90%; /* Reduced from 100% */
+            height: auto;
+            margin: 0 auto; /* Center the image */
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .about-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .about-image:hover img {
+            transform: scale(1.05);
+        }
+
+        /* Experience Section Styles */
+        .experience-section {
+            min-height: 100vh;
+            padding: 8rem 2rem;
+            position: relative;
+        }
+
+        .timeline-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 100%;
+            background: var(--accent-red);
+            opacity: 0.3;
+        }
+
+        .timeline-item {
+            width: 100%;
+            margin-bottom: 6rem;
+            position: relative;
+        }
+
+        .timeline-content {
+            width: 45%;
+            padding: 2rem;
+            background: var(--deep-teal);
+            border-radius: 12px;
+            position: relative;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .timeline-content.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .timeline-content::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 20px;
+            height: 20px;
+            background: var(--accent-red);
+            border-radius: 50%;
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content {
+            margin-left: auto;
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content::before {
+            left: -55px;
+        }
+
+        .timeline-item:nth-child(even) .timeline-content::before {
+            right: -55px;
+        }
+
+        .timeline-date {
+            color: var(--coral);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-title {
+            color: var(--cream);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .timeline-desc {
+            color: var(--dark-sand);
+            line-height: 1.6;
+        }
+
+        .experience-section h2 {
+            text-align: center;
+            font-size: clamp(2rem, 4vw, 3rem);
+            margin-bottom: 4rem;
+            background: linear-gradient(35deg, var(--text-sand), var(--accent-red));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -375,6 +499,7 @@
             <li><a href="#home" class="nav-link">Home</a></li>
             <li><a href="#about" class="nav-link">About</a></li>
             <li><a href="#projects" class="nav-link">Projects</a></li>
+            <li><a href="#experience" class="nav-link">Experience</a></li>
             <li><a href="#contact" class="nav-link">Contact</a></li>
         </ul>
     </nav>
@@ -406,7 +531,7 @@
         <div class="about-container">
             <div class="about-text">
                 <h2>About Me</h2>
-                <p>Hi! I'm Aahil, a passionate developer with a keen eye for design. I specialize in creating engaging digital experiences that combine beautiful aesthetics with functional code.</p>
+                <p>Hi! I'm Aahil, a passionate developer with a keen eye for design. I am specialize in creating engaging digital experiences that combine beautiful aesthetics with functional code.</p>
                 <p>My journey in tech has led me to work with various technologies and frameworks, always striving to learn and implement the latest industry standards.</p>
                 <div class="skills-grid">
                     <div class="skill-item">HTML/CSS</div>
@@ -417,6 +542,23 @@
                     <div class="skill-item">Git</div>
                 </div>
             </div>
+            <div class="about-image">
+                <img src="img/photo.jpg" alt="Aahil Shaikh">
+            </div>
+        </div>
+    </section>
+
+    <section id="experience" class="experience-section">
+        <h2>Experience</h2>
+        <div class="timeline-container">
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <div class="timeline-date">2023 - Present</div>
+                    <h3 class="timeline-title">Position Title</h3>
+                    <p class="timeline-desc">Description of your role and key achievements. Use specific examples and metrics when possible.</p>
+                </div>
+            </div>
+            <!-- Add more timeline items as needed -->
         </div>
     </section>
 
@@ -544,6 +686,9 @@
 
         // Observe all about text elements
         document.querySelectorAll('.about-text').forEach(el => observer.observe(el));
+
+        // Add to your existing observer section
+        document.querySelectorAll('.timeline-content').forEach(el => observer.observe(el));
 
         // Smooth scroll for navigation
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
