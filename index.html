@@ -4,11 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Name - Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
+            /* Primary Colors */
             --dark-bg: #071E22;
             --accent-red: #EE2E31;
             --text-sand: #F4C095;
+            
+            /* New Complementary Colors */
+            --deep-teal: #1D4D4F;    /* Darker variant of background for depth */
+            --light-teal: #20666B;   /* Lighter teal for hover states */
+            --coral: #FF686B;        /* Lighter red for accents */
+            --cream: #FFF6E9;        /* Lighter sand color for highlights */
+            --dark-sand: #C89B7B;    /* Darker sand for secondary text */
         }
 
         * {
@@ -20,7 +31,7 @@
         body {
             background-color: var(--dark-bg);
             color: var (--text-sand);
-            font-family: 'Arial', sans-serif;
+            font-family: 'JetBrains Mono', monospace;
             overflow-x: hidden;
             cursor: none; /* Hide default cursor for custom cursor effect */
         }
@@ -36,6 +47,7 @@
             z-index: 9999;
             transform: translate(-50%, -50%); /* Center the cursor */
             transition: all 0.2s ease;
+            mix-blend-mode: difference; /* Add this for the inverse color effect */
         }
 
         .cursor-follower {
@@ -48,6 +60,7 @@
             z-index: 9998;
             transform: translate(-50%, -50%); /* Center the follower */
             transition: all 0.3s ease;
+            mix-blend-mode: difference; /* Add this for the inverse color effect */
         }
 
         /* Animated Background */
@@ -163,6 +176,9 @@
             background: linear-gradient(100deg, var(--text-sand), var(--accent-red));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.02em; /* Tighten letter spacing slightly */
         }
 
         .landing-subtitle {
@@ -175,6 +191,8 @@
             display: inline-block;
             white-space: nowrap; /* Prevent line breaks */
             overflow: hidden; /* Prevent content from wrapping */
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 400;
         }
 
         .landing-subtitle::after {
@@ -207,7 +225,7 @@
             top: 0;
             left: 0;
             width: 100%;
-            padding: 2rem;
+            padding: 2.5rem 4rem; /* Increased from 2rem to 2.5rem */
             z-index: 1000;
             display: flex;
             justify-content: center; /* Center the nav items */
@@ -229,7 +247,7 @@
 
         .nav-list {
             display: flex;
-            gap: 4rem;
+            gap: 8rem; /* Increased from 6rem for even more spacing */
             list-style: none;
             margin: 0;
             padding: 0;
@@ -238,12 +256,14 @@
         .nav-link {
             color: var(--text-sand);
             text-decoration: none;
-            font-size: 1rem;
-            font-family: 'Arial', sans-serif;
+            font-size: 1.2rem; /* Increased from 1rem */
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
             position: relative;
             padding: 0.5rem 0;
             transition: all 0.3s ease;
             opacity: 0.7;
+            letter-spacing: 0.5px;
         }
 
         /* Unique hover effect */
@@ -262,6 +282,7 @@
 
         .nav-link:hover {
             opacity: 1;
+            color: var(--cream);
         }
 
         .nav-link:hover::before {
@@ -303,12 +324,21 @@
             background: linear-gradient(35deg, var(--text-sand), var(--accent-red));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
         }
 
         .about-text p {
             font-size: 1.1rem;
             line-height: 1.8;
             margin-bottom: 1.5rem;
+            color: var (--dark-sand);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 400;
+        }
+
+        .about-text strong {
+            color: var(--cream);
         }
 
         .skills-grid {
@@ -319,14 +349,17 @@
         }
 
         .skill-item {
-            background: rgba(238, 46, 49, 0.1);
+            background: var(--deep-teal);
             padding: 0.8rem;
             border-radius: 8px;
             text-align: center;
             transition: transform 0.3s ease;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
         }
 
         .skill-item:hover {
+            background: var(--light-teal);
             transform: translateY(-5px);
         }
     </style>
