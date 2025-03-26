@@ -196,16 +196,16 @@
         }
 
         .landing-subtitle::after {
-            content: "|";
+            content: "▎"; /* Changed from "|" to a thicker character */
             position: absolute;
-            right: -8px;
+            right: -15px; /* Increased from -8px to add a small gap */
             top: 0;
             animation: blink 0.7s infinite;
             font-weight: 500;
-            color: var(--accent-red); /* Make it red for better visibility */
-            font-size: 1.2em; /* Make it slightly larger than the text */
+            color: var(--accent-red);
+            font-size: 1.2em;
             opacity: 0.8;
-            transform: translateY(-2px); /* Slight adjustment to align with text */
+            transform: translateY(-2px);
         }
 
         @keyframes blink {
