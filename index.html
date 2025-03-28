@@ -397,7 +397,7 @@
         }
 
         .timeline-container {
-            max-width: 1200px;
+            max-width: 800px; /* Adjusted for better centered layout */
             margin: 0 auto;
             position: relative;
         }
@@ -486,6 +486,114 @@
             font-family: 'Space Grotesk', sans-serif;
             font-weight: 600;
         }
+
+        /* Project Gallery Styles */
+        .projects-section {
+            min-height: 100vh;
+            padding: 8rem 2rem;
+            position: relative;
+        }
+
+        .projects-section h2 {
+            text-align: center;
+            font-size: clamp(2rem, 4vw, 3rem);
+            margin-bottom: 4rem;
+            background: linear-gradient(35deg, var(--text-sand), var(--accent-red));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .project-card {
+            position: relative;
+            background: rgba(29, 77, 79, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(244, 192, 149, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .project-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .project-card:hover {
+            transform: translateY(-10px);
+            background: rgba(29, 77, 79, 0.2);
+            border-color: rgba(244, 192, 149, 0.2);
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 16px;
+            background: linear-gradient(45deg, transparent, rgba(238, 46, 49, 0.1));
+            z-index: -1;
+        }
+
+        .project-title {
+            color: var(--cream);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .project-desc {
+            color: var(--dark-sand);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .project-tech {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .tech-tag {
+            background: var(--deep-teal);
+            color: var(--text-sand);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .project-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .project-link {
+            color: var(--coral);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-family: 'JetBrains Mono', monospace;
+            transition: color 0.3s ease;
+        }
+
+        .project-link:hover {
+            color: var(--accent-red);
+        }
     </style>
 </head>
 <body>
@@ -554,11 +662,85 @@
             <div class="timeline-item">
                 <div class="timeline-content">
                     <div class="timeline-date">2023 - Present</div>
-                    <h3 class="timeline-title">Position Title</h3>
-                    <p class="timeline-desc">Description of your role and key achievements. Use specific examples and metrics when possible.</p>
+                    <h3 class="timeline-title">IT Security Research</h3>
+                    <p class="timeline-desc">Conducted extensive research in network security and penetration testing. Developed automated security assessment tools using Python and Bash scripting.</p>
                 </div>
             </div>
-            <!-- Add more timeline items as needed -->
+
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <div class="timeline-date">2022 - 2023</div>
+                    <h3 class="timeline-title">Network Administration</h3>
+                    <p class="timeline-desc">Managed and secured network infrastructure using tools like Wireshark and Tailscale. Implemented secure VPN solutions and network monitoring systems.</p>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <div class="timeline-date">2021 - 2022</div>
+                    <h3 class="timeline-title">Systems Administration</h3>
+                    <p class="timeline-desc">Administered Linux-based systems including Ubuntu Server deployments. Managed user access and system security across multiple platforms.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="projects" class="projects-section">
+        <h2>Projects</h2>
+        <div class="projects-grid">
+            <div class="project-card">
+                <h3 class="project-title">Network Security Scanner</h3>
+                <p class="project-desc">Automated security assessment tool that identifies vulnerabilities in network infrastructure. Features include port scanning, service detection, and vulnerability reporting.</p>
+                <div class="project-tech">
+                    <span class="tech-tag">Python</span>
+                    <span class="tech-tag">Nmap</span>
+                    <span class="tech-tag">SQLite</span>
+                </div>
+                <div class="project-links">
+                    <a href="#" class="project-link">GitHub →</a>
+                    <a href="#" class="project-link">Live Demo →</a>
+                </div>
+            </div>
+
+            <div class="project-card">
+                <h3 class="project-title">VPN Management Dashboard</h3>
+                <p class="project-desc">Web-based interface for managing VPN connections and monitoring network traffic. Includes real-time analytics and user access controls.</p>
+                <div class="project-tech">
+                    <span class="tech-tag">React</span>
+                    <span class="tech-tag">Node.js</span>
+                    <span class="tech-tag">Tailscale</span>
+                </div>
+                <div class="project-links">
+                    <a href="#" class="project-link">GitHub →</a>
+                </div>
+            </div>
+
+            <div class="project-card">
+                <h3 class="project-title">System Monitor</h3>
+                <p class="project-desc">Cross-platform system monitoring tool that tracks CPU, memory, and network usage. Features customizable alerts and historical data analysis.</p>
+                <div class="project-tech">
+                    <span class="tech-tag">Python</span>
+                    <span class="tech-tag">Qt</span>
+                    <span class="tech-tag">SQLite</span>
+                </div>
+                <div class="project-links">
+                    <a href="#" class="project-link">GitHub →</a>
+                    <a href="#" class="project-link">Documentation →</a>
+                </div>
+            </div>
+
+            <div class="project-card">
+                <h3 class="project-title">Network Traffic Analyzer</h3>
+                <p class="project-desc">Tool for analyzing and visualizing network traffic patterns. Helps identify anomalies and potential security threats.</p>
+                <div class="project-tech">
+                    <span class="tech-tag">Python</span>
+                    <span class="tech-tag">Wireshark</span>
+                    <span class="tech-tag">D3.js</span>
+                </div>
+                <div class="project-links">
+                    <a href="#" class="project-link">GitHub →</a>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -689,6 +871,12 @@
 
         // Add to your existing observer section
         document.querySelectorAll('.timeline-content').forEach(el => observer.observe(el));
+
+        // Add to your existing observer section
+        document.querySelectorAll('.skill-box').forEach(el => observer.observe(el));
+
+        // Add to your existing observer section
+        document.querySelectorAll('.project-card').forEach(el => observer.observe(el));
 
         // Smooth scroll for navigation
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
