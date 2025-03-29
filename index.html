@@ -394,106 +394,9 @@
             min-height: 100vh;
             padding: 8rem 2rem;
             position: relative;
-        }
-
-        .timeline-container {
-            max-width: 800px; /* Adjusted for better centered layout */
-            margin: 0 auto;
-            position: relative;
-        }
-
-        .timeline-container::before {
-            content: '';
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            height: 100%;
-            background: var(--accent-red);
-            opacity: 0.3;
-        }
-
-        .timeline-item {
-            width: 100%;
-            margin-bottom: 6rem;
-            position: relative;
-        }
-
-        .timeline-content {
-            width: 45%;
-            padding: 2rem;
-            background: rgba(29, 77, 79, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(244, 192, 149, 0.1);
-            border-radius: 16px;
-            position: relative;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.3s ease;
-        }
-
-        .timeline-content.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .timeline-content:hover {
-            transform: translateY(-10px);
-            background: rgba(29, 77, 79, 0.2);
-            border-color: rgba(244, 192, 149, 0.2);
-        }
-
-        .timeline-content::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            border-radius: 16px;
-            background: linear-gradient(45deg, transparent, rgba(238, 46, 49, 0.1));
-            z-index: -1;
-        }
-
-        .timeline-content::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            width: 20px;
-            height: 20px;
-            background: var(--accent-red);
-            border-radius: 50%;
-        }
-
-        .timeline-item:nth-child(odd) .timeline-content {
-            margin-left: auto;
-        }
-
-        .timeline-item:nth-child(odd) .timeline-content::before {
-            left: -55px;
-        }
-
-        .timeline-item:nth-child(even) .timeline-content::before {
-            right: -55px;
-        }
-
-        .timeline-date {
-            color: var(--coral);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .timeline-title {
-            color: var(--cream);
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .timeline-desc {
-            color: var(--dark-sand);
-            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .experience-section h2 {
@@ -505,6 +408,105 @@
             -webkit-text-fill-color: transparent;
             font-family: 'Space Grotesk', sans-serif;
             font-weight: 600;
+        }
+
+        .skills-showcase {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .skill-category {
+            background: rgba(29, 77, 79, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(244, 192, 149, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .skill-category.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .skill-category:hover {
+            transform: translateY(-10px);
+            background: rgba(29, 77, 79, 0.2);
+            border-color: rgba(244, 192, 149, 0.2);
+        }
+
+        .skill-category::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 16px;
+            background: linear-gradient(45deg, transparent, rgba(238, 46, 49, 0.1));
+            z-index: -1;
+        }
+
+        .category-title {
+            color: var(--cream);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .category-title i {
+            color: var(--accent-red);
+            font-size: 1.8rem;
+        }
+
+        .skill-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+
+        .skill-item {
+            background: var(--deep-teal);
+            padding: 0.8rem;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            color: var(--text-sand);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skill-item:hover {
+            background: var(--light-teal);
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(238, 46, 49, 0.2);
+        }
+
+        .skill-item::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(238, 46, 49, 0.1));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .skill-item:hover::after {
+            opacity: 1;
         }
 
         /* Project Gallery Styles */
@@ -736,29 +738,45 @@
     </section>
 
     <section id="experience" class="experience-section">
-        <h2>Experience</h2>
-        <div class="timeline-container">
-            <div class="timeline-item">
-                <div class="timeline-content">
-                    <div class="timeline-date">2023 - Present</div>
-                    <h3 class="timeline-title">IT Security Research</h3>
-                    <p class="timeline-desc">Conducted extensive research in network security and penetration testing. Developed automated security assessment tools using Python and Bash scripting.</p>
+        <h2>Technical Expertise</h2>
+        <div class="skills-showcase">
+            <div class="skill-category">
+                <h3 class="category-title">Programming Languages</h3>
+                <div class="skill-list">
+                    <div class="skill-item">Python</div>
+                    <div class="skill-item">C++</div>
+                    <div class="skill-item">JavaScript</div>
+                    <div class="skill-item">Bash</div>
                 </div>
             </div>
 
-            <div class="timeline-item">
-                <div class="timeline-content">
-                    <div class="timeline-date">2022 - 2023</div>
-                    <h3 class="timeline-title">Network Administration</h3>
-                    <p class="timeline-desc">Managed and secured network infrastructure using tools like Wireshark and Tailscale. Implemented secure VPN solutions and network monitoring systems.</p>
+            <div class="skill-category">
+                <h3 class="category-title">Services & Tools</h3>
+                <div class="skill-list">
+                    <div class="skill-item">Tailscale</div>
+                    <div class="skill-item">MongoDB</div>
+                    <div class="skill-item">Git</div>
+                    <div class="skill-item">Docker</div>
                 </div>
             </div>
 
-            <div class="timeline-item">
-                <div class="timeline-content">
-                    <div class="timeline-date">2021 - 2022</div>
-                    <h3 class="timeline-title">Systems Administration</h3>
-                    <p class="timeline-desc">Administered Linux-based systems including Ubuntu Server deployments. Managed user access and system security across multiple platforms.</p>
+            <div class="skill-category">
+                <h3 class="category-title">Operating Systems</h3>
+                <div class="skill-list">
+                    <div class="skill-item">Kali Linux</div>
+                    <div class="skill-item">Ubuntu</div>
+                    <div class="skill-item">Linux Mint</div>
+                    <div class="skill-item">CLI Server</div>
+                </div>
+            </div>
+
+            <div class="skill-category">
+                <h3 class="category-title">Development</h3>
+                <div class="skill-list">
+                    <div class="skill-item">React</div>
+                    <div class="skill-item">Node.js</div>
+                    <div class="skill-item">SQL</div>
+                    <div class="skill-item">REST APIs</div>
                 </div>
             </div>
         </div>
@@ -890,10 +908,7 @@
         document.querySelectorAll('.about-text').forEach(el => observer.observe(el));
 
         // Add to your existing observer section
-        document.querySelectorAll('.timeline-content').forEach(el => observer.observe(el));
-
-        // Add to your existing observer section
-        document.querySelectorAll('.skill-box').forEach(el => observer.observe(el));
+        document.querySelectorAll('.skill-category').forEach(el => observer.observe(el));
 
         // Add to your existing observer section
         document.querySelectorAll('.project-card').forEach(el => observer.observe(el));
