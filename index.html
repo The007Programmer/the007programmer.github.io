@@ -797,6 +797,196 @@
                 right: -25px;
             }
         }
+
+        /* Timeline Section Styles */
+        .timeline-section {
+            min-height: 100vh;
+            padding: 8rem 2rem;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .timeline-container {
+            position: relative;
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2rem 0;
+            height: 600px; /* Fixed height to show 3 items */
+            overflow: hidden; /* Hide scrollbar */
+        }
+
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(to bottom, 
+                transparent,
+                var(--accent-red),
+                var(--accent-red),
+                transparent
+            );
+            opacity: 0.3;
+        }
+
+        .timeline-scroll {
+            height: 100%;
+            overflow-y: auto;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+            padding-right: 1rem; /* Compensate for hidden scrollbar */
+        }
+
+        .timeline-scroll::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 4rem;
+            width: 100%;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .timeline-item.visible {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.6s ease;
+        }
+
+        .timeline-content {
+            position: relative;
+            width: calc(50% - 2rem);
+            padding: 2rem;
+            background: rgba(29, 77, 79, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(244, 192, 149, 0.1);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content {
+            margin-left: auto;
+        }
+
+        .timeline-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 16px;
+            background: linear-gradient(45deg, transparent, rgba(238, 46, 49, 0.1));
+            z-index: -1;
+        }
+
+        .timeline-content:hover {
+            transform: translateY(-5px);
+            background: rgba(29, 77, 79, 0.15);
+            border-color: rgba(244, 192, 149, 0.2);
+            box-shadow: 0 10px 30px rgba(238, 46, 49, 0.1);
+        }
+
+        .timeline-content::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 20px;
+            height: 20px;
+            background: var(--accent-red);
+            border-radius: 50%;
+            transform: translateY(-50%);
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content::after {
+            left: -60px;
+        }
+
+        .timeline-item:nth-child(even) .timeline-content::after {
+            right: -60px;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+
+        .scroll-indicator:hover {
+            opacity: 1;
+        }
+
+        .scroll-text {
+            color: var(--text-sand);
+            font-size: 0.9rem;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 0.5rem;
+        }
+
+        .scroll-arrow {
+            width: 30px;
+            height: 30px;
+            border: 2px solid var(--accent-red);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: bounce 2s infinite;
+            cursor: pointer;
+        }
+
+        .scroll-arrow::before {
+            content: '↓';
+            color: var(--accent-red);
+            font-size: 1.2rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .timeline-container {
+                height: 500px;
+            }
+
+            .timeline-container::before {
+                left: 30px;
+            }
+
+            .timeline-content {
+                width: calc(100% - 60px);
+                margin-left: 60px !important;
+            }
+
+            .timeline-content::after {
+                left: -60px !important;
+                right: auto !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -948,6 +1138,49 @@
                 <div class="scroll-dot"></div>
                 <div class="scroll-dot"></div>
                 <div class="scroll-dot"></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="timeline" class="timeline-section">
+        <h2>Experience</h2>
+        <div class="timeline-container">
+            <div class="timeline-scroll">
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-date">2023 - Present</div>
+                        <h3 class="timeline-title">Senior Network Engineer</h3>
+                        <p class="timeline-desc">Leading network infrastructure projects and implementing security solutions. Managing VPN deployments and network monitoring systems.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-date">2021 - 2023</div>
+                        <h3 class="timeline-title">Network Security Specialist</h3>
+                        <p class="timeline-desc">Developed and implemented security protocols, conducted vulnerability assessments, and managed firewall configurations.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-date">2019 - 2021</div>
+                        <h3 class="timeline-title">System Administrator</h3>
+                        <p class="timeline-desc">Managed server infrastructure, implemented monitoring solutions, and developed automation scripts for system maintenance.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-date">2017 - 2019</div>
+                        <h3 class="timeline-title">Junior Developer</h3>
+                        <p class="timeline-desc">Started career in software development, working on web applications and learning core programming concepts.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="scroll-indicator">
+                <span class="scroll-text">Scroll for more</span>
+                <div class="scroll-arrow"></div>
             </div>
         </div>
     </section>
@@ -1198,6 +1431,9 @@
 
         // Initialize first card as visible
         projectCards[0].classList.add('visible');
+
+        // Add to your existing observer section
+        document.querySelectorAll('.timeline-item').forEach(el => observer.observe(el));
     </script>
 </body>
 </html>
