@@ -38,9 +38,9 @@
 
     /* Custom Cursor */
     .cursor {
-      width: 24px; /* Increased from 20px */
+      width: 24px;
       height: 24px;
-      background: var(--accent-red); /* Fill with color */
+      background: var(--accent-red);
       border-radius: 50%;
       position: fixed;
       pointer-events: none;
@@ -51,7 +51,7 @@
     }
 
     .cursor-follower {
-      width: 48px; /* Increased from 40px */
+      width: 48px;
       height: 48px;
       border: 2px solid var(--accent-red);
       border-radius: 50%;
@@ -366,6 +366,11 @@
       transform: translateY(-5px);
     }
 
+    /* Added icon styling */
+    .icon {
+      margin-right: 4px;
+    }
+
     .about-image {
       width: 90%;
       height: auto;
@@ -420,12 +425,11 @@
       font-weight: 500;
     }
 
-    /* Technical Expertise Section Background */
+    /* Technical Expertise Section Background (no border) */
     .technical-expertise-section {
       background: rgba(29, 77, 79, 0.1);
       backdrop-filter: blur(10px);
       padding: 2rem;
-      border: 1px solid rgba(244, 192, 149, 0.1);
       border-radius: 16px;
       width: 100%;
       max-width: 1200px;
@@ -445,7 +449,6 @@
     .skill-category {
       background: rgba(29, 77, 79, 0.1);
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(244, 192, 149, 0.1);
       border-radius: 16px;
       padding: 2rem;
       transition: all 0.3s ease;
@@ -462,7 +465,6 @@
     .skill-category:hover {
       transform: translateY(-10px);
       background: rgba(29, 77, 79, 0.2);
-      border-color: rgba(244, 192, 149, 0.2);
     }
 
     .category-title {
@@ -550,7 +552,6 @@
       gap: 3rem;
       background: rgba(29, 77, 79, 0.1);
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(244, 192, 149, 0.1);
       border-radius: 16px;
       padding: 3rem;
       transition: all 0.3s ease;
@@ -569,7 +570,6 @@
     .project-card:hover {
       transform: translateY(-10px);
       background: rgba(29, 77, 79, 0.15);
-      border-color: rgba(244, 192, 149, 0.2);
       box-shadow: 0 10px 30px rgba(238, 46, 49, 0.1);
     }
 
@@ -659,7 +659,7 @@
       background: var(--deep-teal);
       color: var(--text-sand);
       padding: 0.5rem 1rem;
-      border-radius: 20px;
+      border-radius: 8px;
       font-size: 0.9rem;
       font-family: 'JetBrains Mono', monospace;
       transition: all 0.3s ease;
@@ -686,7 +686,7 @@
       gap: 0.5rem;
       padding: 0.5rem 1rem;
       border: 1px solid rgba(244, 192, 149, 0.2);
-      border-radius: 8px;
+      border-radius: 12px;
     }
 
     .project-link::after {
@@ -849,7 +849,6 @@
       padding: 2rem;
       background: rgba(29, 77, 79, 0.1);
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(244, 192, 149, 0.1);
       border-radius: 16px;
       transition: all 0.3s ease;
       z-index: 2;
@@ -979,7 +978,7 @@
     .contact-button {
       padding: 1rem;
       border: none;
-      border-radius: 8px;
+      border-radius: 30px;
       background: var(--accent-red);
       color: var(--cream);
       font-size: 1.1rem;
@@ -989,6 +988,21 @@
 
     .contact-button:hover {
       background: var(--coral);
+    }
+
+    /* Footer Styles */
+    footer {
+      background: rgba(7, 30, 34, 0.95);
+      color: var(--text-sand);
+      text-align: center;
+      padding: 2rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    footer a {
+      color: var(--accent-red);
+      text-decoration: none;
+      margin: 0 0.5rem;
     }
   </style>
 </head>
@@ -1034,14 +1048,14 @@
     <div class="about-container">
       <div class="about-text">
         <h2>About Me</h2>
-        <p>Hi! I'm Aahil, a passionate developer with a keen eye for design. I am specialize in creating engaging digital experiences that combine beautiful aesthetics with functional code.</p>
+        <p>Hi! I'm Aahil, a passionate developer with a keen eye for design. I specialize in creating engaging digital experiences that combine beautiful aesthetics with functional code.</p>
         <p>My journey in tech has led me to work with various technologies and frameworks, always striving to learn and implement the latest industry standards.</p>
         <div class="skills-grid">
           <div class="skill-item">HTML/CSS</div>
           <div class="skill-item">JavaScript</div>
           <div class="skill-item">React</div>
           <div class="skill-item">Node.js</div>
-          <div class="skill-item">Python</div>
+          <div class="skill-item"><span class="icon">🐍</span> Python</div>
           <div class="skill-item">Git</div>
         </div>
       </div>
@@ -1064,7 +1078,7 @@
             <h3 class="project-title">Network Security Scanner</h3>
             <p class="project-desc">Automated security assessment tool that identifies vulnerabilities in network infrastructure. Features include port scanning, service detection, and vulnerability reporting.</p>
             <div class="project-tech">
-              <span class="tech-tag">Python</span>
+              <span class="tech-tag"><span class="icon">🐍</span> Python</span>
               <span class="tech-tag">Nmap</span>
               <span class="tech-tag">SQLite</span>
             </div>
@@ -1085,7 +1099,7 @@
             <div class="project-tech">
               <span class="tech-tag">React</span>
               <span class="tech-tag">Node.js</span>
-              <span class="tech-tag">Tailscale</span>
+              <span class="tech-tag"><span class="icon">💨</span> Tailscale</span>
             </div>
             <div class="project-links">
               <a href="#" class="project-link">GitHub</a>
@@ -1101,7 +1115,7 @@
             <h3 class="project-title">System Monitor</h3>
             <p class="project-desc">Cross-platform system monitoring tool that tracks CPU, memory, and network usage. Features customizable alerts and historical data analysis.</p>
             <div class="project-tech">
-              <span class="tech-tag">Python</span>
+              <span class="tech-tag"><span class="icon">🐍</span> Python</span>
               <span class="tech-tag">Qt</span>
               <span class="tech-tag">SQLite</span>
             </div>
@@ -1120,8 +1134,8 @@
             <h3 class="project-title">Network Traffic Analyzer</h3>
             <p class="project-desc">Tool for analyzing and visualizing network traffic patterns. Helps identify anomalies and potential security threats.</p>
             <div class="project-tech">
-              <span class="tech-tag">Python</span>
-              <span class="tech-tag">Wireshark</span>
+              <span class="tech-tag"><span class="icon">🐍</span> Python</span>
+              <span class="tech-tag"><span class="icon">🦈</span> Wireshark</span>
               <span class="tech-tag">D3.js</span>
             </div>
             <div class="project-links">
@@ -1191,17 +1205,17 @@
         <div class="skill-category">
           <h3 class="category-title">Programming Languages</h3>
           <div class="skill-list">
-            <div class="skill-item">Python</div>
-            <div class="skill-item">C++</div>
+            <div class="skill-item"><span class="icon">🐍</span> Python</div>
+            <div class="skill-item"><span class="icon"><img src="img/icons/cpp.svg" alt="C++ Icon" style="width:16px; height:16px; vertical-align:middle;"></span> C++</div>
             <div class="skill-item">JavaScript</div>
             <div class="skill-item">Bash</div>
           </div>
         </div>
 
         <div class="skill-category">
-          <h3 class="category-title">Services & Tools</h3>
+          <h3 class="category-title">Services &amp; Tools</h3>
           <div class="skill-list">
-            <div class="skill-item">Tailscale</div>
+            <div class="skill-item"><span class="icon">💨</span> Tailscale</div>
             <div class="skill-item">MongoDB</div>
             <div class="skill-item">Git</div>
             <div class="skill-item">Docker</div>
@@ -1246,6 +1260,17 @@
       </form>
     </div>
   </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Aahil Shaikh. All rights reserved.</p>
+    <p>
+        <br>
+      <a href="#">LinkedIn</a> |
+      <a href="#">GitHub</a> |
+      <a href="#">Twitter</a>
+    </p>
+  </footer>
 
   <script>
     // Custom Cursor
