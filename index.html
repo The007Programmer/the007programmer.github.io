@@ -422,8 +422,10 @@
         .timeline-content {
             width: 45%;
             padding: 2rem;
-            background: var(--deep-teal);
-            border-radius: 12px;
+            background: rgba(29, 77, 79, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(244, 192, 149, 0.1);
+            border-radius: 16px;
             position: relative;
             opacity: 0;
             transform: translateY(20px);
@@ -435,7 +437,25 @@
             transform: translateY(0);
         }
 
+        .timeline-content:hover {
+            transform: translateY(-10px);
+            background: rgba(29, 77, 79, 0.2);
+            border-color: rgba(244, 192, 149, 0.2);
+        }
+
         .timeline-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 16px;
+            background: linear-gradient(45deg, transparent, rgba(238, 46, 49, 0.1));
+            z-index: -1;
+        }
+
+        .timeline-content::after {
             content: '';
             position: absolute;
             top: 50%;
@@ -620,7 +640,7 @@
     </div>
 
     <!-- Hero Section -->
-    <section class="landing-section">
+    <section id="home" class="landing-section">
         <div class="floating-shapes">
             <div class="floating-shape" style="width: 500px; height: 500px; top: 55%; left: 5%; 
                  animation-delay: 0s; transform: rotate(45deg);"></div>
