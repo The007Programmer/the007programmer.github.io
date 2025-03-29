@@ -411,6 +411,17 @@
             font-weight: 600;
         }
 
+        .experience-section h3.technical-expertise {
+            text-align: center;
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            margin-bottom: 4rem;
+            background: linear-gradient(35deg, var(--text-sand), var(--accent-red));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 500;
+        }
+
         .skills-showcase {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -1084,7 +1095,7 @@
             </div>
         </div>
 
-        <h3>Technical Expertise</h3>
+        <h3 class="technical-expertise">Technical Expertise</h3>
         <div class="skills-showcase">
             <div class="skill-category">
                 <h3 class="category-title">Programming Languages</h3>
