@@ -983,9 +983,76 @@
       text-decoration: none;
       margin: 0 0.5rem;
     }
+
+    /* Loading Animation */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--dark-bg);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease-out;
+    }
+
+    .loading-content {
+      text-align: center;
+    }
+
+    .loading-title {
+      font-size: 2rem;
+      color: var(--text-sand);
+      margin-bottom: 1rem;
+      font-family: 'Space Grotesk', sans-serif;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 0.5s ease forwards;
+    }
+
+    .loading-bar {
+      width: 200px;
+      height: 3px;
+      background: rgba(244, 192, 149, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .loading-progress {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background: var(--accent-red);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .loading-text {
+      font-size: 0.9rem;
+      color: var(--text-sand);
+      margin-top: 1rem;
+      opacity: 0.7;
+      font-family: 'JetBrains Mono', monospace;
+    }
   </style>
 </head>
 <body>
+  <!-- Loading Overlay -->
+  <div class="loading-overlay">
+    <div class="loading-content">
+      <h1 class="loading-title">Aahil Shaikh</h1>
+      <div class="loading-bar">
+        <div class="loading-progress"></div>
+      </div>
+      <p class="loading-text">Loading...</p>
+    </div>
+  </div>
+
   <!-- Custom Cursor -->
   <div class="cursor"></div>
   <div class="cursor-follower"></div>
@@ -1239,6 +1306,30 @@
   </footer>
 
   <script>
+    // Loading Animation
+    window.addEventListener('load', () => {
+      const loadingOverlay = document.querySelector('.loading-overlay');
+      const loadingProgress = document.querySelector('.loading-progress');
+      const loadingText = document.querySelector('.loading-text');
+      
+      // Simulate loading progress
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += Math.random() * 15;
+        if (progress >= 100) {
+          progress = 100;
+          clearInterval(interval);
+          setTimeout(() => {
+            loadingOverlay.style.opacity = '0';
+            setTimeout(() => {
+              loadingOverlay.style.display = 'none';
+            }, 500);
+          }, 500);
+        }
+        loadingProgress.style.width = `${progress}%`;
+      }, 100);
+    });
+
     // Custom Cursor
     const cursor = document.querySelector('.cursor');
     const follower = document.querySelector('.cursor-follower');
