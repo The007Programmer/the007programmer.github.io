@@ -1353,10 +1353,17 @@
       <p>
         I'd love to hear from you! Whether you have a project idea, a question, or just want to chat about tech and design, feel free to reach out.
       </p>
-      <form class="contact-form">
-        <input type="text" placeholder="Your Name" required>
-        <input type="email" placeholder="Your Email" required>
-        <textarea placeholder="Your Message" rows="5" required></textarea>
+      <form class="contact-form" action="https://formsubmit.co/aahils2019@gmail.com" method="POST">
+        <input type="text" name="name" placeholder="Your Name" required>
+        <input type="email" name="email" placeholder="Your Email" required>
+        <textarea name="message" placeholder="Your Message" rows="5" required></textarea>
+        <!-- Spam Protection -->
+        <input type="text" name="_honey" style="display:none">
+        <input type="hidden" name="_captcha" value="true">
+        <input type="hidden" name="_subject" value="New Contact Form Submission">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" name="_next" value="thanks.html">
+        <input type="hidden" name="_autoresponse" value="Thank you for your message! I'll get back to you soon.">
         <button type="submit" class="contact-button">Send Message</button>
       </form>
     </div>
