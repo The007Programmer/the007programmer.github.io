@@ -15,11 +15,11 @@
       --text-sand: #F4C095;
       
       /* New Complementary Colors */
-      --deep-teal: #1D4D4F;    /* Darker variant of background for depth */
-      --light-teal: #20666B;   /* Lighter teal for hover states */
-      --coral: #FF686B;        /* Lighter red for accents */
-      --cream: #FFF6E9;        /* Lighter sand color for highlights */
-      --dark-sand: #C89B7B;    /* Darker sand for secondary text */
+      --deep-teal: #1D4D4F;
+      --light-teal: #20666B;
+      --coral: #FF686B;
+      --cream: #FFF6E9;
+      --dark-sand: #C89B7B;
     }
 
     * {
@@ -33,7 +33,7 @@
       color: var(--text-sand);
       font-family: 'JetBrains Mono', monospace;
       overflow-x: hidden;
-      cursor: none; /* Hide default cursor for custom cursor effect */
+      cursor: none;
     }
 
     /* Custom Cursor */
@@ -92,10 +92,7 @@
 
     .hero-content {
       text-align: center;
-      background: none;
-      backdrop-filter: none;
       padding: 2rem;
-      border: none;
     }
 
     .hero-title {
@@ -120,7 +117,6 @@
       opacity: 0.8;
     }
 
-    /* Animations */
     @keyframes float {
       0%, 100% { transform: translate(0, 0) rotate(0deg); }
       25% { transform: translate(100px, 100px) rotate(90deg); }
@@ -239,16 +235,6 @@
       transition: all 0.3s ease;
     }
 
-    .nav-brand {
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: var(--text-sand);
-      text-decoration: none;
-      background: linear-gradient(35deg, var(--text-sand), var(--accent-red));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
     .nav-list {
       display: flex;
       gap: 8rem;
@@ -340,10 +326,6 @@
       font-weight: 400;
     }
 
-    .about-text strong {
-      color: var(--cream);
-    }
-
     .skills-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -366,7 +348,7 @@
       transform: translateY(-5px);
     }
 
-    /* Added icon styling */
+    /* Icon styling for skills */
     .icon {
       margin-right: 4px;
     }
@@ -396,11 +378,10 @@
     .experience-section {
       min-height: 100vh;
       padding: 4rem 2rem;
-      position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
-      background: linear-gradient(to bottom, transparent, rgba(29, 77, 79, 0.1));
+      background: rgba(29, 77, 79, 0.1); /* Unified background */
     }
 
     .experience-section h2 {
@@ -414,18 +395,7 @@
       font-weight: 600;
     }
 
-    .experience-section h3.technical-expertise {
-      text-align: center;
-      font-size: clamp(1.5rem, 3vw, 2rem);
-      margin-bottom: 4rem;
-      background: linear-gradient(35deg, var(--text-sand), var(--accent-red));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 500;
-    }
-
-    /* Technical Expertise Section Background (no border) */
+    /* Technical Expertise Section (no border) */
     .technical-expertise-section {
       background: rgba(29, 77, 79, 0.1);
       backdrop-filter: blur(10px);
@@ -494,7 +464,6 @@
       font-family: 'JetBrains Mono', monospace;
       font-weight: 500;
       color: var(--text-sand);
-      position: relative;
       overflow: hidden;
       width: 100%;
       max-width: 200px;
@@ -505,7 +474,7 @@
       transform: translateY(-5px);
     }
 
-    /* Project Gallery Styles */
+    /* Projects Section Styles */
     .projects-section {
       min-height: 100vh;
       padding: 8rem 2rem;
@@ -645,7 +614,6 @@
       font-size: 1.1rem;
       line-height: 1.8;
       margin-bottom: 2rem;
-      position: relative;
     }
 
     .project-tech {
@@ -796,7 +764,6 @@
     .timeline-section {
       min-height: 100vh;
       padding: 8rem 2rem;
-      position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -925,7 +892,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(to bottom, transparent, rgba(29, 77, 79, 0.1));
+      background: rgba(29, 77, 79, 0.1); /* Unified background */
     }
 
     .contact-section h2 {
@@ -1032,10 +999,8 @@
   <!-- Hero Section -->
   <section id="home" class="landing-section">
     <div class="floating-shapes">
-      <div class="floating-shape" style="width: 500px; height: 500px; top: 55%; left: 5%; 
-           animation-delay: 0s; transform: rotate(45deg);"></div>
-      <div class="floating-shape" style="width: 400px; height: 400px; top: 65%; right: 5%; 
-           animation-delay: -5s; transform: rotate(-30deg);"></div>
+      <div class="floating-shape" style="width: 500px; height: 500px; top: 55%; left: 5%; animation-delay: 0s; transform: rotate(45deg);"></div>
+      <div class="floating-shape" style="width: 400px; height: 400px; top: 65%; right: 5%; animation-delay: -5s; transform: rotate(-30deg);"></div>
     </div>
     <div class="landing-content">
       <h1 class="landing-title">Aahil Shaikh</h1>
@@ -1069,9 +1034,7 @@
   <section id="projects" class="projects-section">
     <h2>Projects</h2>
     <div class="projects-container">
-      <button class="scroll-button prev">
-        <i>←</i>
-      </button>
+      <button class="scroll-button prev"><i>←</i></button>
       <div class="projects-grid">
         <div class="project-card">
           <div class="project-content">
@@ -1147,9 +1110,7 @@
           </div>
         </div>
       </div>
-      <button class="scroll-button next">
-        <i>→</i>
-      </button>
+      <button class="scroll-button next"><i>→</i></button>
       <div class="scroll-indicator">
         <div class="scroll-dot active"></div>
         <div class="scroll-dot"></div>
@@ -1171,7 +1132,6 @@
             <p class="timeline-desc">Leading network infrastructure projects and implementing security solutions. Managing VPN deployments and network monitoring systems.</p>
           </div>
         </div>
-
         <div class="timeline-item">
           <div class="timeline-content">
             <div class="timeline-date">2021 - 2023</div>
@@ -1179,7 +1139,6 @@
             <p class="timeline-desc">Developed and implemented security protocols, conducted vulnerability assessments, and managed firewall configurations.</p>
           </div>
         </div>
-
         <div class="timeline-item">
           <div class="timeline-content">
             <div class="timeline-date">2019 - 2021</div>
@@ -1187,7 +1146,6 @@
             <p class="timeline-desc">Managed server infrastructure, implemented monitoring solutions, and developed automation scripts for system maintenance.</p>
           </div>
         </div>
-
         <div class="timeline-item">
           <div class="timeline-content">
             <div class="timeline-date">2017 - 2019</div>
@@ -1197,7 +1155,6 @@
         </div>
       </div>
     </div>
-
     <!-- Technical Expertise Section -->
     <div class="technical-expertise-section">
       <h3 class="technical-expertise">Technical Expertise</h3>
@@ -1211,7 +1168,6 @@
             <div class="skill-item">Bash</div>
           </div>
         </div>
-
         <div class="skill-category">
           <h3 class="category-title">Services &amp; Tools</h3>
           <div class="skill-list">
@@ -1221,7 +1177,6 @@
             <div class="skill-item">Docker</div>
           </div>
         </div>
-
         <div class="skill-category">
           <h3 class="category-title">Operating Systems</h3>
           <div class="skill-list">
@@ -1231,7 +1186,6 @@
             <div class="skill-item">CLI Server</div>
           </div>
         </div>
-
         <div class="skill-category">
           <h3 class="category-title">Development</h3>
           <div class="skill-list">
@@ -1265,7 +1219,6 @@
   <footer>
     <p>&copy; 2025 Aahil Shaikh. All rights reserved.</p>
     <p>
-        <br>
       <a href="#">LinkedIn</a> |
       <a href="#">GitHub</a> |
       <a href="#">Twitter</a>
@@ -1276,7 +1229,6 @@
     // Custom Cursor
     const cursor = document.querySelector('.cursor');
     const follower = document.querySelector('.cursor-follower');
-
     document.addEventListener('mousemove', (e) => {
       cursor.style.left = e.clientX + 'px';
       cursor.style.top = e.clientY + 'px';
@@ -1285,7 +1237,6 @@
         follower.style.top = e.clientY + 'px';
       }, 50);
     });
-
     window.addEventListener('focus', () => {
       const mouseX = window.mouseX || 0;
       const mouseY = window.mouseY || 0;
@@ -1294,22 +1245,18 @@
       follower.style.left = mouseX + 'px';
       follower.style.top = mouseY + 'px';
     });
-
     document.addEventListener('mousemove', (e) => {
       window.mouseX = e.clientX;
       window.mouseY = e.clientY;
     });
-
     document.addEventListener('mousedown', () => {
       cursor.style.transform = 'scale(0.8)';
       follower.style.transform = 'scale(1.2)';
     });
-
     document.addEventListener('mouseup', () => {
       cursor.style.transform = 'scale(1)';
       follower.style.transform = 'scale(1)';
     });
-
     const backgroundShapes = document.querySelector('.background-shapes');
     for (let i = 0; i < 3; i++) {
       const shape = document.createElement('div');
@@ -1321,7 +1268,6 @@
       shape.style.animationDelay = Math.random() * 5 + 's';
       backgroundShapes.appendChild(shape);
     }
-
     document.addEventListener('mousemove', (e) => {
       const shapes = document.querySelectorAll('.floating-shape');
       const title = document.querySelector('.landing-title');
@@ -1335,14 +1281,12 @@
       });
       title.style.transform = `translate(${mouseX * 20}px, ${mouseY * 20}px)`;
     });
-
     document.addEventListener('mousemove', (e) => {
       const title = document.querySelector('.hero-title');
       const mouseX = e.clientX / window.innerWidth;
       const mouseY = e.clientY / window.innerHeight;
       title.style.transform = `translate(${mouseX * 20}px, ${mouseY * 20}px)`;
     });
-
     const titles = ["Web Developer", "Photographer", "Artist"];
     let titleIndex = 0;
     let charIndex = 0;
@@ -1350,7 +1294,6 @@
     const typingSpeed = 100;
     const deleteSpeed = 50;
     const waitBetweenWords = 2000;
-
     function typeEffect() {
       const subtitle = document.querySelector('.landing-subtitle');
       const currentTitle = titles[titleIndex];
@@ -1374,34 +1317,22 @@
       const speed = isDeleting ? deleteSpeed : typingSpeed;
       setTimeout(() => typeEffect(), speed);
     }
-
     window.addEventListener('load', typeEffect);
-
-    const observerOptions = {
-      threshold: 0.25
-    };
-
+    const observerOptions = { threshold: 0.25 };
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-        }
+        if (entry.isIntersecting) { entry.target.classList.add('visible'); }
       });
     }, observerOptions);
-
     document.querySelectorAll('.about-text').forEach(el => observer.observe(el));
     document.querySelectorAll('.skill-category').forEach(el => observer.observe(el));
     document.querySelectorAll('.project-card').forEach(el => observer.observe(el));
-
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function (e) {
         e.preventDefault();
-        document.querySelector(this.getAttribute('href')).scrollIntoView({
-          behavior: 'smooth'
-        });
+        document.querySelector(this.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
       });
     });
-
     window.addEventListener('scroll', () => {
       const nav = document.querySelector('.nav');
       if (window.scrollY > 100) {
@@ -1412,47 +1343,32 @@
         nav.style.background = 'rgba(7, 30, 34, 0.8)';
       }
     });
-
     const projectsGrid = document.querySelector('.projects-grid');
     const prevButton = document.querySelector('.scroll-button.prev');
     const nextButton = document.querySelector('.scroll-button.next');
     const scrollDots = document.querySelectorAll('.scroll-dot');
     const projectCards = document.querySelectorAll('.project-card');
     let currentIndex = 0;
-
     function scrollProjects(direction) {
       currentIndex = Math.max(0, Math.min(currentIndex + direction, projectCards.length - 1));
       const scrollPosition = projectCards[currentIndex].offsetLeft - projectsGrid.offsetLeft;
-      projectsGrid.scrollTo({
-        left: scrollPosition,
-        behavior: 'smooth'
-      });
+      projectsGrid.scrollTo({ left: scrollPosition, behavior: 'smooth' });
       updateScrollDots();
     }
-
     function updateScrollDots() {
-      scrollDots.forEach((dot, index) => {
-        dot.classList.toggle('active', index === currentIndex);
-      });
+      scrollDots.forEach((dot, index) => { dot.classList.toggle('active', index === currentIndex); });
     }
-
     prevButton.addEventListener('click', () => scrollProjects(-1));
     nextButton.addEventListener('click', () => scrollProjects(1));
-
     scrollDots.forEach((dot, index) => {
-      dot.addEventListener('click', () => {
-        const direction = index - currentIndex;
-        scrollProjects(direction);
-      });
+      dot.addEventListener('click', () => { const direction = index - currentIndex; scrollProjects(direction); });
     });
-
     projectsGrid.addEventListener('scroll', () => {
       const scrollPosition = projectsGrid.scrollLeft;
       const cardWidth = projectCards[0].offsetWidth + 32;
       currentIndex = Math.round(scrollPosition / cardWidth);
       updateScrollDots();
     });
-
     projectCards[0].classList.add('visible');
     document.querySelectorAll('.timeline-item').forEach(el => observer.observe(el));
   </script>
