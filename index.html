@@ -787,10 +787,11 @@
             width: 100%;
             margin: 0 auto;
             padding: 2rem 0;
-            height: 500px; /* Fixed height to show 1.5-2 items */
+            height: 1200px; /* Increased height to show more content */
             overflow-y: auto;
             scrollbar-width: none;
             -ms-overflow-style: none;
+            margin-bottom: 6rem;
         }
 
         .timeline-container::-webkit-scrollbar {
@@ -804,7 +805,12 @@
             transform: translateX(-50%);
             width: 2px;
             height: 100%;
-            background: var(--accent-red);
+            background: linear-gradient(to bottom, 
+                transparent,
+                var(--accent-red),
+                var(--accent-red),
+                transparent
+            );
             opacity: 0.3;
         }
 
@@ -870,7 +876,7 @@
 
         @media (max-width: 768px) {
             .timeline-container {
-                height: 400px;
+                height: 1000px;
             }
 
             .timeline-container::before {
