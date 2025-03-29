@@ -999,6 +999,10 @@
       transition: opacity 0.5s ease-out;
     }
 
+    body.loading {
+      overflow: hidden;
+    }
+
     .loading-content {
       text-align: center;
     }
@@ -1039,13 +1043,52 @@
       opacity: 0.7;
       font-family: 'JetBrains Mono', monospace;
     }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(7, 30, 34, 0.1);
+      border-radius: 5px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--accent-red);
+      border-radius: 5px;
+      transition: all 0.3s ease;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--coral);
+    }
+
+    /* For Firefox */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--accent-red) rgba(7, 30, 34, 0.1);
+    }
+
+    /* For Firefox scrollbar corners */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--accent-red) rgba(7, 30, 34, 0.1);
+      scrollbar-gutter: stable;
+    }
+
+    /* Ensure scrollbar is visible in Firefox */
+    html {
+      scrollbar-width: thin;
+      scrollbar-color: var(--accent-red) rgba(7, 30, 34, 0.1);
+    }
   </style>
 </head>
 <body>
   <!-- Loading Overlay -->
   <div class="loading-overlay">
     <div class="loading-content">
-      <h1 class="loading-title">Aahil Shaikh</h1>
+      <h1 class="loading-title">Aahil's Portfolio</h1>
       <div class="loading-bar">
         <div class="loading-progress"></div>
       </div>
@@ -1312,6 +1355,9 @@
       const loadingProgress = document.querySelector('.loading-progress');
       const loadingText = document.querySelector('.loading-text');
       
+      // Add loading class to body to prevent scrolling
+      document.body.classList.add('loading');
+      
       // Simulate loading progress
       let progress = 0;
       const interval = setInterval(() => {
@@ -1323,6 +1369,8 @@
             loadingOverlay.style.opacity = '0';
             setTimeout(() => {
               loadingOverlay.style.display = 'none';
+              // Remove loading class to allow scrolling
+              document.body.classList.remove('loading');
             }, 500);
           }, 500);
         }
