@@ -1,8 +1,12 @@
 # the007programmer.github.io
 
-## Will add more information later.
+This was my attempt at a simple portfolio website to list my accomplishments.
 
-## Note: working with css and js in one file as of current.
+## Usage
+- Please view the site on https://The007Programmer.github.io!
+
+## Credits
+- I utilized Github Copilot for the code structuring, comments, debugging, and the Javascript for this site. 
 
 ### Commits Key
 - SAFE: Stable and production-ready code; can be safely deployed.

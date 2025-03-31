@@ -53,6 +53,34 @@
     mix-blend-mode: difference;
   }
 
+  /* Hide default cursor */
+  body {
+    cursor: none;
+  }
+
+  /* Cursor hover effects */
+  a, button, .project-link, .contact-button, .scroll-button {
+    cursor: none !important;
+  }
+
+  a:hover ~ .cursor,
+  button:hover ~ .cursor,
+  .project-link:hover ~ .cursor,
+  .contact-button:hover ~ .cursor,
+  .scroll-button:hover ~ .cursor {
+    transform: translate(-50%, -50%) scale(1.5);
+    background: var(--accent-red);
+  }
+
+  a:hover ~ .cursor-follower,
+  button:hover ~ .cursor-follower,
+  .project-link:hover ~ .cursor-follower,
+  .contact-button:hover ~ .cursor-follower,
+  .scroll-button:hover ~ .cursor-follower {
+    transform: translate(-50%, -50%) scale(1.2);
+    border-color: var(--accent-red);
+  }
+
   /* Animated Background */
   .background-shapes {
     position: fixed;
