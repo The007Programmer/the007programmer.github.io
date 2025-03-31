@@ -787,7 +787,7 @@
       width: 100%;
       margin: 0 auto;
       padding: 2rem 0;
-      height: 600px;
+      height: 800px;
       overflow-y: auto;
       scrollbar-width: none;
       -ms-overflow-style: none;
@@ -1177,36 +1177,25 @@
         <h3 class="category-title">Programming Languages</h3>
         <div class="skill-list">
           <div class="skill-item"><span class="icon">🐍</span> Python</div>
-          <div class="skill-item"><span class="icon"><img src="img/icons/cpp.svg" alt="C++ Icon" style="width:16px; height:16px; vertical-align:middle;"></span> C++</div>
-          <div class="skill-item">JavaScript</div>
-          <div class="skill-item">Bash</div>
+          <div class="skill-item"><span class="icon">⚙️</span> C++</div>
+          <div class="skill-item"><span class="icon">🖥️</span>Bash</div>
         </div>
       </div>
       <div class="skill-category">
         <h3 class="category-title">Services &amp; Tools</h3>
         <div class="skill-list">
           <div class="skill-item"><span class="icon">💨</span> Tailscale</div>
-          <div class="skill-item">MongoDB</div>
-          <div class="skill-item">Git</div>
-          <div class="skill-item">Docker</div>
+          <div class="skill-item"><span class="icon">🍃</span>MongoDB</div>
+          <div class="skill-item"><span class="icon">🐙</span>Git</div>
         </div>
       </div>
       <div class="skill-category">
         <h3 class="category-title">Operating Systems</h3>
         <div class="skill-list">
-          <div class="skill-item">Kali Linux</div>
-          <div class="skill-item">Ubuntu</div>
-          <div class="skill-item">Linux Mint</div>
-          <div class="skill-item">CLI Server</div>
-        </div>
-      </div>
-      <div class="skill-category">
-        <h3 class="category-title">Development</h3>
-        <div class="skill-list">
-          <div class="skill-item">React</div>
-          <div class="skill-item">Node.js</div>
-          <div class="skill-item">SQL</div>
-          <div class="skill-item">REST APIs</div>
+          <div class="skill-item"><span class="icon">🥷</span>Kali Linux</div>
+          <div class="skill-item"><span class="icon">🔶</span>Ubuntu</div>
+          <div class="skill-item"><span class="icon">🪴</span>Linux Mint</div>
+          <div class="skill-item"><span class="icon">🔶</span>Ubuntu Server</div>
         </div>
       </div>
     </div>
@@ -1220,82 +1209,63 @@
       <div class="projects-grid">
         <div class="project-card">
           <div class="project-content">
-            <h3 class="project-title">Network Security Scanner</h3>
-            <p class="project-desc">Automated security assessment tool that identifies vulnerabilities  network infrastructure. Features include port scanning, service detection, and vulnerability reporting.</p>
+            <h3 class="project-title">UFW Manager</h3>
+            <p class="project-desc">UFW-Manager is a lightweight Python tool designed to simplify managing IP rules for UFW (Uncomplicated Firewall) on Linux. It allows users to easily add, remove, and list IP bans, automating tedious firewall rule management. Ideal for server administrators and self-hosted setups, it streamlines security by providing a simple interface to handle firewall restrictions efficiently.</p>
             <div class="project-tech">
               <span class="tech-tag"><span class="icon">🐍</span> Python</span>
-              <span class="tech-tag">Nmap</span>
-              <span class="tech-tag">SQLite</span>
+              <span class="tech-tag"><span class="icon">🖥️</span>Bash</span>
+              <span class="tech-tag"><span class="icon">🗂️</span>JSON</span>
+              <span class="tech-tag"><span class="icon">💨</span>Tailscale</span>
+              <span class="tech-tag"><span class="icon">🚧</span>❗IN PROGRESS❗</span>
             </div>
             <div class="project-links">
-              <a href="#" class="project-link">GitHub</a>
-              <a href="#" class="project-link">Live Demo</a>
+              <a href="https://github.com/The007Programmer/UFW-Manager" class="project-link">GitHub</a>
             </div>
           </div>
           <div class="project-image">
-            <img src="img/projects/security-scanner.jpg" alt="Network Security Scanner">
+            <img src="img/projects/ufwmanager.png" alt="UFW_Manager">
           </div>
         </div>
 
         <div class="project-card">
           <div class="project-content">
-            <h3 class="project-title">VPN Management Dashboard</h3>
-            <p class="project-desc">Web-based interface for managing VPN connections and monitoring network traffic. Includes real-time analytics and user access controls.</p>
+            <h3 class="project-title">FlashGuard</h3>
+            <p class="project-desc">FlashGuard is a security-focused tool designed to protect USB flash drives from unauthorized access and malware threats. It helps users monitor, control, and secure their USB storage devices, preventing unwanted data transfers and potential infections. Whether you're safeguarding sensitive files or ensuring a clean device environment, FlashGuard provides a simple yet effective layer of protection.</p>
             <div class="project-tech">
-              <span class="tech-tag">React</span>
-              <span class="tech-tag">Node.js</span>
-              <span class="tech-tag"><span class="icon">💨</span> Tailscale</span>
+              <span class="tech-tag"><span class="icon">🐍</span> Python</span>
+              <span class="tech-tag"><span class="icon">🖥️</span>Bash</span>
+              <span class="tech-tag"><span class="icon">🚧</span>❗IN PROGRESS❗</span>
             </div>
             <div class="project-links">
-              <a href="#" class="project-link">GitHub</a>
+              <a href="https://github.com/The007Programmer/FlashGuard" class="project-link">GitHub</a>
             </div>
           </div>
           <div class="project-image">
-            <img src="img/projects/vpn-dashboard.jpg" alt="VPN Management Dashboard">
+            <img src="img/projects/flashguard.png" alt="flashguard">
           </div>
         </div>
 
         <div class="project-card">
           <div class="project-content">
-            <h3 class="project-title">System Monitor</h3>
-            <p class="project-desc">Cross-platform system monitoring tool that tracks CPU, memory, and network usage. Features customizable alerts and historical data analysis.</p>
+            <h3 class="project-title">Mailsmith</h3>
+            <p class="project-desc">Mailsmith is a smart email automation tool that uses ChatGPT to generate personalized email content based on your specific needs. Simply provide a brief prompt, and Mailsmith will craft a tailored message. It then connects to your Gmail account via the Gmail API to send the email directly to the intended recipient. Whether you're handling professional outreach, customer service, or personal communication, Mailsmith simplifies and automates the entire email process with AI-powered writing and seamless integration.</p>
             <div class="project-tech">
               <span class="tech-tag"><span class="icon">🐍</span> Python</span>
-              <span class="tech-tag">Qt</span>
-              <span class="tech-tag">SQLite</span>
+              <span class="tech-tag"><span class="icon">📧</span>Gmail API</span>
+              <span class="tech-tag"><span class="icon">🚧</span>❗IN PROGRESS❗</span>
             </div>
             <div class="project-links">
-              <a href="#" class="project-link">GitHub</a>
-              <a href="#" class="project-link">Documentation</a>
+              <a href="https://github.com/The007Programmer/Mailsmith" class="project-link">GitHub</a>
             </div>
           </div>
           <div class="project-image">
-            <img src="img/projects/system-monitor.jpg" alt="System Monitor">
-          </div>
-        </div>
-
-        <div class="project-card">
-          <div class="project-content">
-            <h3 class="project-title">Network Traffic Analyzer</h3>
-            <p class="project-desc">Tool for analyzing and visualizing network traffic patterns. Helps identify anomalies and potential security threats.</p>
-            <div class="project-tech">
-              <span class="tech-tag"><span class="icon">🐍</span> Python</span>
-              <span class="tech-tag"><span class="icon">🦈</span> Wireshark</span>
-              <span class="tech-tag">D3.js</span>
-            </div>
-            <div class="project-links">
-              <a href="#" class="project-link">GitHub</a>
-            </div>
-          </div>
-          <div class="project-image">
-            <img src="img/projects/traffic-analyzer.jpg" alt="Network Traffic Analyzer">
+            <img src="img/projects/mailsmith.png" alt="mailsmith">
           </div>
         </div>
       </div>
       <button class="scroll-button next"><i>→</i></button>
       <div class="scroll-indicator">
         <div class="scroll-dot active"></div>
-        <div class="scroll-dot"></div>
         <div class="scroll-dot"></div>
         <div class="scroll-dot"></div>
       </div>
@@ -1309,34 +1279,34 @@
       <div class="timeline-wrapper">
         <div class="timeline-item">
           <div class="timeline-content">
-            <div class="timeline-date">2023 - Present</div>
-            <h3 class="timeline-title">Senior Network Engineer</h3>
-            <p class="timeline-desc">Leading network infrastructure projects and implementing security solutions. Managing VPN deployments and network monitoring systems.</p>
+            <div class="timeline-date">Oct 2021 - Present</div>
+            <h3 class="timeline-title">Engineering Student at DHS</h3>
+            <p class="timeline-desc">As an Engineering student at DHS, I’m deepening my understanding of core engineering principles through hands-on projects, design challenges, and collaborating with peers. I focus on problem-solving and innovation, tackling everything from mechanical systems to electrical engineering to prepare for a future in the tech industry.</p>
           </div>
         </div>
         <div class="timeline-item">
           <div class="timeline-content">
-            <div class="timeline-date">2021 - 2023</div>
-            <h3 class="timeline-title">Network Security Specialist</h3>
-            <p class="timeline-desc">Developed and implemented security protocols, conducted vulnerability assessments, and managed firewall configurations.</p>
+            <div class="timeline-date">Jun 2024 - Aug 2024</div>
+            <h3 class="timeline-title">CS61A Student at UCB</h3>
+            <p class="timeline-desc">As a student in CS61A at UC Berkeley, I tackled advanced computer science concepts like data structures, SQL, and Scheme; earning a B+ overall. This experience allowed me to dive deeper into algorithms, problem-solving, and software development, preparing me for future challenges in both software engineering and computer science.</p>
           </div>
         </div>
         <div class="timeline-item">
           <div class="timeline-content">
-            <div class="timeline-date">2019 - 2021</div>
-            <h3 class="timeline-title">System Administrator</h3>
-            <p class="timeline-desc">Managed server infrastructure, implemented monitoring solutions, and developed automation scripts for system maintenance.</p>
+            <div class="timeline-date">May 2024 - Sep 2024</div>
+            <h3 class="timeline-title">EE Intern at Stemchef</h3>
+            <p class="timeline-desc">During my internship at STEMChef, I contributed to electrical engineering projects by developing Raspberry Pi-based systems for the company's escape room business. I gained valuable experience in breadboarding, RFID technology, and team collaboration, while also improving my version control skills with Git.</p>
           </div>
         </div>
         <div class="timeline-item">
           <div class="timeline-content">
-            <div class="timeline-date">2017 - 2019</div>
-            <h3 class="timeline-title">Junior Developer</h3>
-            <p class="timeline-desc">Started career in software development, working on web applications and learning core programming concepts.</p>
+            <div class="timeline-date">Mar 2023 - Mar 2024</div>
+            <h3 class="timeline-title">Swim Instructor at Calphin</h3>
+            <p class="timeline-desc">As a swim instructor at Calphin, I guided students of all ages in learning essential swimming skills while promoting safety and confidence in the water. My role focused on personalized coaching and creating a positive, supportive environment for swimmers to progress at their own pace.</p>
           </div>
         </div>
       </div>
-      <div class="timeline-scroll-text">Scroll for past</div>
+      <div class="timeline-scroll-text">Scroll for more</div>
     </div>
   </section>
 
@@ -1368,9 +1338,8 @@
     <p>&copy; 2025 Aahil Shaikh. All rights reserved.</p>
     <p>
       <br>
-      <a href="#">LinkedIn</a> |
-      <a href="#">GitHub</a> |
-      <a href="#">Twitter</a>
+      | <a href="https://www.linkedin.com/in/aahil-shaikh-04b9ba356/">LinkedIn</a> |
+      <a href="https://github.com/The007Programmer">GitHub</a> |
     </p>
   </footer>
 
