@@ -88,7 +88,7 @@
         const mouseY = e.clientY / window.innerHeight;
         title.style.transform = `translate(${mouseX * 20}px, ${mouseY * 20}px)`;
       });
-      const titles = ["Computer Engineer", "Amateur Software Developer", "Linux Enthusiast"];
+      const titles = ["Computer Science @ TAMU", "Amateur Software Developer", "Linux Enthusiast"];
       let titleIndex = 0;
       let charIndex = 0;
       let isDeleting = false;
