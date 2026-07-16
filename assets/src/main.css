@@ -158,6 +158,36 @@ a { color: inherit; }
   margin-bottom: clamp(1.5rem, 3vw, 2.25rem);
 }
 
+/* Each line rises out from behind its own edge. The padding/margin pair
+   gives descenders room without opening a gap under the mask. */
+.hero-name .line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.09em;
+  margin-bottom: -0.09em;
+}
+.hero-name .line > span {
+  display: block;
+  animation: name-rise 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.hero-name .line:nth-child(1) > span { animation-delay: 0.1s; }
+.hero-name .line:nth-child(2) > span { animation-delay: 0.22s; }
+
+@keyframes name-rise {
+  from { transform: translateY(105%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.hero .eyebrow { animation: hero-rise 0.7s ease both; }
+.hero-thesis   { animation: hero-rise 0.8s ease 0.42s both; }
+.hero-meta     { animation: hero-rise 0.8s ease 0.55s both; }
+.graph-caption { animation: hero-rise 0.8s ease 0.7s both; }
+
 .hero-thesis {
   max-width: 22ch;
   font-family: var(--display);
@@ -266,6 +296,70 @@ a { color: inherit; }
 .g-node { cursor: default; }
 .g-node:hover .g-node-box { fill: var(--rust); opacity: 1; }
 .g-node[data-kind="role"]:hover .g-node-box { fill: var(--paper); }
+
+/* ── Build sequence ──────────────────────────────────────────
+   The graph assembles in causal order rather than fading in as a
+   picture: a node appears, then the edge it caused draws toward the
+   node that came next. script.js sets --draw (the line's own length)
+   and --delay (its position in the chain) per element.
+   ------------------------------------------------------------ */
+
+.g-svg[data-build="pending"] .g-node,
+.g-svg[data-build="pending"] .g-edge,
+.g-svg[data-build="pending"] .g-edge-label,
+.g-svg[data-build="pending"] .g-edge-patch { opacity: 0; }
+
+.g-svg[data-build="running"] .g-node {
+  animation: node-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0s) both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes node-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Solid edges draw themselves along their own length. The dashed
+   "alongside" edge already uses stroke-dasharray for its pattern, so it
+   fades in instead of drawing. */
+.g-svg[data-build="running"] .g-edge:not(.g-edge-soft) {
+  stroke-dasharray: var(--draw);
+  animation: edge-draw 0.55s ease-out var(--delay, 0s) both;
+}
+@keyframes edge-draw {
+  from { stroke-dashoffset: var(--draw); opacity: 0.5; }
+  to   { stroke-dashoffset: 0; opacity: 0.5; }
+}
+
+.g-svg[data-build="running"] .g-edge-soft {
+  animation: soft-in 0.6s ease var(--delay, 0s) both;
+}
+@keyframes soft-in {
+  from { opacity: 0; }
+  to   { opacity: 0.32; }
+}
+
+.g-svg[data-build="running"] .g-edge-label {
+  animation: label-in 0.4s ease var(--delay, 0s) both;
+}
+@keyframes label-in {
+  from { opacity: 0; }
+  to   { opacity: 0.85; }
+}
+.g-svg[data-build="running"] .g-edge-patch {
+  animation: patch-in 0.4s ease var(--delay, 0s) both;
+}
+@keyframes patch-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* The arrowhead would otherwise sit at the target before the line
+   arrives, so it is withheld until the draw lands. */
+.g-svg[data-build="running"] .g-edge { marker-end: none; }
+.g-svg[data-build="running"] .g-edge.is-drawn { marker-end: url(#g-arrow); }
+.g-svg[data-build="done"] .g-edge { marker-end: url(#g-arrow); }
 
 /* Tracing one node's neighbourhood pushes the rest of the graph back. */
 .g-svg.is-tracing .g-edge,
@@ -425,6 +519,8 @@ a { color: inherit; }
   transition: background 0.2s ease;
 }
 .card:hover { background: var(--paper-2); }
+.card-title { transition: color 0.2s ease; }
+.card:hover .card-title { color: var(--ember); }
 
 .stamp-card { margin-bottom: 0.25rem; }
 
@@ -503,6 +599,15 @@ a { color: inherit; }
   transition: border-color 0.18s ease;
 }
 .oss-link:hover { border-bottom-color: var(--ember); }
+.oss-link .arw {
+  display: inline-block;
+  transition: transform 0.18s ease;
+}
+.oss-link:hover .arw { transform: translate(2px, -2px); }
+
+/* The row itself acknowledges the pointer. */
+.oss-item { transition: border-color 0.2s ease; }
+.oss-item:hover { border-bottom-color: rgba(181, 36, 27, 0.5); }
 
 /* ── Path ────────────────────────────────────────────────── */
 
@@ -667,6 +772,7 @@ a { color: inherit; }
   transition: background 0.18s ease, color 0.18s ease;
 }
 .submit:hover { background: transparent; color: var(--paper); }
+.submit:active { transform: translateY(1px); }
 
 /* ── Footer ──────────────────────────────────────────────── */
 
@@ -720,6 +826,11 @@ a { color: inherit; }
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    /* Zeroing duration alone still leaves the staggered delays, which
+       would hold the hero and the graph at their opening state — blank
+       — for most of a second. */
+    animation-delay: 0s !important;
+    transition-delay: 0s !important;
   }
   [data-reveal] { opacity: 1; transform: none; }
 }
