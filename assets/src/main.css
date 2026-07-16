@@ -186,12 +186,11 @@ a { color: inherit; }
   to   { opacity: 1; transform: none; }
 }
 
-/* "backwards", not "both": these elements also carry the parallax
-   transform as an inline style, and a filled-forwards animation would
-   keep pinning transform back to none and kill the scroll effect. */
-.hero .eyebrow { animation: hero-rise 0.7s ease backwards; }
-.hero-thesis   { animation: hero-rise 0.8s ease 0.5s backwards; }
-.hero-meta     { animation: hero-rise 0.8s ease 0.62s backwards; }
+/* Parallax rides .hero-inner, the parent, so these entrances are free to
+   fill forwards without fighting it. */
+.hero .eyebrow { animation: hero-rise 0.7s ease both; }
+.hero-thesis   { animation: hero-rise 0.8s ease 0.5s both; }
+.hero-meta     { animation: hero-rise 0.8s ease 0.62s both; }
 
 .hero-thesis {
   max-width: 22ch;
@@ -637,6 +636,61 @@ a { color: inherit; }
 /* The row itself acknowledges the pointer. */
 .oss-item { transition: border-color 0.2s ease; }
 .oss-item:hover { border-bottom-color: rgba(181, 36, 27, 0.5); }
+
+/* ── Tally ───────────────────────────────────────────────── */
+
+.tally {
+  background: var(--signal);
+  color: var(--paper);
+  padding: clamp(3.5rem, 7vw, 5.5rem) var(--edge);
+}
+
+.tally-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(2rem, 4vw, 3rem);
+}
+
+.tally-item {
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 241, 237, 0.4);
+}
+
+.tally-num {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(3.25rem, 7vw, 5.5rem);
+  line-height: 1;
+  letter-spacing: -0.045em;
+  /* The count-up swaps digits every frame; tabular figures keep them
+     from jittering as it climbs. */
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 0.75rem;
+}
+
+.tally-label {
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.tally-note {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  max-width: 30ch;
+}
+
+@media (min-width: 40rem) {
+  .tally-inner { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 62rem) {
+  .tally-inner { grid-template-columns: repeat(4, 1fr); }
+}
 
 /* ── Path ────────────────────────────────────────────────── */
 

@@ -56,9 +56,15 @@ reflows or collides while it resolves. It measures in the real display face, so
 it waits for `document.fonts.ready` — but only for 900ms, after which it skips
 rather than scrambling a name the reader can already see.
 
-Hero layers drift at different rates on scroll (`data-parallax`). Anything that
-carries a parallax transform must not also run a forwards-filling animation, or
-the fill pins `transform` back to none and the drift dies.
+Short monospace labels (the eyebrows, `Fig. 01`) decode left-to-right on
+reveal. Monospace has no width problem, so they need none of the measuring the
+name does. The tally counts up on reveal, with tabular figures so the digits
+don't jitter as they climb.
+
+The hero parallaxes as ONE block (`data-parallax` on `.hero-inner`) and fades
+out. Giving each line its own rate reads as depth for about 200px and then the
+lines converge and overlap — they share a column, so the gap between them
+shrinks by the difference in their rates.
 
 `prefers-reduced-motion` skips the scramble, the parallax, and the graph build.
 

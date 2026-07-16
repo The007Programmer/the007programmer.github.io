@@ -2,8 +2,12 @@
    Aahil Shaikh — portfolio
    1. The trajectory graph: my career, drawn as the directed
       graph it actually is. Layout is hand-placed, not simulated,
-      so it reads the same every load.
-   2. Scroll reveals.
+      so it reads the same every load, and it builds in causal order.
+   2. The name decodes out of noise.
+   3. Hero parallax.
+   4. Mono labels decode; the tally counts up.
+   5. Topbar ground past the hero.
+   6. Scroll reveals.
    ============================================================ */
 
 (function () {
@@ -11,8 +15,10 @@
 
   /* ── 1. The graph ──────────────────────────────────────── */
 
-  const VIEW_W = 1000;
-  const VIEW_H = 460;
+  const VIEW_X = -40;
+  const VIEW_Y = -24;
+  const VIEW_W = 1060;
+  const VIEW_H = 508;
   const NS = 'http://www.w3.org/2000/svg';
 
   // kind "role" renders filled (the two jobs); everything else is
@@ -106,7 +112,7 @@
 
   function buildGraph(mount) {
     const svg = el('svg', {
-      viewBox: '0 0 ' + VIEW_W + ' ' + VIEW_H,
+      viewBox: VIEW_X + ' ' + VIEW_Y + ' ' + VIEW_W + ' ' + VIEW_H,
       class: 'g-svg',
       'aria-hidden': 'true',
       focusable: 'false'
@@ -463,10 +469,18 @@
     const apply = function () {
       ticking = false;
       const y = window.scrollY;
-      // Past the hero these are off-screen; moving them is wasted work.
-      if (y > hero.offsetHeight) return;
+      const h = hero.offsetHeight || 1;
+      // Past the hero this is off-screen; moving it is wasted work.
+      if (y > h) return;
+      // One layer. Giving each line its own rate looks like depth for
+      // about 200px and then the lines converge and overlap, because
+      // they share a column — the gap between them shrinks by the
+      // difference in rates. The hero drifts as a block and fades out
+      // before it can reach anything below it.
+      const fade = Math.max(0, 1 - y / (h * 0.62));
       layers.forEach(function (l) {
         l.el.style.transform = 'translate3d(0,' + (y * l.speed).toFixed(1) + 'px,0)';
+        l.el.style.opacity = fade.toFixed(3);
       });
     };
 
@@ -480,7 +494,68 @@
 
   parallax();
 
-  /* ── 4. Topbar ─────────────────────────────────────────── */
+  /* ── 4. Mono labels decode; the tally counts up ─────────── */
+
+  // Every label that decodes is monospace, so glyphs are interchangeable
+  // and nothing reflows — none of the width work the name needs.
+  const MONO_NOISE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&/';
+
+  function decode(el) {
+    const finalText = el.textContent.trim();
+    const n = finalText.length;
+    let step = 0;
+    const id = setInterval(function () {
+      step++;
+      let out = '';
+      for (let i = 0; i < n; i++) {
+        const c = finalText.charAt(i);
+        if (c === ' ') { out += ' '; continue; }
+        // Resolves left to right, two characters behind the leading edge.
+        out += (i < step - 2) ? c : MONO_NOISE[(Math.random() * MONO_NOISE.length) | 0];
+      }
+      el.textContent = out;
+      if (step - 2 >= n) {
+        clearInterval(id);
+        el.textContent = finalText;
+      }
+    }, 45);
+  }
+
+  function countUp(el) {
+    const target = parseFloat(el.getAttribute('data-count'));
+    const dp = parseInt(el.getAttribute('data-decimals') || '0', 10);
+    if (isNaN(target)) return;
+    const dur = 1100;
+    const t0 = performance.now();
+    const frame = function (now) {
+      const p = Math.min(1, (now - t0) / dur);
+      // Ease out: fast off the line, then settles onto the number.
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = (target * eased).toFixed(dp);
+      if (p < 1) requestAnimationFrame(frame);
+      else el.textContent = target.toFixed(dp);
+    };
+    requestAnimationFrame(frame);
+  }
+
+  function onReveal(selector, run) {
+    const nodes = document.querySelectorAll(selector);
+    if (!nodes.length) return;
+    if (prefersReduced() || !('IntersectionObserver' in window)) return;
+    const io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        io.unobserve(entry.target);
+        run(entry.target);
+      });
+    }, { threshold: 0.6 });
+    nodes.forEach(function (n) { io.observe(n); });
+  }
+
+  onReveal('[data-decode]', decode);
+  onReveal('[data-count]', countUp);
+
+  /* ── 5. Topbar ─────────────────────────────────────────── */
 
   const topbar = document.querySelector('.topbar');
   if (topbar) {
@@ -491,7 +566,7 @@
     onScroll();
   }
 
-  /* ── 5. Reveals ────────────────────────────────────────── */
+  /* ── 6. Reveals ────────────────────────────────────────── */
 
   const targets = document.querySelectorAll(
     '.section-head, .feature, .card, .oss-item, .ledger-row, .kit-group, .contact-pitch, .form'
