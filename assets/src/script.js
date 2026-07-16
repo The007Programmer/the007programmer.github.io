@@ -69,7 +69,14 @@
   const DAMP = 0.86;
   const V_MAX = 6;
   const GAP = 30;         // clear space demanded between two boxes
-  const COOL = 0.02;      // kinetic energy below which the graph is at rest
+
+  // Ambient wander. The anchor each node hangs from drifts on a slow
+  // lissajous, and the node follows it — so the graph is always very
+  // slightly alive, which is what tells you it can be grabbed. Small
+  // enough to read as breathing rather than movement: ~5 units against
+  // a 1060-unit frame is about 6px on screen.
+  const DRIFT_A = 5;
+  const DRIFT_MS = 11000;
 
   const STEP = 300;      // ms between one causal hop and the next
   const NODE_IN = 380;   // a node settles before its edges leave it
@@ -148,6 +155,7 @@
     const edgeLayer = el('g');
     const nodeLayer = el('g');
     const depth = depths();
+    const REDUCED = prefersReduced();
 
     // ── Build the simulation state ──────────────────────────
     const sim = {};
@@ -155,7 +163,10 @@
       const n = NODES[id];
       const box = measure(n);
       sim[id] = {
-        id: id, x: n.x, y: n.y, ax: n.x, ay: n.y, vx: 0, vy: 0,
+        id: id, x: n.x, y: n.y,
+        ax: n.x, ay: n.y,     // live anchor, including the wander
+        ax0: n.x, ay0: n.y,   // where this node belongs; drag moves it
+        vx: 0, vy: 0,
         w: box.w, h: box.h, kind: n.kind,
         born: depth[id] * STEP, held: false
       };
@@ -218,6 +229,18 @@
 
     // ── Physics ─────────────────────────────────────────────
     const ids = Object.keys(sim);
+
+    // Walk each anchor around its home position. Held nodes are exempt:
+    // while you have one, it goes exactly where you put it.
+    function wander(t) {
+      ids.forEach(function (id, k) {
+        const n = sim[id];
+        if (n.held) return;
+        const w = (2 * Math.PI) / (DRIFT_MS * (0.8 + 0.06 * k));
+        n.ax = n.ax0 + Math.sin(t * w + k * 1.7) * DRIFT_A;
+        n.ay = n.ay0 + Math.cos(t * w * 0.83 + k * 2.3) * DRIFT_A * 0.7;
+      });
+    }
 
     function step(active) {
       for (let a = 0; a < active.length; a++) {
@@ -333,7 +356,7 @@
     }
 
     // ── Loop ────────────────────────────────────────────────
-    let raf = null, t0 = 0, dragging = false;
+    let raf = null, t0 = 0, dragging = false, onScreen = false, started = false;
 
     function activeAt(t) {
       return ids.filter(function (id) { return t >= sim[id].born; });
@@ -341,20 +364,19 @@
 
     function frame(now) {
       const t = now - t0;
-      const energy = step(activeAt(t));
+      // Reduced motion still allows dragging, and the loop runs during
+      // it — but nothing may drift on its own while it does.
+      if (!REDUCED) wander(t);
+      step(activeAt(t));
       render(t);
-      if (dragging || t < spawnDone + 400 || energy > COOL) {
-        raf = requestAnimationFrame(frame);
-      } else {
-        raf = null;   // settled: stop burning frames until something moves
-      }
+      // The wander means this never settles, so the viewport is what
+      // decides whether it runs. Scrolled away, it costs nothing.
+      if (onScreen || dragging) raf = requestAnimationFrame(frame);
+      else raf = null;
     }
 
     function kick() {
-      if (raf === null) {
-        t0 = performance.now() - (spawnDone + 500);   // already grown
-        raf = requestAnimationFrame(frame);
-      }
+      if (raf === null) raf = requestAnimationFrame(frame);
     }
 
     // ── Drag ────────────────────────────────────────────────
@@ -385,6 +407,12 @@
         if (!n.held) return;
         n.held = false;
         dragging = false;
+        // Where you dropped it is where it now belongs. Without this the
+        // node springs back to the layout I wrote, which makes the drag
+        // feel like it was never allowed in the first place. Its
+        // neighbours still settle around the new position.
+        n.ax0 = n.x;
+        n.ay0 = n.y;
         n.g.classList.remove('is-held');
         try { n.g.releasePointerCapture(evt.pointerId); } catch (err) { /* already gone */ }
         kick();
@@ -419,31 +447,40 @@
     // Reduced motion: solve the layout without showing the work, then
     // render it once. Dragging still runs, because that is the reader's
     // own doing rather than something moving at them.
-    if (prefersReduced()) {
+    if (REDUCED) {
       for (let i = 0; i < 600; i++) step(ids);
       render(null);
+      // Dragging is something the reader does, not something that moves
+      // at them, so it stays live. t0 is set far enough back that
+      // everything counts as long since grown.
+      t0 = performance.now() - (spawnDone + 1000);
+      started = true;
       return;
     }
 
     render(0);
 
     const start = function () {
-      if (t0) return;
+      if (started) return;
+      started = true;
       t0 = performance.now();
-      raf = requestAnimationFrame(frame);
+      kick();
     };
 
-    if (!('IntersectionObserver' in window)) { start(); return; }
+    if (!('IntersectionObserver' in window)) { onScreen = true; start(); return; }
+
     const io = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        io.disconnect();
+        onScreen = entry.isIntersecting;
+        if (!onScreen) return;
         start();
+        kick();   // scrolled back into view: pick the wander up again
       });
-    }, { threshold: 0.25 });
+    }, { threshold: 0.15 });
     io.observe(svg);
+
     // If the observer never fires, the graph must still appear.
-    setTimeout(start, 2500);
+    setTimeout(function () { onScreen = true; start(); }, 2500);
   }
 
   const mount = document.querySelector('[data-graph-canvas]');

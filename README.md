@@ -37,13 +37,20 @@ figure. `--field` on `.figure-section` is the colour the graph is drawn on;
 node boxes and label patches fill with it so edges stop cleanly at the box.
 Move the graph to a different ground and that one variable follows.
 
-It is a live force simulation and every node is draggable. Each node is sprung
-to its seed position (`ax`/`ay`), so the graph relaxes out of the hand-placed
-layout and returns to it when you let go. That anchor is load-bearing: without
-it the repulsion wins, the graph expands until every box is pinned against the
-frame, and it never cools. Edge rest length is never shorter than the label
-written on it needs, so the layout is obliged to make room for its own
-annotations.
+It is a live force simulation and every node is draggable. Each node hangs from
+an anchor (`ax0`/`ay0`) rather than from its seed: the seed is only where a node
+starts, and dropping a node moves its anchor there, so nothing springs back to
+the layout I wrote. The anchor itself is load-bearing — without it the repulsion
+wins, the graph expands until every box is pinned against the frame, and it
+never cools. It is also what keeps the figure chronological: a force sim has no
+idea that time runs left to right, and unanchored it settles into a radial blob
+around the highest-degree node.
+
+Every anchor walks a slow lissajous (`DRIFT_A`, `DRIFT_MS`), so the graph is
+always faintly alive and reads as grabbable. That means it never settles, so the
+loop is gated on an IntersectionObserver: scrolled away, it costs nothing.
+Edge rest length is never shorter than the label written on it needs, so the
+layout is obliged to make room for its own annotations.
 
 The constants (`REP`, `K_SPRING`, `K_ANCHOR`, `DAMP`, `GAP`) were solved
 offline against the real node sizes rather than tuned by eye — they reach zero
