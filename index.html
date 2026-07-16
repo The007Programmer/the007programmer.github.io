@@ -23,11 +23,16 @@
   <header class="topbar">
     <a class="topbar-mark" href="#top">AS</a>
     <nav class="topbar-nav" aria-label="Sections">
+      <!-- The marker slides to whichever link is the current section.
+           It is decoration over links that already say where they go,
+           so it stays out of the accessibility tree. -->
+      <span class="topbar-ink" aria-hidden="true"></span>
       <a href="#work">Work</a>
       <a href="#path">Path</a>
       <a href="#toolkit">Toolkit</a>
       <a href="#contact">Contact</a>
     </nav>
+    <span class="topbar-progress" aria-hidden="true"></span>
   </header>
 
   <main id="main">
@@ -51,11 +56,11 @@
       </div>
     </section>
 
-    <!-- ── Fig. 01: the trajectory graph, on its own ground ─────── -->
+    <!-- ── The trajectory graph, on its own ground ──────────────── -->
     <section class="figure-section">
       <figure class="graph" id="graph">
         <figcaption class="graph-caption">
-          <span class="graph-caption-label" data-decode>Fig. 01</span>
+          <span class="graph-caption-label" data-decode>Trajectory</span>
           Every job I&rsquo;ve had was caused by the one before it. Drawn as the
           thing it actually is.
         </figcaption>
@@ -64,31 +69,48 @@
           script.js draws the graph here. The chain below is the same
           data as a vertical trace: it carries the graph to screen
           readers, to anyone without JS, and to narrow screens, where a
-          scaled-down node diagram would be unreadable.
+          scaled-down node diagram would be unreadable. It runs oldest
+          to newest because the arrows are causal — reversed, the graph
+          would claim each job caused the one that got him there.
         -->
         <div class="graph-canvas" data-graph-canvas>
           <ol class="graph-fallback">
             <li class="gf-step">
-              <p class="gf-node">Chinatown Hacks <span>Mar 2025</span></p>
-              <p class="gf-edge">prototyped</p>
+              <div class="gf-node">
+                <p class="gf-name">Chinatown Hacks</p>
+                <p class="gf-sub">Mar 2025</p>
+              </div>
+              <p class="gf-edge"><span>prototyped</span></p>
             </li>
             <li class="gf-step">
-              <p class="gf-node">Sentinel <span>Prototype</span></p>
-              <p class="gf-edge">led to an offer</p>
+              <div class="gf-node">
+                <p class="gf-name">Sentinel</p>
+                <p class="gf-sub">Prototype</p>
+              </div>
+              <p class="gf-edge"><span>led to an offer</span></p>
             </li>
             <li class="gf-step">
-              <p class="gf-node gf-role">TwelveLabs · DevEx <span>Jun–Dec 2025</span></p>
+              <div class="gf-node gf-role">
+                <p class="gf-name">TwelveLabs · DevEx</p>
+                <p class="gf-sub">Jun–Dec 2025</p>
+              </div>
               <p class="gf-branch">
-                built SAGE and Bastion · proposed Recurser · alongside Texas A&amp;M
+                <span>built SAGE and Bastion · proposed Recurser · alongside Texas A&amp;M</span>
               </p>
-              <p class="gf-edge">returned as</p>
+              <p class="gf-edge"><span>returned as</span></p>
             </li>
             <li class="gf-step">
-              <p class="gf-node gf-role">TwelveLabs · Agent Security <span>Feb–Jun 2026</span></p>
-              <p class="gf-edge">led the build</p>
+              <div class="gf-node gf-role">
+                <p class="gf-name">TwelveLabs · Agent Security</p>
+                <p class="gf-sub">Feb–Jun 2026</p>
+              </div>
+              <p class="gf-edge"><span>led the build</span></p>
             </li>
             <li class="gf-step gf-end">
-              <p class="gf-node">Electra <span>Beta</span></p>
+              <div class="gf-node">
+                <p class="gf-name">Electra</p>
+                <p class="gf-sub">Beta</p>
+              </div>
             </li>
           </ol>
         </div>
@@ -151,78 +173,6 @@
       <div class="cards">
 
         <article class="card">
-          <p class="stamp stamp-card">Mar 2025 · Chinatown Hacks</p>
-          <h3 class="card-title">Density tracker</h3>
-          <p class="card-desc">
-            Real-time population density with YOLO detection and custom
-            rasterization. Vector-to-bitmap conversion means the data can never
-            carry a face out with it.
-          </p>
-          <ul class="tags">
-            <li>YOLO</li>
-            <li>Rasterization</li>
-            <li>Privacy by design</li>
-          </ul>
-        </article>
-
-        <article class="card">
-          <p class="stamp stamp-card">Mar 2025 · Chinatown Hacks</p>
-          <h3 class="card-title">Sentinel</h3>
-          <p class="card-desc">
-            An AI security application on the TwelveLabs API. Started as a
-            hackathon prototype, became a one-week technical project, then became
-            the internship.
-          </p>
-          <ul class="tags">
-            <li>Computer vision</li>
-            <li>TwelveLabs API</li>
-          </ul>
-        </article>
-
-        <article class="card">
-          <p class="stamp stamp-card">Jun 2025 · TwelveLabs</p>
-          <h3 class="card-title">Bastion</h3>
-          <p class="card-desc">
-            A real-time security dashboard for live HTTPS video streams. Pushed
-            monitoring past the fixed-length-video workflows the platform
-            assumed.
-          </p>
-          <ul class="tags">
-            <li>Real-time video</li>
-            <li>Monitoring</li>
-          </ul>
-        </article>
-
-        <article class="card">
-          <p class="stamp stamp-card">Jun – Jul 2025 · TwelveLabs</p>
-          <h3 class="card-title">Jockey</h3>
-          <p class="card-desc">
-            Bug fixes and feature work on the conversational video agent built on
-            Marengo and Pegasus.
-          </p>
-          <ul class="tags">
-            <li>Contributor</li>
-            <li>Video agents</li>
-          </ul>
-        </article>
-
-        <article class="card">
-          <p class="stamp stamp-card">Jun – Aug 2025 · TwelveLabs</p>
-          <h3 class="card-title">Recurser</h3>
-          <p class="card-desc">
-            My proposal, then my ship. Analyzes AI-generated video, refines the
-            prompt, and runs it again — each pass closer to the intent.
-          </p>
-          <ul class="tags">
-            <li>Prompt engineering</li>
-            <li>Iterative systems</li>
-          </ul>
-          <a class="card-link" href="https://www.twelvelabs.io/blog/recurser">
-            I wrote the writeup <span class="arw">↗</span>
-          </a>
-        </article>
-
-        <article class="card">
           <p class="stamp stamp-card">Aug – Dec 2025 · TwelveLabs</p>
           <h3 class="card-title">SAGE</h3>
           <p class="card-desc">
@@ -239,8 +189,75 @@
             I wrote the writeup <span class="arw">↗</span>
           </a>
         </article>
+        <article class="card">
+          <p class="stamp stamp-card">Jun – Aug 2025 · TwelveLabs</p>
+          <h3 class="card-title">Recurser</h3>
+          <p class="card-desc">
+            My proposal, then my ship. Analyzes AI-generated video, refines the
+            prompt, and runs it again — each pass closer to the intent.
+          </p>
+          <ul class="tags">
+            <li>Prompt engineering</li>
+            <li>Iterative systems</li>
+          </ul>
+          <a class="card-link" href="https://www.twelvelabs.io/blog/recurser">
+            I wrote the writeup <span class="arw">↗</span>
+          </a>
+        </article>
+        <article class="card">
+          <p class="stamp stamp-card">Jun – Jul 2025 · TwelveLabs</p>
+          <h3 class="card-title">Jockey</h3>
+          <p class="card-desc">
+            Bug fixes and feature work on the conversational video agent built on
+            Marengo and Pegasus.
+          </p>
+          <ul class="tags">
+            <li>Contributor</li>
+            <li>Video agents</li>
+          </ul>
+        </article>
+        <article class="card">
+          <p class="stamp stamp-card">Jun 2025 · TwelveLabs</p>
+          <h3 class="card-title">Bastion</h3>
+          <p class="card-desc">
+            A real-time security dashboard for live HTTPS video streams. Pushed
+            monitoring past the fixed-length-video workflows the platform
+            assumed.
+          </p>
+          <ul class="tags">
+            <li>Real-time video</li>
+            <li>Monitoring</li>
+          </ul>
+        </article>
+        <article class="card">
+          <p class="stamp stamp-card">Mar 2025 · Chinatown Hacks</p>
+          <h3 class="card-title">Sentinel</h3>
+          <p class="card-desc">
+            An AI security application on the TwelveLabs API. Started as a
+            hackathon prototype, became a one-week technical project, then became
+            the internship.
+          </p>
+          <ul class="tags">
+            <li>Computer vision</li>
+            <li>TwelveLabs API</li>
+          </ul>
+        </article>
+        <article class="card">
+          <p class="stamp stamp-card">Mar 2025 · Chinatown Hacks</p>
+          <h3 class="card-title">Density tracker</h3>
+          <p class="card-desc">
+            Real-time population density with YOLO detection and custom
+            rasterization. Vector-to-bitmap conversion means the data can never
+            carry a face out with it.
+          </p>
+          <ul class="tags">
+            <li>YOLO</li>
+            <li>Rasterization</li>
+            <li>Privacy by design</li>
+          </ul>
+        </article>
 
-      </div>
+</div>
 
       <!-- Personal work. Not everything here is open source — MAGI runs on my
            own hardware and stays private — so the heading is about whose time

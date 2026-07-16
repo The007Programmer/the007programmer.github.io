@@ -772,11 +772,76 @@
 
   const topbar = document.querySelector('.topbar');
   if (topbar) {
+    const bar = topbar.querySelector('.topbar-progress');
     const onScroll = function () {
       topbar.classList.toggle('is-stuck', window.scrollY > 90);
+      if (bar) {
+        // Height of the scrollable range, not of the document: at the
+        // bottom of the page scrollY equals this, so the rule reads 100%
+        // exactly when the reader is actually finished.
+        const range = document.documentElement.scrollHeight - window.innerHeight;
+        const p = range > 0 ? Math.min(1, window.scrollY / range) : 0;
+        bar.style.transform = 'scaleX(' + p + ')';
+      }
     };
     window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
     onScroll();
+  }
+
+  /* ── 5b. Which section am I in ─────────────────────────────
+     The nav marker follows the section that owns the middle of the
+     viewport. Tracking what's merely visible instead flickers between
+     two links wherever a boundary sits on screen, and at the bottom of
+     the page several sections are visible at once. */
+
+  const navLinks = Array.prototype.slice.call(
+    document.querySelectorAll('.topbar-nav a')
+  );
+  const ink = document.querySelector('.topbar-ink');
+
+  if (navLinks.length && ink) {
+    const sections = navLinks
+      .map(function (a) {
+        return { link: a, el: document.querySelector(a.getAttribute('href')) };
+      })
+      .filter(function (s) { return s.el; });
+
+    let current = null;
+
+    const moveInk = function (link) {
+      if (!link) {
+        ink.style.opacity = '0';
+        return;
+      }
+      ink.style.opacity = '1';
+      ink.style.width = link.offsetWidth + 'px';
+      ink.style.transform = 'translateX(' + link.offsetLeft + 'px)';
+    };
+
+    const syncNav = function () {
+      const mid = window.scrollY + window.innerHeight / 2;
+      let found = null;
+      sections.forEach(function (s) {
+        const top = s.el.offsetTop;
+        if (mid >= top && mid < top + s.el.offsetHeight) found = s.link;
+      });
+      if (found === current) return;
+      if (current) current.classList.remove('is-here');
+      if (found) found.classList.add('is-here');
+      current = found;
+      moveInk(found);
+    };
+
+    window.addEventListener('scroll', syncNav, { passive: true });
+    window.addEventListener('resize', function () {
+      // offsetLeft changed under us; re-place without re-animating.
+      const held = current;
+      current = null;
+      syncNav();
+      if (held && held === current) moveInk(held);
+    }, { passive: true });
+    syncNav();
   }
 
   /* ── 6. Reveals ────────────────────────────────────────── */
@@ -800,5 +865,37 @@
     }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
 
     targets.forEach(function (t) { io.observe(t); });
+  }
+
+  /* ── 7. The trace assembles ────────────────────────────────
+     The narrow-screen graph builds in causal order the way the drawn
+     one does. Only below 64rem: above it the trace is screen-reader
+     scaffolding, and animating it would leave it sitting at opacity 0
+     for anyone whose reader walks the page without scrolling it. */
+
+  const trace = document.querySelector('.graph-fallback');
+  const narrow = window.matchMedia('(max-width: 63.99rem)');
+
+  if (trace && narrow.matches && !prefersReduced() &&
+      'IntersectionObserver' in window) {
+    trace.setAttribute('data-trace', '');
+
+    const tio = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        trace.classList.add('is-built');
+        tio.disconnect();
+      });
+    }, { threshold: 0.15 });
+
+    tio.observe(trace);
+
+    // Rotating the phone past 64rem mid-build would strand the trace
+    // half-drawn behind the SVG. Finish it and let go.
+    narrow.addEventListener('change', function (e) {
+      if (e.matches) return;
+      trace.classList.add('is-built');
+      tio.disconnect();
+    });
   }
 })();

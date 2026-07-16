@@ -72,7 +72,17 @@ once, which is the way to see the settled result.
 
 Below 64rem the SVG is hidden and the vertical trace in `index.html` takes over
 — the same data, readable on a phone. That trace is also what screen readers
-and no-JS visitors get.
+and no-JS visitors get. It is the drawn graph turned on its side and given the
+same vocabulary: boxed nodes filled with `--field`, roles solid, edges ending in
+an arrowhead at the box they cause, and the one soft edge dashed and unarrowed.
+Its spine runs at `--spine` from the left rather than down the middle so edges
+enter and leave the boxes the way the SVG's do; centred, it reads as a flowchart
+instead of as the same figure.
+
+Both forms run oldest to newest. The arrows are causal, so reversing the graph
+would have it claim that each job caused the one that got me there — the project
+cards are newest-first because a reader wants the latest work, but the graph
+cannot be, and that is the difference between a list and a figure.
 
 To change the graph, edit `NODES` and `EDGES` in `script.js`, then update the
 `.graph-fallback` list in `index.html` to match.
@@ -89,10 +99,25 @@ reflows or collides while it resolves. It measures in the real display face, so
 it waits for `document.fonts.ready` — but only for 900ms, after which it skips
 rather than scrambling a name the reader can already see.
 
-Short monospace labels (the eyebrows, `Fig. 01`) decode left-to-right on
-reveal. Monospace has no width problem, so they need none of the measuring the
-name does. The tally counts up on reveal, with tabular figures so the digits
-don't jitter as they climb.
+Short monospace labels (the eyebrows) decode left-to-right on reveal. Monospace
+has no width problem, so they need none of the measuring the name does. The
+tally counts up on reveal, with tabular figures so the digits don't jitter as
+they climb.
+
+The rest is scroll-triggered and hangs off `[data-reveal]`, which `script.js`
+sets only when it is both able and allowed to animate. Nothing may key off
+`.is-in` alone: the moment that guard says no, anything that did would sit at
+opacity 0 forever. The same goes for `[data-trace]` on the vertical graph, which
+is additionally gated on the viewport being narrow enough to show it — animating
+it wide would strand it invisible for a screen reader walking the page without
+scrolling. Section titles rise out from under their own top edge (the head only
+fades — two moves on one element read as drift); tags and Electra's spec rows
+land after the thing they annotate; each row of the path gets ruled in.
+
+The narrow-screen graph assembles in causal order like the drawn one, but its
+timing is written out per step rather than computed: `::before` and `::after`
+carry the spine and the arrowheads and can't be reached from script, and one
+step carries an extra branch, so the cadence isn't a formula.
 
 The hero parallaxes as ONE block (`data-parallax` on `.hero-inner`) and fades
 out. Giving each line its own rate reads as depth for about 200px and then the

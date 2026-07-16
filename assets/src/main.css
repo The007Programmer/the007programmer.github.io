@@ -127,8 +127,13 @@ a { color: inherit; }
   text-decoration: none;
 }
 
-.topbar-nav { display: flex; gap: clamp(0.9rem, 2.5vw, 2rem); }
+.topbar-nav {
+  position: relative;
+  display: flex;
+  gap: clamp(0.9rem, 2.5vw, 2rem);
+}
 .topbar-nav a {
+  position: relative;
   font-family: var(--mono);
   font-size: 0.6875rem;
   letter-spacing: 0.1em;
@@ -137,9 +142,48 @@ a { color: inherit; }
   text-decoration: none;
   padding-bottom: 2px;
   border-bottom: 1px solid transparent;
-  transition: border-color 0.18s ease;
+  transition: border-color 0.18s ease, opacity 0.25s ease;
 }
 .topbar-nav a:hover { border-bottom-color: var(--paper); }
+
+/* The links quiet down around whichever one you're currently reading —
+   but only once there is a current one, so the bar over the hero isn't
+   uniformly dimmed for no reason. */
+.topbar-nav:has(.is-here) a { opacity: 0.55; }
+.topbar-nav:has(.is-here) a.is-here { opacity: 1; }
+
+/* The marker itself. Width and x come from script; it lines up under
+   the active link and slides between them. */
+.topbar-ink {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 1px;
+  width: 0;
+  opacity: 0;
+  background: var(--paper);
+  transition: transform 0.34s cubic-bezier(0.4, 0, 0.2, 1),
+              width 0.34s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.2s ease;
+  pointer-events: none;
+}
+
+/* How far down the page you are, drawn on the bar's own bottom edge.
+   scaleX rather than width so it never lays out. */
+.topbar-progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left;
+  background: var(--paper);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.topbar.is-stuck .topbar-progress { opacity: 1; }
 
 /* ── Hero ────────────────────────────────────────────────── */
 
@@ -330,53 +374,144 @@ a { color: inherit; }
 .g-svg.is-tracing .g-edge-label.is-lit { opacity: 1; }
 
 /* The same graph as a vertical trace: the mobile form, the no-JS form,
-   and the screen-reader form all at once. */
-.graph-fallback { font-family: var(--mono); color: var(--slate); }
-
-.gf-step { position: relative; padding-left: 1.25rem; }
+   and the screen-reader form all at once. It is the drawn graph turned
+   on its side and given the same vocabulary — boxed nodes filled with
+   the field colour, roles solid, edges terminating at the box with an
+   arrowhead and carrying their label. The spine runs at --spine from
+   the left so it enters and leaves each box the way the SVG's edges do,
+   instead of down the middle like a flowchart. */
+.graph-fallback {
+  --spine: 1.5rem;
+  font-family: var(--mono);
+  color: var(--slate);
+}
 
 .gf-node {
+  position: relative;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--ember);
+  border-radius: 3px;
+  background: var(--field);
+}
+.gf-name {
   font-size: 0.8125rem;
   font-weight: 600;
-  line-height: 1.4;
-  padding: 0.3rem 0;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
 }
-.gf-node span {
-  display: block;
-  font-size: 0.625rem;
-  font-weight: 400;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--mute);
-}
-.gf-node::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.75rem;
-  width: 7px;
-  height: 7px;
-  border: 1px solid var(--ember);
-  border-radius: 1px;
-}
-.gf-role::before { background: var(--signal); border-color: var(--signal); }
-
-/* The connector down to the next node in the chain. */
-.gf-edge, .gf-branch {
-  margin-left: -1.25rem;
-  padding: 0.45rem 0 0.45rem 1.25rem;
-  border-left: 1px solid rgba(181, 36, 27, 0.4);
-  font-size: 0.625rem;
+.gf-sub {
+  margin-top: 0.15rem;
+  font-size: 0.5625rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--mute);
 }
+.gf-role {
+  background: var(--signal);
+  border-color: var(--signal);
+}
+.gf-role .gf-name { color: var(--paper); }
+.gf-role .gf-sub { color: rgba(255, 241, 237, 0.8); }
+
+/* The connector down to the next node, arrowhead and all. */
+.gf-edge, .gf-branch {
+  position: relative;
+  padding: 0.85rem 0 1.6rem calc(var(--spine) + 0.75rem);
+  min-height: 3.5rem;
+}
+.gf-edge::before, .gf-branch::before {
+  content: "";
+  position: absolute;
+  left: var(--spine);
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid var(--ember);
+}
+/* The arrowhead sits at the bottom of the edge, pointing into the box
+   the edge causes. */
+.gf-edge::after {
+  content: "";
+  position: absolute;
+  left: calc(var(--spine) - 3px);
+  bottom: -1px;
+  border-left: 3.5px solid transparent;
+  border-right: 3.5px solid transparent;
+  border-top: 6px solid var(--ember);
+}
+.gf-edge span, .gf-branch span {
+  display: inline-block;
+  font-size: 0.5625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+/* The soft edge: not caused by, just true at the same time. Dashed and
+   unarrowed, the same distinction the drawn graph makes. */
 .gf-branch {
-  border-left-style: dashed;
+  padding-bottom: 0.85rem;
+  min-height: 0;
+}
+.gf-branch::before { border-left-style: dashed; }
+.gf-branch span {
   text-transform: none;
   letter-spacing: 0.02em;
+  line-height: 1.6;
 }
-.gf-end .gf-node { padding-bottom: 0; }
+.gf-end .gf-node { margin-bottom: 0; }
+
+/* The trace assembles the way the drawn graph does: each box pops, then
+   its edge draws down into the next one. */
+.graph-fallback[data-trace] .gf-node {
+  opacity: 0;
+  transform: translateY(6px) scale(0.97);
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+.graph-fallback[data-trace] .gf-edge::before,
+.graph-fallback[data-trace] .gf-branch::before {
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.45s ease;
+}
+.graph-fallback[data-trace] .gf-edge::after,
+.graph-fallback[data-trace] .gf-edge span,
+.graph-fallback[data-trace] .gf-branch span {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.graph-fallback[data-trace].is-built .gf-node { opacity: 1; transform: none; }
+.graph-fallback[data-trace].is-built .gf-edge::before,
+.graph-fallback[data-trace].is-built .gf-branch::before { transform: scaleY(1); }
+.graph-fallback[data-trace].is-built .gf-edge::after,
+.graph-fallback[data-trace].is-built .gf-edge span,
+.graph-fallback[data-trace].is-built .gf-branch span { opacity: 1; }
+
+/* Causal order, hand-timed. There are five steps and one of them carries
+   an extra branch, so the cadence isn't a formula — each element waits
+   for the one that causes it. Written out rather than computed because
+   ::before and ::after can't be reached from script. */
+.graph-fallback[data-trace] .gf-step:nth-child(1) .gf-node { transition-delay: 0s; }
+.graph-fallback[data-trace] .gf-step:nth-child(1) .gf-edge::before { transition-delay: 0.3s; }
+.graph-fallback[data-trace] .gf-step:nth-child(1) .gf-edge::after,
+.graph-fallback[data-trace] .gf-step:nth-child(1) .gf-edge span { transition-delay: 0.55s; }
+
+.graph-fallback[data-trace] .gf-step:nth-child(2) .gf-node { transition-delay: 0.6s; }
+.graph-fallback[data-trace] .gf-step:nth-child(2) .gf-edge::before { transition-delay: 0.9s; }
+.graph-fallback[data-trace] .gf-step:nth-child(2) .gf-edge::after,
+.graph-fallback[data-trace] .gf-step:nth-child(2) .gf-edge span { transition-delay: 1.15s; }
+
+.graph-fallback[data-trace] .gf-step:nth-child(3) .gf-node { transition-delay: 1.2s; }
+.graph-fallback[data-trace] .gf-step:nth-child(3) .gf-branch::before { transition-delay: 1.5s; }
+.graph-fallback[data-trace] .gf-step:nth-child(3) .gf-branch span { transition-delay: 1.7s; }
+.graph-fallback[data-trace] .gf-step:nth-child(3) .gf-edge::before { transition-delay: 1.9s; }
+.graph-fallback[data-trace] .gf-step:nth-child(3) .gf-edge::after,
+.graph-fallback[data-trace] .gf-step:nth-child(3) .gf-edge span { transition-delay: 2.15s; }
+
+.graph-fallback[data-trace] .gf-step:nth-child(4) .gf-node { transition-delay: 2.2s; }
+.graph-fallback[data-trace] .gf-step:nth-child(4) .gf-edge::before { transition-delay: 2.5s; }
+.graph-fallback[data-trace] .gf-step:nth-child(4) .gf-edge::after,
+.graph-fallback[data-trace] .gf-step:nth-child(4) .gf-edge span { transition-delay: 2.75s; }
+
+.graph-fallback[data-trace] .gf-step:nth-child(5) .gf-node { transition-delay: 2.8s; }
 
 /* Only past this width does the drawn graph have room to be legible;
    below it the trace is the real presentation, not a fallback. */
@@ -819,7 +954,11 @@ a { color: inherit; }
 .foot-name { font-family: var(--display); font-weight: 800; letter-spacing: -0.01em; }
 .foot-meta { font-family: var(--mono); font-size: 0.6875rem; opacity: 0.65; }
 
-/* ── Reveal on scroll ────────────────────────────────────── */
+/* ── Reveal on scroll ──────────────────────────────────────
+   Everything below hangs off [data-reveal], which script.js only sets
+   when it is both able and allowed to animate. Anything keyed to the
+   class alone would sit at opacity 0 forever the moment that guard
+   said no. */
 
 [data-reveal] {
   opacity: 0;
@@ -827,6 +966,63 @@ a { color: inherit; }
   transition: opacity 0.6s ease, transform 0.6s ease;
 }
 [data-reveal].is-in { opacity: 1; transform: none; }
+
+/* Section titles rise out from under their own top edge. The head only
+   fades — two moves on one element read as drift, not as a reveal. */
+.section-head[data-reveal] { transform: none; }
+.section-head[data-reveal] .section-title {
+  clip-path: inset(-30% -8% 100% -2%);
+  transform: translateY(0.28em);
+  transition: clip-path 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s,
+              transform 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s;
+}
+.section-head[data-reveal].is-in .section-title {
+  clip-path: inset(-30% -8% -25% -2%);
+  transform: none;
+}
+
+/* The tags land after the card they describe. */
+.card[data-reveal] .tags li,
+.card[data-reveal] .card-link {
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.card[data-reveal].is-in .tags li,
+.card[data-reveal].is-in .card-link { opacity: 1; transform: none; }
+.card[data-reveal].is-in .tags li:nth-child(1) { transition-delay: 0.34s; }
+.card[data-reveal].is-in .tags li:nth-child(2) { transition-delay: 0.42s; }
+.card[data-reveal].is-in .tags li:nth-child(3) { transition-delay: 0.5s; }
+.card[data-reveal].is-in .card-link { transition-delay: 0.56s; }
+
+/* Electra's spec reads top to bottom, so it arrives that way. */
+.feature[data-reveal] .spec-row {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+.feature[data-reveal].is-in .spec-row { opacity: 1; transform: none; }
+.feature[data-reveal].is-in .spec-row:nth-child(1) { transition-delay: 0.2s; }
+.feature[data-reveal].is-in .spec-row:nth-child(2) { transition-delay: 0.32s; }
+.feature[data-reveal].is-in .spec-row:nth-child(3) { transition-delay: 0.44s; }
+
+/* Each entry in the path gets ruled in, like a line being drawn in a
+   ledger. The rule underneath it is already there; this one is brighter
+   and arrives with the row. */
+.ledger-row { position: relative; }
+.ledger-row[data-reveal]::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--coral);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.05s;
+}
+.ledger-row[data-reveal].is-in::before { transform: scaleX(1); }
 
 /* ── Responsive ──────────────────────────────────────────── */
 
@@ -862,5 +1058,20 @@ a { color: inherit; }
     animation-delay: 0s !important;
     transition-delay: 0s !important;
   }
-  [data-reveal] { opacity: 1; transform: none; }
+  /* script.js checks the preference once, at load. Turning it on later
+     leaves the attributes already on the page, so everything they hide
+     has to be handed back here rather than left at opacity 0. */
+  [data-reveal],
+  .card[data-reveal] .tags li,
+  .card[data-reveal] .card-link,
+  .feature[data-reveal] .spec-row,
+  .graph-fallback[data-trace] .gf-node,
+  .graph-fallback[data-trace] .gf-edge::after,
+  .graph-fallback[data-trace] .gf-edge span,
+  .graph-fallback[data-trace] .gf-branch span { opacity: 1; transform: none; }
+
+  .section-head[data-reveal] .section-title { clip-path: none; transform: none; }
+  .ledger-row[data-reveal]::before,
+  .graph-fallback[data-trace] .gf-edge::before,
+  .graph-fallback[data-trace] .gf-branch::before { transform: none; }
 }
