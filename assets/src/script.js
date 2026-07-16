@@ -312,7 +312,175 @@
   const mount = document.querySelector('[data-graph-canvas]');
   if (mount) buildGraph(mount);
 
-  /* ── 2. Topbar ─────────────────────────────────────────── */
+  /* ── 2. The name decodes itself ────────────────────────── */
+
+  const NOISE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  const HOLD = 160;      // ms of pure noise before anything resolves
+  const STAGGER = 70;    // ms between one letter landing and the next
+  const SETTLE = 420;    // ms each letter spends unresolved
+  const SWAP = 45;       // ms between glyph swaps — mechanical, not smooth
+
+  function pick(pool) {
+    return pool[(Math.random() * pool.length) | 0];
+  }
+
+  // Width of every candidate letter, measured in the real display face
+  // at the real size by probing inside the heading itself.
+  function measureNoise(host) {
+    const probe = document.createElement('span');
+    probe.className = 'ch';
+    probe.style.position = 'absolute';
+    probe.style.visibility = 'hidden';
+    probe.style.width = 'auto';
+    host.appendChild(probe);
+    const out = [];
+    NOISE.split('').forEach(function (ch) {
+      probe.textContent = ch;
+      out.push({ ch: ch, w: probe.getBoundingClientRect().width });
+    });
+    host.removeChild(probe);
+    return out;
+  }
+
+  // The letters closest in width to the slot they have to sit in.
+  function nearestWidths(widths, target) {
+    const close = widths.filter(function (x) {
+      return Math.abs(x.w - target) <= target * 0.12;
+    });
+    if (close.length >= 5) return close.map(function (x) { return x.ch; });
+    // Nothing near enough (a very narrow letter like "i"): take the
+    // closest handful rather than widening into glyphs that would spill.
+    return widths.slice().sort(function (a, b) {
+      return Math.abs(a.w - target) - Math.abs(b.w - target);
+    }).slice(0, 8).map(function (x) { return x.ch; });
+  }
+
+  function scrambleName() {
+    const host = document.querySelector('[data-scramble]');
+    if (!host) return;
+
+    // Split into per-character spans, keeping the real letters in place
+    // so they can be measured before any scrambling starts.
+    const cells = [];
+    host.querySelectorAll('.line').forEach(function (line) {
+      const text = line.textContent.trim();
+      line.textContent = '';
+      text.split('').forEach(function (ch) {
+        const span = document.createElement('span');
+        span.className = 'ch';
+        span.textContent = ch;
+        line.appendChild(span);
+        if (ch.trim()) cells.push({ el: span, final: ch });
+      });
+    });
+
+    if (prefersReduced() || !cells.length) return;
+
+    // Wait for the real face: measuring against a fallback font would
+    // lock every letter to the wrong width.
+    const start = function () {
+      const widths = measureNoise(host);
+
+      cells.forEach(function (c) {
+        const w = c.el.getBoundingClientRect().width;
+        c.el.style.width = w + 'px';
+        // Each slot only ever swaps among letters about as wide as the
+        // one it will become. Picking freely lets an M land in an i's
+        // slot and collide with its neighbours.
+        c.pool = nearestWidths(widths, w);
+        c.el.textContent = pick(c.pool);
+        c.el.classList.add('is-noise');
+        c.done = false;
+      });
+
+      cells.forEach(function (c, i) { c.lockAt = HOLD + i * STAGGER + SETTLE; });
+      const total = HOLD + (cells.length - 1) * STAGGER + SETTLE;
+      const t0 = performance.now();
+      let last = -SWAP;
+
+      const frame = function (now) {
+        const t = now - t0;
+        if (t - last >= SWAP) {
+          last = t;
+          cells.forEach(function (c) {
+            if (c.done) return;
+            if (t >= c.lockAt) {
+              c.el.textContent = c.final;
+              c.el.classList.remove('is-noise');
+              c.done = true;
+            } else {
+              c.el.textContent = pick(c.pool);
+            }
+          });
+        }
+        if (t < total + SWAP) {
+          requestAnimationFrame(frame);
+        } else {
+          // Never leave a letter stuck as noise.
+          cells.forEach(function (c) {
+            c.el.textContent = c.final;
+            c.el.classList.remove('is-noise');
+          });
+        }
+      };
+      requestAnimationFrame(frame);
+    };
+
+    // The scramble has to measure in the real display face — widths in
+    // the fallback font would be wrong. But waiting on fonts unbounded
+    // means a slow network shows the name correctly and THEN scrambles
+    // it seconds later, which just looks broken. Wait briefly; past that,
+    // skip the effect and leave the name alone.
+    let ran = false;
+    const go = function (scramble) {
+      if (ran) return;
+      ran = true;
+      if (scramble) start();
+    };
+
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () { go(true); });
+      setTimeout(function () { go(false); }, 900);
+    } else {
+      go(true);
+    }
+  }
+
+  scrambleName();
+
+  /* ── 3. Parallax ───────────────────────────────────────── */
+
+  function parallax() {
+    if (prefersReduced()) return;
+    const hero = document.querySelector('.hero');
+    const layers = [];
+    document.querySelectorAll('[data-parallax]').forEach(function (el) {
+      layers.push({ el: el, speed: parseFloat(el.getAttribute('data-parallax')) || 0 });
+    });
+    if (!hero || !layers.length) return;
+
+    let ticking = false;
+    const apply = function () {
+      ticking = false;
+      const y = window.scrollY;
+      // Past the hero these are off-screen; moving them is wasted work.
+      if (y > hero.offsetHeight) return;
+      layers.forEach(function (l) {
+        l.el.style.transform = 'translate3d(0,' + (y * l.speed).toFixed(1) + 'px,0)';
+      });
+    };
+
+    window.addEventListener('scroll', function () {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(apply);
+    }, { passive: true });
+    apply();
+  }
+
+  parallax();
+
+  /* ── 4. Topbar ─────────────────────────────────────────── */
 
   const topbar = document.querySelector('.topbar');
   if (topbar) {
@@ -323,7 +491,7 @@
     onScroll();
   }
 
-  /* ── 3. Reveals ────────────────────────────────────────── */
+  /* ── 5. Reveals ────────────────────────────────────────── */
 
   const targets = document.querySelectorAll(
     '.section-head, .feature, .card, .oss-item, .ledger-row, .kit-group, .contact-pitch, .form'

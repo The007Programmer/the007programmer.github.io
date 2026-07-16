@@ -145,12 +145,17 @@ a { color: inherit; }
 
 .hero {
   position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
   background: var(--signal);
   color: var(--paper);
-  padding: clamp(7rem, 14vh, 10rem) var(--edge) clamp(3rem, 6vw, 4.5rem);
+  padding: clamp(7rem, 14vh, 9rem) var(--edge) clamp(4rem, 8vw, 6rem);
+  overflow: hidden;
 }
 
-.hero-inner { max-width: 1400px; margin: 0 auto; }
+.hero-inner { width: 100%; max-width: 1400px; margin: 0 auto; }
 
 .hero-name {
   font-size: clamp(4rem, 15vw, 12rem);
@@ -158,35 +163,35 @@ a { color: inherit; }
   margin-bottom: clamp(1.5rem, 3vw, 2.25rem);
 }
 
-/* Each line rises out from behind its own edge. The padding/margin pair
-   gives descenders room without opening a gap under the mask. */
-.hero-name .line {
-  display: block;
-  overflow: hidden;
-  padding-bottom: 0.09em;
-  margin-bottom: -0.09em;
-}
-.hero-name .line > span {
-  display: block;
-  animation: name-rise 1s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-.hero-name .line:nth-child(1) > span { animation-delay: 0.1s; }
-.hero-name .line:nth-child(2) > span { animation-delay: 0.22s; }
+.hero-name .line { display: block; }
 
-@keyframes name-rise {
-  from { transform: translateY(105%); }
-  to   { transform: translateY(0); }
+/* script.js splits each line into per-character spans and locks every
+   one to the width of its FINAL letter, so the scramble can swap glyphs
+   without the name reflowing underneath itself. */
+.hero-name .ch {
+  display: inline-block;
+  text-align: center;
+  white-space: pre;
+  /* The name is tracked tight (-0.055em). That tracking must apply
+     BETWEEN these spans — which the parent still does — but not inside
+     them, or each measured width carries a copy of it and the letters
+     land on top of each other. */
+  letter-spacing: normal;
 }
+/* A character still being decoded reads as noise, not as a letter. */
+.hero-name .ch.is-noise { opacity: 0.55; }
 
 @keyframes hero-rise {
   from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: none; }
 }
 
-.hero .eyebrow { animation: hero-rise 0.7s ease both; }
-.hero-thesis   { animation: hero-rise 0.8s ease 0.42s both; }
-.hero-meta     { animation: hero-rise 0.8s ease 0.55s both; }
-.graph-caption { animation: hero-rise 0.8s ease 0.7s both; }
+/* "backwards", not "both": these elements also carry the parallax
+   transform as an inline style, and a filled-forwards animation would
+   keep pinning transform back to none and kill the scroll effect. */
+.hero .eyebrow { animation: hero-rise 0.7s ease backwards; }
+.hero-thesis   { animation: hero-rise 0.8s ease 0.5s backwards; }
+.hero-meta     { animation: hero-rise 0.8s ease 0.62s backwards; }
 
 .hero-thesis {
   max-width: 22ch;
@@ -207,11 +212,20 @@ a { color: inherit; }
 
 /* ── The graph (signature) ───────────────────────────────── */
 
+/* --field is whatever the graph is drawn on. Node boxes and label
+   patches fill with it so edges terminate cleanly instead of running
+   under the text. */
+.figure-section {
+  --field: var(--paper);
+  background: var(--paper);
+  padding: clamp(3.5rem, 8vw, 6rem) var(--edge) clamp(4rem, 9vw, 7rem);
+}
+
 .graph {
   max-width: 1400px;
-  margin: clamp(3rem, 7vw, 5.5rem) auto 0;
+  margin: 0 auto;
   padding-top: 1.75rem;
-  border-top: 1px solid var(--rust);
+  border-top: 1px solid rgba(181, 36, 27, 0.35);
 }
 
 .graph-caption {
@@ -220,21 +234,21 @@ a { color: inherit; }
   font-family: var(--mono);
   font-size: 0.6875rem;
   line-height: 1.7;
-  color: var(--paper);
+  color: var(--slate-2);
 }
 .graph-caption-label {
   display: block;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  opacity: 0.75;
+  color: var(--ember);
 }
 
 .g-svg {
   display: block;
   width: 100%;
   height: auto;
-  color: var(--paper);        /* arrowheads inherit this */
+  color: var(--ember);        /* arrowheads inherit this */
   overflow: visible;
 }
 
@@ -242,32 +256,32 @@ a { color: inherit; }
 
 .g-edge {
   fill: none;
-  stroke: var(--paper);
+  stroke: var(--ember);
   stroke-width: 1;
-  opacity: 0.5;
+  opacity: 0.55;
   transition: opacity 0.25s ease;
 }
-.g-edge-soft { stroke-dasharray: 3 4; opacity: 0.32; }
+.g-edge-soft { stroke-dasharray: 3 4; opacity: 0.4; }
 
 /* Sits under the edge label so the line doesn't strike through it. */
-.g-edge-patch { fill: var(--signal); transition: opacity 0.25s ease; }
+.g-edge-patch { fill: var(--field); transition: opacity 0.25s ease; }
 
 .g-edge-label {
   font-family: var(--mono);
   font-size: 8.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  fill: var(--paper);
-  opacity: 0.85;
+  fill: var(--mute);
+  opacity: 1;
   transition: opacity 0.25s ease;
 }
 
 /* Filled with the field colour so edges terminate cleanly at the box. */
 .g-node-box {
-  fill: var(--signal);
-  stroke: var(--paper);
+  fill: var(--field);
+  stroke: var(--ember);
   stroke-width: 1;
-  opacity: 0.8;
+  opacity: 1;
   transition: fill 0.2s ease, opacity 0.2s ease;
 }
 .g-node-label {
@@ -275,7 +289,7 @@ a { color: inherit; }
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.02em;
-  fill: var(--paper);
+  fill: var(--slate);
   transition: fill 0.2s ease;
 }
 .g-node-sub {
@@ -283,19 +297,19 @@ a { color: inherit; }
   font-size: 7.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  fill: var(--paper);
-  opacity: 0.82;
+  fill: var(--mute);
+  opacity: 1;
   transition: fill 0.2s ease;
 }
 
 /* Filled = the two roles. Outlined = what those roles produced. */
-.g-node[data-kind="role"] .g-node-box { fill: var(--paper); opacity: 1; }
-.g-node[data-kind="role"] .g-node-label { fill: var(--signal); }
-.g-node[data-kind="role"] .g-node-sub { fill: var(--ember); opacity: 0.9; }
+.g-node[data-kind="role"] .g-node-box { fill: var(--signal); stroke: var(--signal); }
+.g-node[data-kind="role"] .g-node-label { fill: var(--paper); }
+.g-node[data-kind="role"] .g-node-sub { fill: var(--paper); opacity: 0.85; }
 
 .g-node { cursor: default; }
-.g-node:hover .g-node-box { fill: var(--rust); opacity: 1; }
-.g-node[data-kind="role"]:hover .g-node-box { fill: var(--paper); }
+.g-node:hover .g-node-box { fill: var(--paper-2); }
+.g-node[data-kind="role"]:hover .g-node-box { fill: var(--ember); stroke: var(--ember); }
 
 /* ── Build sequence ──────────────────────────────────────────
    The graph assembles in causal order rather than fading in as a
@@ -371,7 +385,7 @@ a { color: inherit; }
 
 /* The same graph as a vertical trace: the mobile form, the no-JS form,
    and the screen-reader form all at once. */
-.graph-fallback { font-family: var(--mono); }
+.graph-fallback { font-family: var(--mono); color: var(--slate); }
 
 .gf-step { position: relative; padding-left: 1.25rem; }
 
@@ -387,7 +401,7 @@ a { color: inherit; }
   font-weight: 400;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  opacity: 0.65;
+  color: var(--mute);
 }
 .gf-node::before {
   content: "";
@@ -396,26 +410,25 @@ a { color: inherit; }
   top: 0.75rem;
   width: 7px;
   height: 7px;
-  border: 1px solid var(--paper);
+  border: 1px solid var(--ember);
   border-radius: 1px;
 }
-.gf-role::before { background: var(--paper); }
+.gf-role::before { background: var(--signal); border-color: var(--signal); }
 
 /* The connector down to the next node in the chain. */
 .gf-edge, .gf-branch {
   margin-left: -1.25rem;
   padding: 0.45rem 0 0.45rem 1.25rem;
-  border-left: 1px solid rgba(255, 241, 237, 0.45);
+  border-left: 1px solid rgba(181, 36, 27, 0.4);
   font-size: 0.625rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  opacity: 0.75;
+  color: var(--mute);
 }
 .gf-branch {
   border-left-style: dashed;
   text-transform: none;
   letter-spacing: 0.02em;
-  opacity: 0.6;
 }
 .gf-end .gf-node { padding-bottom: 0; }
 
@@ -531,6 +544,22 @@ a { color: inherit; }
 }
 
 .card-desc { color: var(--slate-2); font-size: 0.9375rem; }
+
+.card-link {
+  margin-top: 0.9rem;
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  color: var(--ember);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(181, 36, 27, 0.35);
+  padding-bottom: 2px;
+  align-self: flex-start;
+  transition: border-color 0.18s ease;
+}
+.card-link:hover { border-bottom-color: var(--ember); }
+.card-link .arw { display: inline-block; transition: transform 0.18s ease; }
+.card-link:hover .arw { transform: translate(2px, -2px); }
 
 .tags {
   display: flex;

@@ -31,12 +31,36 @@ of `assets/src/script.js` and hand-placed rather than force-simulated, so the
 layout is identical on every load. Filled nodes are roles; outlined nodes are
 what those roles produced.
 
+It is drawn on its own paper ground, one section below the hero, and inverted
+to dark-on-light: on the same red field it read as more hero instead of as a
+figure. `--field` on `.figure-section` is the colour the graph is drawn on;
+node boxes and label patches fill with it so edges stop cleanly at the box.
+Move the graph to a different ground and that one variable follows.
+
 Below 64rem the SVG is hidden and the vertical trace in `index.html` takes over
 — the same data, readable on a phone. That trace is also what screen readers
 and no-JS visitors get.
 
 To change the graph, edit `NODES` and `EDGES` in `script.js`, then update the
 `.graph-fallback` list in `index.html` to match.
+
+## Motion
+
+Most of it is in one place: the graph assembles in causal order when it scrolls
+into view. Order comes from the edge list, so adding a role re-times the
+sequence on its own — `STEP` in `script.js` is the only dial.
+
+The name decodes from noise on load. Each slot is locked to the width of its
+final letter and only swaps among letters of a similar width, so the name never
+reflows or collides while it resolves. It measures in the real display face, so
+it waits for `document.fonts.ready` — but only for 900ms, after which it skips
+rather than scrambling a name the reader can already see.
+
+Hero layers drift at different rates on scroll (`data-parallax`). Anything that
+carries a parallax transform must not also run a forwards-filling animation, or
+the fill pins `transform` back to none and the drift dies.
+
+`prefers-reduced-motion` skips the scramble, the parallax, and the graph build.
 
 ## Design
 
