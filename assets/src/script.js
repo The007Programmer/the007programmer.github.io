@@ -72,11 +72,15 @@
 
   // Ambient wander. The anchor each node hangs from drifts on a slow
   // lissajous, and the node follows it — so the graph is always very
-  // slightly alive, which is what tells you it can be grabbed. Small
-  // enough to read as breathing rather than movement: ~5 units against
-  // a 1060-unit frame is about 6px on screen.
-  const DRIFT_A = 5;
-  const DRIFT_MS = 11000;
+  // slightly alive, which is what tells you it can be grabbed.
+  //
+  // These are the ANCHOR's numbers, not the node's. The node is also
+  // held by its edges and by repulsion, which resist the anchor, so it
+  // travels less than the anchor asks for — about 16px here. Measured
+  // against the real layout, not guessed: the previous values moved a
+  // node ~8px across 11 seconds, which reads as a still image.
+  const DRIFT_A = 10;
+  const DRIFT_MS = 6000;
 
   const STEP = 300;      // ms between one causal hop and the next
   const NODE_IN = 380;   // a node settles before its edges leave it
@@ -469,7 +473,9 @@
 
     if (!('IntersectionObserver' in window)) { onScreen = true; start(); return; }
 
+    let ioReported = false;
     const io = new IntersectionObserver(function (entries) {
+      ioReported = true;
       entries.forEach(function (entry) {
         onScreen = entry.isIntersecting;
         if (!onScreen) return;
@@ -479,8 +485,16 @@
     }, { threshold: 0.15 });
     io.observe(svg);
 
-    // If the observer never fires, the graph must still appear.
-    setTimeout(function () { onScreen = true; start(); }, 2500);
+    // Only when the observer never reports at all. Firing this blind
+    // meant the graph built itself 2.5s after load, while the reader was
+    // still on the hero a full screen above it — so the one sequence
+    // worth watching played to nobody, and by the time you scrolled down
+    // it was a finished, static picture.
+    setTimeout(function () {
+      if (ioReported) return;
+      onScreen = true;
+      start();
+    }, 2500);
   }
 
   const mount = document.querySelector('[data-graph-canvas]');

@@ -47,8 +47,18 @@ idea that time runs left to right, and unanchored it settles into a radial blob
 around the highest-degree node.
 
 Every anchor walks a slow lissajous (`DRIFT_A`, `DRIFT_MS`), so the graph is
-always faintly alive and reads as grabbable. That means it never settles, so the
-loop is gated on an IntersectionObserver: scrolled away, it costs nothing.
+always faintly alive and reads as grabbable. Those constants describe the
+*anchor*, not the node: edges and repulsion resist it, so a node travels less
+than its anchor asks for — currently about 13-16px on a 6s cycle. Tune them
+against the real simulation rather than by eye, and check for box overlaps
+afterward; the first values I picked moved a node ~8px over 11 seconds, which
+is indistinguishable from a still image.
+
+The wander means the graph never settles, so the loop is gated on an
+IntersectionObserver: it runs while the figure is on screen and stops when it
+isn't. The failsafe that force-starts the build only fires if the observer never
+reports at all — firing it blind started the spawn while the reader was still a
+full screen above the graph.
 Edge rest length is never shorter than the label written on it needs, so the
 layout is obliged to make room for its own annotations.
 
