@@ -1,186 +1,254 @@
-    // Loading Animation
-    window.addEventListener('load', () => {
-        const loadingOverlay = document.querySelector('.loading-overlay');
-        const loadingProgress = document.querySelector('.loading-progress');
-        const loadingText = document.querySelector('.loading-text');
-        
-        // Add loading class to body to prevent scrolling
-        document.body.classList.add('loading');
-        
-        // Simulate loading progress
-        let progress = 0;
-        const interval = setInterval(() => {
-          progress += Math.random() * 15;
-          if (progress >= 100) {
-            progress = 100;
-            clearInterval(interval);
-            setTimeout(() => {
-              loadingOverlay.style.opacity = '0';
-              setTimeout(() => {
-                loadingOverlay.style.display = 'none';
-                // Remove loading class to allow scrolling
-                document.body.classList.remove('loading');
-              }, 500);
-            }, 500);
-          }
-          loadingProgress.style.width = `${progress}%`;
-        }, 100);
+/* ============================================================
+   Aahil Shaikh — portfolio
+   1. The trajectory graph: my career, drawn as the directed
+      graph it actually is. Layout is hand-placed, not simulated,
+      so it reads the same every load.
+   2. Scroll reveals.
+   ============================================================ */
+
+(function () {
+  'use strict';
+
+  /* ── 1. The graph ──────────────────────────────────────── */
+
+  const VIEW_W = 1000;
+  const VIEW_H = 460;
+  const NS = 'http://www.w3.org/2000/svg';
+
+  // kind "role" renders filled (the two jobs); everything else is
+  // outlined (the things those jobs caused).
+  const NODES = {
+    hacks:    { x: 95,  y: 55,  label: 'Chinatown Hacks', sub: 'Mar 2025', kind: 'event' },
+    sentinel: { x: 305, y: 155, label: 'Sentinel', sub: 'Prototype', kind: 'artifact' },
+    devex:    { x: 545, y: 55,  label: 'TwelveLabs · DevEx', sub: 'Jun–Dec 2025', kind: 'role' },
+    tamu:     { x: 150, y: 335, label: 'Texas A&M', sub: 'Aug 2025 →', kind: 'event' },
+    sage:     { x: 420, y: 300, label: 'SAGE', sub: 'Shipped', kind: 'artifact' },
+    bastion:  { x: 575, y: 405, label: 'Bastion', sub: 'Shipped', kind: 'artifact' },
+    recurser: { x: 750, y: 295, label: 'Recurser', sub: 'Proposed, then shipped', kind: 'artifact' },
+    agentsec: { x: 843, y: 55,  label: 'TwelveLabs · Agent Security', sub: 'Feb–Jun 2026', kind: 'role' },
+    electra:  { x: 885, y: 405, label: 'Electra', sub: 'Beta', kind: 'artifact' }
+  };
+
+  const EDGES = [
+    { from: 'hacks',    to: 'sentinel', label: 'prototyped' },
+    { from: 'sentinel', to: 'devex',    label: 'led to an offer' },
+    { from: 'devex',    to: 'sage',     label: 'built' },
+    { from: 'devex',    to: 'bastion',  label: 'built' },
+    { from: 'devex',    to: 'recurser', label: 'proposed' },
+    { from: 'devex',    to: 'agentsec', label: 'returned as' },
+    { from: 'agentsec', to: 'electra',  label: 'led the build' },
+    { from: 'devex',    to: 'tamu',     label: 'alongside', soft: true }
+  ];
+
+  // Martian Mono is a wide monospace; these advances size the boxes
+  // closely enough without a layout pass.
+  const LABEL_ADV = 6.9;  // 10px / 600
+  const SUB_ADV = 5.2;    // 7.5px
+  const EDGE_ADV = 5.4;   // 8.5px
+  const PAD_X = 12;
+  const BOX_H = 36;
+
+  function el(name, attrs) {
+    const node = document.createElementNS(NS, name);
+    for (const key in attrs) node.setAttribute(key, attrs[key]);
+    return node;
+  }
+
+  function measure(node) {
+    const w = Math.max(node.label.length * LABEL_ADV, node.sub.length * SUB_ADV);
+    return { w: w + PAD_X * 2, h: BOX_H };
+  }
+
+  // Stop an edge at the box border instead of the node center.
+  function trim(from, to) {
+    const box = measure(from);
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    if (dx === 0 && dy === 0) return { x: from.x, y: from.y };
+    const sx = dx === 0 ? Infinity : (box.w / 2) / Math.abs(dx);
+    const sy = dy === 0 ? Infinity : (box.h / 2) / Math.abs(dy);
+    const s = Math.min(sx, sy);
+    return { x: from.x + dx * s, y: from.y + dy * s };
+  }
+
+  function buildGraph(mount) {
+    const svg = el('svg', {
+      viewBox: '0 0 ' + VIEW_W + ' ' + VIEW_H,
+      class: 'g-svg',
+      'aria-hidden': 'true',
+      focusable: 'false'
+    });
+
+    const defs = el('defs');
+    const marker = el('marker', {
+      id: 'g-arrow',
+      viewBox: '0 0 8 8',
+      refX: '7',
+      refY: '4',
+      markerWidth: '7',
+      markerHeight: '7',
+      orient: 'auto-start-reverse'
+    });
+    marker.appendChild(el('path', {
+      d: 'M0.5,1 L7,4 L0.5,7',
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': '1.4',
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round'
+    }));
+    defs.appendChild(marker);
+    svg.appendChild(defs);
+
+    const edgeLayer = el('g');
+    const nodeLayer = el('g');
+    const touches = {};
+
+    EDGES.forEach(function (edge, i) {
+      const a = NODES[edge.from];
+      const b = NODES[edge.to];
+      const start = trim(a, b);
+      const end = trim(b, a);
+
+      edgeLayer.appendChild(el('line', {
+        class: 'g-edge' + (edge.soft ? ' g-edge-soft' : ''),
+        x1: start.x, y1: start.y, x2: end.x, y2: end.y,
+        'marker-end': 'url(#g-arrow)',
+        'data-edge': i
+      }));
+
+      // Label at the midpoint, over a patch of the field colour so the
+      // line doesn't strike through the words.
+      const mx = (start.x + end.x) / 2;
+      const my = (start.y + end.y) / 2;
+      const w = edge.label.length * EDGE_ADV;
+
+      edgeLayer.appendChild(el('rect', {
+        class: 'g-edge-patch',
+        x: mx - w / 2 - 5,
+        y: my - 6.5,
+        width: w + 10,
+        height: 13,
+        'data-edge': i
+      }));
+
+      const text = el('text', {
+        class: 'g-edge-label',
+        x: mx, y: my + 3,
+        'text-anchor': 'middle',
+        'data-edge': i
       });
-  
-      // Custom Cursor
-      const cursor = document.querySelector('.cursor');
-      const follower = document.querySelector('.cursor-follower');
-      document.addEventListener('mousemove', (e) => {
-        cursor.style.left = e.clientX + 'px';
-        cursor.style.top = e.clientY + 'px';
-        setTimeout(() => {
-          follower.style.left = e.clientX + 'px';
-          follower.style.top = e.clientY + 'px';
-        }, 50);
+      text.textContent = edge.label;
+      edgeLayer.appendChild(text);
+
+      (touches[edge.from] = touches[edge.from] || []).push(i);
+      (touches[edge.to] = touches[edge.to] || []).push(i);
+    });
+
+    Object.keys(NODES).forEach(function (id) {
+      const node = NODES[id];
+      const box = measure(node);
+      const g = el('g', { class: 'g-node', 'data-kind': node.kind, 'data-node': id });
+
+      g.appendChild(el('rect', {
+        class: 'g-node-box',
+        x: node.x - box.w / 2,
+        y: node.y - box.h / 2,
+        width: box.w,
+        height: box.h,
+        rx: 2
+      }));
+
+      const label = el('text', {
+        class: 'g-node-label',
+        x: node.x, y: node.y - 1,
+        'text-anchor': 'middle'
       });
-      window.addEventListener('focus', () => {
-        const mouseX = window.mouseX || 0;
-        const mouseY = window.mouseY || 0;
-        cursor.style.left = mouseX + 'px';
-        cursor.style.top = mouseY + 'px';
-        follower.style.left = mouseX + 'px';
-        follower.style.top = mouseY + 'px';
+      label.textContent = node.label;
+      g.appendChild(label);
+
+      const sub = el('text', {
+        class: 'g-node-sub',
+        x: node.x, y: node.y + 11,
+        'text-anchor': 'middle'
       });
-      document.addEventListener('mousemove', (e) => {
-        window.mouseX = e.clientX;
-        window.mouseY = e.clientY;
+      sub.textContent = node.sub;
+      g.appendChild(sub);
+
+      const near = touches[id] || [];
+      g.addEventListener('mouseenter', function () { light(id, near); });
+      g.addEventListener('mouseleave', dim);
+
+      nodeLayer.appendChild(g);
+    });
+
+    svg.appendChild(edgeLayer);
+    svg.appendChild(nodeLayer);
+
+    // Hovering a node pulls its neighbourhood forward and pushes the
+    // rest back — tracing one thought through the graph.
+    function light(id, near) {
+      svg.classList.add('is-tracing');
+      const linked = {};
+      linked[id] = true;
+      near.forEach(function (i) {
+        linked[EDGES[i].from] = true;
+        linked[EDGES[i].to] = true;
       });
-      document.addEventListener('mousedown', () => {
-        cursor.style.transform = 'scale(0.8)';
-        follower.style.transform = 'scale(1.2)';
+      svg.querySelectorAll('[data-edge]').forEach(function (n) {
+        n.classList.toggle('is-lit', near.indexOf(Number(n.getAttribute('data-edge'))) !== -1);
       });
-      document.addEventListener('mouseup', () => {
-        cursor.style.transform = 'scale(1)';
-        follower.style.transform = 'scale(1)';
+      svg.querySelectorAll('[data-node]').forEach(function (n) {
+        n.classList.toggle('is-lit', !!linked[n.getAttribute('data-node')]);
       });
-      const backgroundShapes = document.querySelector('.background-shapes');
-      for (let i = 0; i < 3; i++) {
-        const shape = document.createElement('div');
-        shape.classList.add('shape');
-        shape.style.width = Math.random() * 150 + 100 + 'px';
-        shape.style.height = shape.style.width;
-        shape.style.left = (i * 40) + Math.random() * 20 + '%';
-        shape.style.top = Math.random() * 80 + 10 + '%';
-        shape.style.animationDelay = Math.random() * 5 + 's';
-        backgroundShapes.appendChild(shape);
-      }
-      document.addEventListener('mousemove', (e) => {
-        const shapes = document.querySelectorAll('.floating-shape');
-        const title = document.querySelector('.landing-title');
-        const mouseX = e.clientX / window.innerWidth;
-        const mouseY = e.clientY / window.innerHeight;
-        shapes.forEach((shape, index) => {
-          const speed = (index + 1) * 0.05;
-          const x = (mouseX * 50 * speed);
-          const y = (mouseY * 50 * speed);
-          shape.style.transform = `translate(${x}px, ${y}px) rotate(${x/4}deg)`;
-        });
-        title.style.transform = `translate(${mouseX * 20}px, ${mouseY * 20}px)`;
+    }
+
+    function dim() {
+      svg.classList.remove('is-tracing');
+      svg.querySelectorAll('.is-lit').forEach(function (n) {
+        n.classList.remove('is-lit');
       });
-      document.addEventListener('mousemove', (e) => {
-        const title = document.querySelector('.hero-title');
-        const mouseX = e.clientX / window.innerWidth;
-        const mouseY = e.clientY / window.innerHeight;
-        title.style.transform = `translate(${mouseX * 20}px, ${mouseY * 20}px)`;
+    }
+
+    mount.insertBefore(svg, mount.firstChild);
+  }
+
+  const mount = document.querySelector('[data-graph-canvas]');
+  if (mount) buildGraph(mount);
+
+  /* ── 2. Topbar ─────────────────────────────────────────── */
+
+  const topbar = document.querySelector('.topbar');
+  if (topbar) {
+    const onScroll = function () {
+      topbar.classList.toggle('is-stuck', window.scrollY > 90);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
+
+  /* ── 3. Reveals ────────────────────────────────────────── */
+
+  const targets = document.querySelectorAll(
+    '.section-head, .feature, .card, .oss-item, .ledger-row, .kit-group, .contact-pitch, .form'
+  );
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (!reduced && 'IntersectionObserver' in window) {
+    targets.forEach(function (t, i) {
+      t.setAttribute('data-reveal', '');
+      t.style.transitionDelay = (i % 6) * 45 + 'ms';
+    });
+
+    const io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-in');
+        io.unobserve(entry.target);
       });
-      const titles = ["Computer Science @ TAMU", "Amateur Software Developer", "Linux Enthusiast"];
-      let titleIndex = 0;
-      let charIndex = 0;
-      let isDeleting = false;
-      const typingSpeed = 100;
-      const deleteSpeed = 50;
-      const waitBetweenWords = 2000;
-      function typeEffect() {
-        const subtitle = document.querySelector('.landing-subtitle');
-        const currentTitle = titles[titleIndex];
-        if (isDeleting) {
-          subtitle.textContent = currentTitle.substring(0, charIndex - 1);
-          charIndex--;
-        } else {
-          subtitle.textContent = currentTitle.substring(0, charIndex + 1);
-          charIndex++;
-        }
-        if (!isDeleting && charIndex === currentTitle.length) {
-          isDeleting = true;
-          setTimeout(() => typeEffect(), waitBetweenWords);
-          return;
-        } else if (isDeleting && charIndex === 0) {
-          isDeleting = false;
-          titleIndex = (titleIndex + 1) % titles.length;
-          setTimeout(() => typeEffect(), typingSpeed);
-          return;
-        }
-        const speed = isDeleting ? deleteSpeed : typingSpeed;
-        setTimeout(() => typeEffect(), speed);
-      }
-      window.addEventListener('load', typeEffect);
-      const observerOptions = { threshold: 0.25 };
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) { entry.target.classList.add('visible'); }
-        });
-      }, observerOptions);
-      document.querySelectorAll('.about-text').forEach(el => observer.observe(el));
-      document.querySelectorAll('.skill-category').forEach(el => observer.observe(el));
-      document.querySelectorAll('.project-card').forEach(el => observer.observe(el));
-      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-          e.preventDefault();
-          document.querySelector(this.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
-        });
-      });
-      window.addEventListener('scroll', () => {
-        const nav = document.querySelector('.nav');
-        if (window.scrollY > 100) {
-          nav.style.padding = '1rem 4rem';
-          nav.style.background = 'rgba(7, 30, 34, 0.95)';
-        } else {
-          nav.style.padding = '2rem 4rem';
-          nav.style.background = 'rgba(7, 30, 34, 0.8)';
-        }
-      });
-      const projectsGrid = document.querySelector('.projects-grid');
-      const prevButton = document.querySelector('.scroll-button.prev');
-      const nextButton = document.querySelector('.scroll-button.next');
-      const scrollDots = document.querySelectorAll('.scroll-dot');
-      const projectCards = document.querySelectorAll('.project-card');
-      let currentIndex = 0;
-      function scrollProjects(direction) {
-        currentIndex = Math.max(0, Math.min(currentIndex + direction, projectCards.length - 1));
-        const scrollPosition = projectCards[currentIndex].offsetLeft - projectsGrid.offsetLeft;
-        projectsGrid.scrollTo({ left: scrollPosition, behavior: 'smooth' });
-        updateScrollDots();
-      }
-      function updateScrollDots() {
-        scrollDots.forEach((dot, index) => { dot.classList.toggle('active', index === currentIndex); });
-      }
-      prevButton.addEventListener('click', () => scrollProjects(-1));
-      nextButton.addEventListener('click', () => scrollProjects(1));
-      scrollDots.forEach((dot, index) => {
-        dot.addEventListener('click', () => { const direction = index - currentIndex; scrollProjects(direction); });
-      });
-      projectsGrid.addEventListener('scroll', () => {
-        const scrollPosition = projectsGrid.scrollLeft;
-        const cardWidth = projectCards[0].offsetWidth + 32;
-        currentIndex = Math.round(scrollPosition / cardWidth);
-        updateScrollDots();
-      });
-      projectCards[0].classList.add('visible');
-      document.querySelectorAll('.timeline-item').forEach(el => observer.observe(el));
-  
-      // Timeline Scroll Text Fade Out
-      const timelineScrollText = document.querySelector('.timeline-scroll-text');
-      const timelineContainer = document.querySelector('.timeline-container');
-      
-      timelineContainer.addEventListener('scroll', () => {
-        if (timelineContainer.scrollTop > 50) {
-          timelineScrollText.classList.add('hidden');
-        } else {
-          timelineScrollText.classList.remove('hidden');
-        }
-      });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+
+    targets.forEach(function (t) { io.observe(t); });
+  }
+})();

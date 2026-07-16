@@ -1,251 +1,477 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aahil Shaikh</title>
+  <title>Aahil Shaikh — Agent security &amp; applied AI</title>
+  <meta name="description" content="Aahil Shaikh builds AI agents that remember what they've done and can't be talked out of it. Agent security and applied AI engineering at TwelveLabs.">
   <link rel="icon" href="img/favicon.png" type="image/png">
+
+  <meta property="og:title" content="Aahil Shaikh — Agent security & applied AI">
+  <meta property="og:description" content="I build AI agents that remember what they've done, and can't be talked out of it.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://the007programmer.github.io">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/src/main.css">
-
 </head>
 <body>
-  <!-- Loading Overlay -->
-  <div class="loading-overlay">
-    <div class="loading-content">
-      <h1 class="loading-title">Aahil's Portfolio</h1>
-      <div class="loading-bar">
-        <div class="loading-progress"></div>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <a class="topbar-mark" href="#top">AS</a>
+    <nav class="topbar-nav" aria-label="Sections">
+      <a href="#work">Work</a>
+      <a href="#path">Path</a>
+      <a href="#toolkit">Toolkit</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main id="main">
+
+    <!-- ── Hero: the trajectory graph ───────────────────────────── -->
+    <section id="top" class="hero">
+      <div class="hero-inner">
+        <p class="eyebrow">Agent security &amp; applied AI</p>
+        <h1 class="hero-name">Aahil<br>Shaikh</h1>
+        <p class="hero-thesis">
+          I build AI agents that remember what they&rsquo;ve done &mdash;
+          and can&rsquo;t be talked out of it.
+        </p>
+        <p class="hero-meta">
+          Sophomore at Texas A&amp;M · Two terms at TwelveLabs · Dublin, CA
+        </p>
       </div>
-      <p class="loading-text">Loading...</p>
-    </div>
-  </div>
 
-  <!-- Custom Cursor -->
-  <div class="cursor"></div>
-  <div class="cursor-follower"></div>
+      <figure class="graph" id="graph">
+        <figcaption class="graph-caption">
+          <span class="graph-caption-label">Fig. 01</span>
+          Every job I&rsquo;ve had was caused by the one before it. Drawn as the
+          thing it actually is.
+        </figcaption>
 
-  <!-- Navigation -->
-  <nav class="nav">
-    <ul class="nav-list">
-      <li><a href="#home" class="nav-link">Home</a></li>
-      <li><a href="#about" class="nav-link">About</a></li>
-      <li><a href="#projects" class="nav-link">Projects</a></li>
-      <li><a href="#experience" class="nav-link">Experience</a></li>
-      <li><a href="#contact" class="nav-link">Contact</a></li>
-    </ul>
-  </nav>
-
-  <!-- Animated Background -->
-  <div class="background-shapes">
-    <div class="shape" style="width: 100px; height: 100px; left: 10%; top: 20%;"></div>
-    <div class="shape" style="width: 150px; height: 150px; right: 20%; top: 10%;"></div>
-    <div class="shape" style="width: 80px; height: 80px; left: 30%; bottom: 20%;"></div>
-  </div>
-
-  <!-- Hero Section -->
-  <section id="home" class="landing-section">
-    <div class="floating-shapes">
-      <div class="floating-shape" style="width: 500px; height: 500px; top: 55%; left: 5%; animation-delay: 0s; transform: rotate(45deg);"></div>
-      <div class="floating-shape" style="width: 400px; height: 400px; top: 65%; right: 5%; animation-delay: -5s; transform: rotate(-30deg);"></div>
-    </div>
-    <div class="landing-content">
-      <h1 class="landing-title">Aahil Shaikh</h1>
-      <p class="landing-subtitle"></p>
-    </div>
-  </section>
-
-  <!-- About Section -->
-  <section id="about" class="about-section">
-    <div class="about-container">
-      <div class="about-text">
-        <h2>About Me</h2>
-        <p>Hi! I'm Aahil Shaikh, a developer and engineer passionate about bridging the gap between hardware and software. From building Raspberry Pi projects to optimizing server setups, I love tackling real-world challenges with creative tech solutions.</p>
-        <p>My journey in tech has led me to explore AI, robotics, and full-stack development, always pushing myself to learn and apply the latest innovations. Whether it's developing efficient algorithms or fine-tuning a project's design, I strive to create impactful and functional experiences.</p>
-      </div>
-      <div class="about-image">
-        <img src="img/photo.jpg" alt="Aahil Shaikh">
-      </div>
-    </div>
-  </section>
-
-  <!-- Technical Expertise Section -->
-  <div class="technical-expertise-section">
-    <h3 class="technical-expertise">Technical Expertise</h3>
-    <div class="skills-showcase">
-      <div class="skill-category">
-        <h3 class="category-title">Programming Languages</h3>
-        <div class="skill-list">
-          <div class="skill-item"><span class="icon">🐍</span> Python</div>
-          <div class="skill-item"><span class="icon">⚙️</span> C++</div>
-          <div class="skill-item"><span class="icon">🖥️</span>Bash</div>
+        <!--
+          script.js draws the graph here. The chain below is the same
+          data as a vertical trace: it carries the graph to screen
+          readers, to anyone without JS, and to narrow screens, where a
+          scaled-down node diagram would be unreadable.
+        -->
+        <div class="graph-canvas" data-graph-canvas>
+          <ol class="graph-fallback">
+            <li class="gf-step">
+              <p class="gf-node">Chinatown Hacks <span>Mar 2025</span></p>
+              <p class="gf-edge">prototyped</p>
+            </li>
+            <li class="gf-step">
+              <p class="gf-node">Sentinel <span>Prototype</span></p>
+              <p class="gf-edge">led to an offer</p>
+            </li>
+            <li class="gf-step">
+              <p class="gf-node gf-role">TwelveLabs · DevEx <span>Jun–Dec 2025</span></p>
+              <p class="gf-branch">
+                built SAGE and Bastion · proposed Recurser · alongside Texas A&amp;M
+              </p>
+              <p class="gf-edge">returned as</p>
+            </li>
+            <li class="gf-step">
+              <p class="gf-node gf-role">TwelveLabs · Agent Security <span>Feb–Jun 2026</span></p>
+              <p class="gf-edge">led the build</p>
+            </li>
+            <li class="gf-step gf-end">
+              <p class="gf-node">Electra <span>Beta</span></p>
+            </li>
+          </ol>
         </div>
-      </div>
-      <div class="skill-category">
-        <h3 class="category-title">Services &amp; Tools</h3>
-        <div class="skill-list">
-          <div class="skill-item"><span class="icon">💨</span> Tailscale</div>
-          <div class="skill-item"><span class="icon">🍃</span>MongoDB</div>
-          <div class="skill-item"><span class="icon">🐙</span>Git</div>
-        </div>
-      </div>
-      <div class="skill-category">
-        <h3 class="category-title">Operating Systems</h3>
-        <div class="skill-list">
-          <div class="skill-item"><span class="icon">🥷</span>Kali Linux</div>
-          <div class="skill-item"><span class="icon">🔶</span>Ubuntu</div>
-          <div class="skill-item"><span class="icon">🪴</span>Linux Mint</div>
-          <div class="skill-item"><span class="icon">🔶</span>Ubuntu Server</div>
-        </div>
-      </div>
-    </div>
-  </div>
+      </figure>
+    </section>
 
-  <!-- Projects Section -->
-  <section id="projects" class="projects-section">
-    <h2>Projects</h2>
-    <div class="projects-container">
-      <button class="scroll-button prev"><i>←</i></button>
-      <div class="projects-grid">
-        <div class="project-card">
-          <div class="project-content">
-            <h3 class="project-title">UFW Manager</h3>
-            <p class="project-desc">UFW-Manager is a lightweight Python tool designed to simplify managing IP rules for UFW (Uncomplicated Firewall) on Linux. It allows users to easily add, remove, and list IP bans, automating tedious firewall rule management. Ideal for server administrators and self-hosted setups, it streamlines security by providing a simple interface to handle firewall restrictions efficiently; further advanced by now being a published package on my PPA for Ubuntu installation.</p>
-            <div class="project-tech">
-              <span class="tech-tag"><span class="icon">🐍</span> Python</span>
-              <span class="tech-tag"><span class="icon">🖥️</span>Bash</span>
-              <span class="tech-tag"><span class="icon">🗂️</span>JSON</span>
-              <span class="tech-tag"><span class="icon">🚧</span><strong>PUBLISHED</strong></span>
+    <!-- ── Work ─────────────────────────────────────────────────── -->
+    <section id="work" class="work">
+      <div class="section-head">
+        <p class="eyebrow eyebrow-dark">Work</p>
+        <h2 class="section-title">What I shipped</h2>
+      </div>
+
+      <!-- Featured -->
+      <article class="feature">
+        <div class="feature-body">
+          <p class="stamp">Feb – Jun 2026 · TwelveLabs · Shipped to beta</p>
+          <h3 class="feature-title">Electra</h3>
+          <p class="feature-lede">
+            An internal AI agent built on top of the company&rsquo;s IT ticketing
+            system. I owned most of the implementation alongside my manager, and
+            shipped it to beta before my term ended.
+          </p>
+          <p class="note">Internal tool — no public repo.</p>
+        </div>
+
+        <div class="feature-aside">
+          <dl class="spec">
+            <div class="spec-row">
+              <dt>Memory</dt>
+              <dd>
+                Every conversation, interaction, and thought links into a
+                graph-based knowledge network — prototyped in Obsidian, then
+                migrated to GBrain, our internal graph memory. Context persists
+                across sessions and the reasoning stays traceable.
+              </dd>
             </div>
-            <div class="project-links">
-              <a href="https://github.com/The007Programmer/UFW-Manager" class="project-link">GitHub</a>
+            <div class="spec-row">
+              <dt>Defense</dt>
+              <dd>
+                Hardened against prompt injection, jailbreaks, and token-bomb
+                exploits: rate limiting, input sanitization and validation,
+                RBAC-style permissions, and anomaly detection with logging.
+              </dd>
             </div>
-          </div>
-          <div class="project-image">
-            <img src="img/projects/ufwmanager.png" alt="UFW_Manager">
-          </div>
+            <div class="spec-row">
+              <dt>Next</dt>
+              <dd>
+                Designed the foundational architecture for a Hermes-style
+                self-learning structure, so agent behavior improves on its own
+                over time.
+              </dd>
+            </div>
+          </dl>
         </div>
+      </article>
 
-        <div class="project-card">
-          <div class="project-content">
-            <h3 class="project-title">FlashGuard</h3>
-            <p class="project-desc">FlashGuard is a security-focused tool designed to protect USB flash drives from unauthorized access and malware threats. It helps users monitor, control, and secure their USB storage devices, preventing unwanted data transfers and potential infections. Whether you're safeguarding sensitive files or ensuring a clean device environment, FlashGuard provides a simple yet effective layer of protection.</p>
-            <div class="project-tech">
-              <span class="tech-tag"><span class="icon">🐍</span> Python</span>
-              <span class="tech-tag"><span class="icon">🖥️</span>Bash</span>
-              <span class="tech-tag"><span class="icon">🚧</span>❗IN PROGRESS❗</span>
+      <!-- Grid -->
+      <div class="cards">
+
+        <article class="card">
+          <p class="stamp stamp-card">2025 · TwelveLabs</p>
+          <h3 class="card-title">SAGE</h3>
+          <p class="card-desc">
+            A full-stack tool for comparing video assets. Runs Marengo embeddings
+            through cosine similarity over 2-second segments, across a
+            1024-dimensional space.
+          </p>
+          <ul class="tags">
+            <li>Embeddings</li>
+            <li>Similarity search</li>
+            <li>Full-stack</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <p class="stamp stamp-card">2025 · TwelveLabs</p>
+          <h3 class="card-title">Bastion</h3>
+          <p class="card-desc">
+            A real-time security dashboard for live HTTPS video streams. Pushed
+            monitoring past the fixed-length-video workflows the platform
+            assumed.
+          </p>
+          <ul class="tags">
+            <li>Real-time video</li>
+            <li>Monitoring</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <p class="stamp stamp-card">2025 · TwelveLabs</p>
+          <h3 class="card-title">Recurser</h3>
+          <p class="card-desc">
+            My proposal, then my ship. Analyzes AI-generated video, refines the
+            prompt, and runs it again — each pass closer to the intent.
+          </p>
+          <ul class="tags">
+            <li>Prompt engineering</li>
+            <li>Iterative systems</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <p class="stamp stamp-card">Mar 2025 · Chinatown Hacks</p>
+          <h3 class="card-title">Sentinel</h3>
+          <p class="card-desc">
+            An AI security application on the TwelveLabs API. Started as a
+            hackathon prototype, became a one-week technical project, then became
+            the internship.
+          </p>
+          <ul class="tags">
+            <li>Computer vision</li>
+            <li>TwelveLabs API</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <p class="stamp stamp-card">Mar 2025 · Chinatown Hacks</p>
+          <h3 class="card-title">Density tracker</h3>
+          <p class="card-desc">
+            Real-time population density with YOLO detection and custom
+            rasterization. Vector-to-bitmap conversion means the data can never
+            carry a face out with it.
+          </p>
+          <ul class="tags">
+            <li>YOLO</li>
+            <li>Rasterization</li>
+            <li>Privacy by design</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <p class="stamp stamp-card">2025 · TwelveLabs</p>
+          <h3 class="card-title">Jockey</h3>
+          <p class="card-desc">
+            Bug fixes and feature work on the conversational video agent built on
+            Marengo and Pegasus.
+          </p>
+          <ul class="tags">
+            <li>Contributor</li>
+            <li>Video agents</li>
+          </ul>
+        </article>
+
+      </div>
+
+      <!-- Open source -->
+      <div class="oss">
+        <h3 class="oss-head">Open source, on my own time</h3>
+        <ul class="oss-list">
+          <li class="oss-item">
+            <div class="oss-main">
+              <h4 class="oss-title">UFW Manager</h4>
+              <p class="oss-desc">
+                A Python tool that makes UFW firewall rules bearable — add,
+                remove, and list IP bans without the ceremony. Published to my
+                PPA, so Ubuntu installs it straight from apt.
+              </p>
             </div>
-            <div class="project-links">
-              <a href="https://github.com/The007Programmer/FlashGuard" class="project-link">GitHub</a>
+            <div class="oss-side">
+              <span class="pill pill-live">Published</span>
+              <a class="oss-link" href="https://github.com/The007Programmer/UFW-Manager">GitHub ↗</a>
             </div>
+          </li>
+          <li class="oss-item">
+            <div class="oss-main">
+              <h4 class="oss-title">FlashGuard</h4>
+              <p class="oss-desc">
+                Watches USB storage for unauthorized access and malware, and
+                stops the transfers you didn&rsquo;t ask for.
+              </p>
+            </div>
+            <div class="oss-side">
+              <span class="pill">In progress</span>
+              <a class="oss-link" href="https://github.com/The007Programmer/FlashGuard">GitHub ↗</a>
+            </div>
+          </li>
+          <li class="oss-item">
+            <div class="oss-main">
+              <h4 class="oss-title">Mailsmith</h4>
+              <p class="oss-desc">
+                Give it a prompt, get a written email, sent through the Gmail API
+                to the person you meant.
+              </p>
+            </div>
+            <div class="oss-side">
+              <span class="pill">In progress</span>
+              <a class="oss-link" href="https://github.com/The007Programmer/Mailsmith">GitHub ↗</a>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ── Path ─────────────────────────────────────────────────── -->
+    <section id="path" class="path">
+      <div class="section-head">
+        <p class="eyebrow">Path</p>
+        <h2 class="section-title section-title-light">How it went</h2>
+      </div>
+
+      <ol class="ledger">
+        <li class="ledger-row">
+          <p class="ledger-when">Feb – Jun 2026</p>
+          <div class="ledger-what">
+            <h3>Software Engineering Intern — Agent Security &amp; Internal Tools</h3>
+            <p class="ledger-org">TwelveLabs</p>
+            <p>
+              Came back for a second term, this time pointed squarely at agent
+              security and applied AI architecture. Led Electra end to end and
+              proposed features past the original scope. Shipped to beta.
+            </p>
           </div>
-          <div class="project-image">
-            <img src="img/projects/flashguard.png" alt="flashguard">
+        </li>
+        <li class="ledger-row">
+          <p class="ledger-when">Jun – Dec 2025</p>
+          <div class="ledger-what">
+            <h3>Software Engineering Intern — DevEx</h3>
+            <p class="ledger-org">TwelveLabs</p>
+            <p>
+              Built SAGE, Bastion, and Recurser, and contributed to Jockey. Ran
+              live demos, made product and UX calls, and wrote the docs and blogs
+              that explained it all. The internship was extended from three
+              months to six.
+            </p>
           </div>
+        </li>
+        <li class="ledger-row">
+          <p class="ledger-when">Aug 2025 → now</p>
+          <div class="ledger-what">
+            <h3>Texas A&amp;M University</h3>
+            <p class="ledger-org">College Station, TX · Sophomore · 4.0 GPA</p>
+          </div>
+        </li>
+        <li class="ledger-row">
+          <p class="ledger-when">Mar 2025</p>
+          <div class="ledger-what">
+            <h3>Avionics Lead</h3>
+            <p class="ledger-org">Blinn Propulsion Laboratory</p>
+            <p>
+              Owned avionics end to end — design, integration, and the
+              troubleshooting at 2am — with directors rather than over my
+              shoulder.
+            </p>
+          </div>
+        </li>
+        <li class="ledger-row">
+          <p class="ledger-when">Mar 2025</p>
+          <div class="ledger-what">
+            <h3>Chinatown Hacks</h3>
+            <p class="ledger-org">Participant</p>
+            <p>
+              Presented to a judging panel and to sponsors from TwelveLabs. Left
+              with a site-visit invitation, which turned into everything above.
+            </p>
+          </div>
+        </li>
+        <li class="ledger-row">
+          <p class="ledger-when">Aug 2024 – Mar 2025</p>
+          <div class="ledger-what">
+            <h3>Manager &amp; Co-Lead</h3>
+            <p class="ledger-org">Circuit Bakers FRC</p>
+            <p>
+              Took a rookie team to competition standard. Managed a sub-team of
+              10, co-led finances, ran mechanical, and programmed.
+            </p>
+          </div>
+        </li>
+        <li class="ledger-row">
+          <p class="ledger-when">Jun – Aug 2024</p>
+          <div class="ledger-what">
+            <h3>CS61A</h3>
+            <p class="ledger-org">UC Berkeley Pre-College Studies</p>
+            <p>
+              Eight weeks on campus in Structure and Interpretation of Computer
+              Programs — recursion, abstraction, inheritance, and the habits that
+              stuck.
+            </p>
+          </div>
+        </li>
+        <li class="ledger-row">
+          <p class="ledger-when">Feb 2024 → now</p>
+          <div class="ledger-what">
+            <h3>Maryam Library Foundation</h3>
+            <p class="ledger-org">Volunteer</p>
+            <p>
+              Finding, packing, and sending books to school children in Ghana who
+              don&rsquo;t otherwise get them.
+            </p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ── Toolkit ──────────────────────────────────────────────── -->
+    <section id="toolkit" class="toolkit">
+      <div class="section-head">
+        <p class="eyebrow eyebrow-dark">Toolkit</p>
+        <h2 class="section-title">What I reach for</h2>
+      </div>
+
+      <div class="kit">
+        <div class="kit-group">
+          <h3 class="kit-title">Languages</h3>
+          <p class="kit-items">Python · TypeScript · JavaScript · HTML · CSS</p>
         </div>
-
-        <div class="project-card">
-          <div class="project-content">
-            <h3 class="project-title">Mailsmith</h3>
-            <p class="project-desc">Mailsmith is a smart email automation tool that uses ChatGPT to generate personalized email content based on your specific needs. Simply provide a brief prompt, and Mailsmith will craft a tailored message. It then connects to your Gmail account via the Gmail API to send the email directly to the intended recipient. Whether you're handling professional outreach, customer service, or personal communication, Mailsmith simplifies and automates the entire email process with AI-powered writing and seamless integration.</p>
-            <div class="project-tech">
-              <span class="tech-tag"><span class="icon">🐍</span> Python</span>
-              <span class="tech-tag"><span class="icon">📧</span>Gmail API</span>
-              <span class="tech-tag"><span class="icon">🚧</span>❗IN PROGRESS❗</span>
-            </div>
-            <div class="project-links">
-              <a href="https://github.com/The007Programmer/Mailsmith" class="project-link">GitHub</a>
-            </div>
-          </div>
-          <div class="project-image">
-            <img src="img/projects/mailsmith.png" alt="mailsmith">
-          </div>
+        <div class="kit-group">
+          <h3 class="kit-title">AI &amp; ML</h3>
+          <p class="kit-items">
+            Computer vision · Object detection (YOLO) · Video embeddings ·
+            Vector and similarity search · Prompt engineering · Agent memory
+            architecture · Knowledge graphs
+          </p>
+        </div>
+        <div class="kit-group kit-group-accent">
+          <h3 class="kit-title">Agent security</h3>
+          <p class="kit-items">
+            Prompt-injection and jailbreak defense · Rate limiting · RBAC and
+            auth · Input sanitization · Anomaly detection and logging
+          </p>
+        </div>
+        <div class="kit-group">
+          <h3 class="kit-title">Systems</h3>
+          <p class="kit-items">
+            Linux · macOS · Windows · Git · RESTful APIs · Real-time video
+            streams
+          </p>
+        </div>
+        <div class="kit-group">
+          <h3 class="kit-title">Hardware</h3>
+          <p class="kit-items">Microcontrollers · Avionics systems · Soldering</p>
+        </div>
+        <div class="kit-group">
+          <h3 class="kit-title">Working with people</h3>
+          <p class="kit-items">
+            Cross-functional collaboration · Technical documentation · Live
+            product demos · Team management
+          </p>
         </div>
       </div>
-      <button class="scroll-button next"><i>→</i></button>
-      <div class="scroll-indicator">
-        <div class="scroll-dot active"></div>
-        <div class="scroll-dot"></div>
-        <div class="scroll-dot"></div>
+    </section>
+
+    <!-- ── Contact ──────────────────────────────────────────────── -->
+    <section id="contact" class="contact">
+      <div class="contact-grid">
+        <div class="contact-pitch">
+          <p class="eyebrow">Contact</p>
+          <h2 class="contact-title">Say something<br>interesting.</h2>
+          <p class="contact-copy">
+            Agent security, graph memory, video models, or a problem that
+            doesn&rsquo;t have a name yet — I read everything that comes through
+            here.
+          </p>
+          <ul class="contact-links">
+            <li><a href="mailto:aahils2019@gmail.com">aahils2019@gmail.com</a></li>
+            <li><a href="https://github.com/The007Programmer">GitHub</a></li>
+            <li><a href="https://www.linkedin.com/in/aahil-shaikh-04b9ba356/">LinkedIn</a></li>
+          </ul>
+        </div>
+
+        <form class="form" action="https://formsubmit.co/aahils2019@gmail.com" method="POST">
+          <div class="field">
+            <label for="name">Name</label>
+            <input id="name" type="text" name="name" required autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" type="email" name="email" required autocomplete="email">
+          </div>
+          <div class="field">
+            <label for="message">Message</label>
+            <textarea id="message" name="message" rows="5" required></textarea>
+          </div>
+          <input type="text" name="_honey" style="display:none" tabindex="-1" aria-hidden="true">
+          <input type="hidden" name="_captcha" value="true">
+          <input type="hidden" name="_subject" value="New Contact Form Submission">
+          <input type="hidden" name="_template" value="table">
+          <input type="hidden" name="_next" value="https://the007programmer.github.io/thanks.html">
+          <input type="hidden" name="_autoresponse" value="Thanks for your message. I'll get back to you soon. — Aahil">
+          <button type="submit" class="submit">Send message</button>
+        </form>
       </div>
-    </div>
-  </section>
+    </section>
+  </main>
 
-  <!-- Experience Section -->
-  <section id="experience" class="experience-section">
-    <h2>Experience</h2>
-    <div class="timeline-container">
-      <div class="timeline-wrapper">
-        <div class="timeline-item">
-          <div class="timeline-content">
-            <div class="timeline-date">Oct 2021 - Present</div>
-            <h3 class="timeline-title">Engineering Student at DHS</h3>
-            <p class="timeline-desc">As an Engineering student at DHS, I'm deepening my understanding of core engineering principles through hands-on projects, design challenges, and collaborating with peers. I focus on problem-solving and innovation, tackling everything from mechanical systems to electrical engineering to prepare for a future in the tech industry.</p>
-          </div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-content">
-            <div class="timeline-date">Jun 2024 - Aug 2024</div>
-            <h3 class="timeline-title">CS61A Student at UCB</h3>
-            <p class="timeline-desc">As a student in CS61A at UC Berkeley, I tackled advanced computer science concepts like data structures, SQL, and Scheme; earning a B+ overall. This experience allowed me to dive deeper into algorithms, problem-solving, and software development, preparing me for future challenges in both software engineering and computer science.</p>
-          </div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-content">
-            <div class="timeline-date">May 2024 - Sep 2024</div>
-            <h3 class="timeline-title">EE Intern at Stemchef</h3>
-            <p class="timeline-desc">During my internship at STEMChef, I contributed to electrical engineering projects by developing Raspberry Pi-based systems for the company's escape room business. I gained valuable experience in breadboarding, RFID technology, and team collaboration, while also improving my version control skills with Git.</p>
-          </div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-content">
-            <div class="timeline-date">Mar 2023 - Mar 2024</div>
-            <h3 class="timeline-title">Swim Instructor at Calphin</h3>
-            <p class="timeline-desc">As a swim instructor at Calphin, I guided students of all ages in learning essential swimming skills while promoting safety and confidence in the water. My role focused on personalized coaching and creating a positive, supportive environment for swimmers to progress at their own pace.</p>
-          </div>
-        </div>
-      </div>
-      <div class="timeline-scroll-text">Scroll for more</div>
-    </div>
-  </section>
-
-  <!-- Contact Section -->
-  <section id="contact" class="contact-section">
-    <h2>Contact Me</h2>
-    <div class="contact-container">
-      <p>
-        I'd love to hear from you! Whether you have a project idea, a question, or just want to chat about tech and design, feel free to reach out.
-      </p>
-      <form class="contact-form" action="https://formsubmit.co/aahils2019@gmail.com" method="POST">
-        <input type="text" name="name" placeholder="Your Name" required>
-        <input type="email" name="email" placeholder="Your Email" required>
-        <textarea name="message" placeholder="Your Message" rows="5" required></textarea>
-        <!-- Spam Protection -->
-        <input type="text" name="_honey" style="display:none">
-        <input type="hidden" name="_captcha" value="true">
-        <input type="hidden" name="_subject" value="New Contact Form Submission">
-        <input type="hidden" name="_template" value="table">
-        <input type="hidden" name="_next" value="https://the007programmer.github.io/thanks.html">
-        <input type="hidden" name="_autoresponse" value="Thank you for your message! I'll get back to you soon.">
-        <button type="submit" class="contact-button">Send Message</button>
-      </form>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer>
-    <p>&copy; 2025 Aahil Shaikh. All rights reserved.</p>
-    <p>
-      <br>
-      | <a href="https://www.linkedin.com/in/aahil-shaikh-04b9ba356/">LinkedIn</a> |
-      <a href="https://github.com/The007Programmer">GitHub</a> |
-    </p>
+  <footer class="foot">
+    <p class="foot-name">Aahil Shaikh</p>
+    <p class="foot-meta">Built from scratch, no framework. © 2026</p>
   </footer>
 
- <script src="assets/src/script.js"></script> 
-
+  <script src="assets/src/script.js"></script>
 </body>
 </html>

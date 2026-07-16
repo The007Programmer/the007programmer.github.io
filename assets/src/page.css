@@ -1,0 +1,83 @@
+/* ============================================================
+   Shared shell for the standalone pages (404, thanks).
+   Same tokens as main.css, kept small and self-contained so these
+   pages don't depend on the whole site stylesheet.
+   ============================================================ */
+
+:root {
+  --signal: #D62B22;
+  --ember: #B5241B;
+  --paper: #FFF1ED;
+  --slate: #39434F;
+
+  --display: 'Bricolage Grotesque', 'Arial Black', sans-serif;
+  --body: 'Instrument Sans', system-ui, sans-serif;
+  --mono: 'Martian Mono', ui-monospace, monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem clamp(1.25rem, 5vw, 5.5rem);
+  background: var(--signal);
+  color: var(--paper);
+  font-family: var(--body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.panel { max-width: 44rem; width: 100%; }
+
+.panel-eyebrow {
+  margin: 0 0 1.25rem;
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.panel-title {
+  margin: 0 0 1.25rem;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(2.75rem, 9vw, 6rem);
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+}
+
+.panel-copy {
+  margin: 0;
+  max-width: 42ch;
+  font-size: 1.0625rem;
+  color: rgba(255, 241, 237, 0.85);
+}
+
+.back {
+  display: inline-block;
+  margin-top: 2.5rem;
+  padding: 0.9rem 2rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--signal);
+  background: var(--paper);
+  border: 1px solid var(--paper);
+  border-radius: 2px;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.back:hover { background: transparent; color: var(--paper); }
+
+:focus-visible { outline: 3px solid var(--paper); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.01ms !important; }
+}
