@@ -193,7 +193,7 @@ a { color: inherit; }
 .hero-meta     { animation: hero-rise 0.8s ease 0.62s both; }
 
 .hero-thesis {
-  max-width: 22ch;
+  max-width: 30ch;
   font-family: var(--display);
   font-weight: 600;
   font-size: clamp(1.35rem, 3.2vw, 2.35rem);
