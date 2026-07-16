@@ -22,7 +22,10 @@
   const NS = 'http://www.w3.org/2000/svg';
 
   // kind "role" renders filled (the two jobs); everything else is
-  // outlined (the things those jobs caused).
+  // outlined (the things those jobs caused). x/y seed the simulation —
+  // they are a hand-placed layout that already reads well, so the graph
+  // relaxes out from a good arrangement instead of finding its own from
+  // random noise and possibly landing on a tangle.
   const NODES = {
     hacks:    { x: 95,  y: 55,  label: 'Chinatown Hacks', sub: 'Mar 2025', kind: 'event' },
     sentinel: { x: 305, y: 155, label: 'Sentinel', sub: 'Prototype', kind: 'artifact' },
@@ -54,6 +57,25 @@
   const PAD_X = 12;
   const BOX_H = 36;
 
+  // Simulation. Every node is sprung to its seed position, so the graph
+  // relaxes out of the hand-placed layout and returns to it after you
+  // let go of a node. Without that anchor the repulsion wins, the graph
+  // expands until every box is pinned against the frame, and it never
+  // cools. These numbers were solved offline against the real node
+  // sizes: they reach zero energy with no overlapping boxes.
+  const REP = 16000;      // node-node repulsion
+  const K_SPRING = 0.03;  // edge stiffness
+  const K_ANCHOR = 0.02;  // pull back toward the seed position
+  const DAMP = 0.86;
+  const V_MAX = 6;
+  const GAP = 30;         // clear space demanded between two boxes
+  const COOL = 0.02;      // kinetic energy below which the graph is at rest
+
+  const STEP = 300;      // ms between one causal hop and the next
+  const NODE_IN = 380;   // a node settles before its edges leave it
+  const DRAW = 550;      // how long an edge takes to reach its target
+  const POP = 420;       // how long a node takes to appear
+
   function el(name, attrs) {
     const node = document.createElementNS(NS, name);
     for (const key in attrs) node.setAttribute(key, attrs[key]);
@@ -67,19 +89,17 @@
 
   // Stop an edge at the box border instead of the node center.
   function trim(from, to) {
-    const box = measure(from);
     const dx = to.x - from.x;
     const dy = to.y - from.y;
     if (dx === 0 && dy === 0) return { x: from.x, y: from.y };
-    const sx = dx === 0 ? Infinity : (box.w / 2) / Math.abs(dx);
-    const sy = dy === 0 ? Infinity : (box.h / 2) / Math.abs(dy);
+    const sx = dx === 0 ? Infinity : (from.w / 2) / Math.abs(dx);
+    const sy = dy === 0 ? Infinity : (from.h / 2) / Math.abs(dy);
     const s = Math.min(sx, sy);
     return { x: from.x + dx * s, y: from.y + dy * s };
   }
 
   // How many causal hops each node sits from a root. This drives the
-  // build order, so the animation replays the actual chain instead of an
-  // arbitrary stagger.
+  // spawn order, so the graph grows along the actual chain.
   function depths() {
     const d = {};
     const incoming = {};
@@ -89,7 +109,6 @@
     let frontier = Object.keys(NODES).filter(function (id) { return !incoming[id]; });
     frontier.forEach(function (id) { d[id] = 0; });
 
-    // The graph is small and acyclic; this settles in a few passes.
     for (let pass = 0; pass < Object.keys(NODES).length && frontier.length; pass++) {
       const next = [];
       EDGES.forEach(function (e) {
@@ -106,10 +125,6 @@
     return d;
   }
 
-  const STEP = 300;      // ms between one causal hop and the next
-  const NODE_IN = 380;   // a node settles before its edges leave it
-  const DRAW = 550;      // how long an edge takes to reach its target
-
   function buildGraph(mount) {
     const svg = el('svg', {
       viewBox: VIEW_X + ' ' + VIEW_Y + ' ' + VIEW_W + ' ' + VIEW_H,
@@ -120,138 +135,274 @@
 
     const defs = el('defs');
     const marker = el('marker', {
-      id: 'g-arrow',
-      viewBox: '0 0 8 8',
-      refX: '7',
-      refY: '4',
-      markerWidth: '7',
-      markerHeight: '7',
-      orient: 'auto-start-reverse'
+      id: 'g-arrow', viewBox: '0 0 8 8', refX: '7', refY: '4',
+      markerWidth: '7', markerHeight: '7', orient: 'auto-start-reverse'
     });
     marker.appendChild(el('path', {
-      d: 'M0.5,1 L7,4 L0.5,7',
-      fill: 'none',
-      stroke: 'currentColor',
-      'stroke-width': '1.4',
-      'stroke-linecap': 'round',
-      'stroke-linejoin': 'round'
+      d: 'M0.5,1 L7,4 L0.5,7', fill: 'none', stroke: 'currentColor',
+      'stroke-width': '1.4', 'stroke-linecap': 'round', 'stroke-linejoin': 'round'
     }));
     defs.appendChild(marker);
     svg.appendChild(defs);
 
     const edgeLayer = el('g');
     const nodeLayer = el('g');
-    const touches = {};
     const depth = depths();
-    let settles = 0;   // when the last thing in the sequence lands
 
-    EDGES.forEach(function (edge, i) {
-      const a = NODES[edge.from];
-      const b = NODES[edge.to];
-      const start = trim(a, b);
-      const end = trim(b, a);
-
-      // An edge leaves only once its source node has settled.
-      const delay = depth[edge.from] * STEP + NODE_IN;
-      const length = Math.hypot(end.x - start.x, end.y - start.y);
-      settles = Math.max(settles, delay + DRAW);
-
-      const line = el('line', {
-        class: 'g-edge' + (edge.soft ? ' g-edge-soft' : ''),
-        x1: start.x, y1: start.y, x2: end.x, y2: end.y,
-        'marker-end': 'url(#g-arrow)',
-        'data-edge': i
-      });
-      line.style.setProperty('--draw', length.toFixed(1));
-      line.style.setProperty('--delay', delay + 'ms');
-      edgeLayer.appendChild(line);
-
-      // Label at the midpoint, over a patch of the field colour so the
-      // line doesn't strike through the words.
-      const mx = (start.x + end.x) / 2;
-      const my = (start.y + end.y) / 2;
-      const w = edge.label.length * EDGE_ADV;
-
-      // The label lands with the line that carries it.
-      const labelDelay = delay + DRAW * 0.5 + 'ms';
-
-      const patch = el('rect', {
-        class: 'g-edge-patch',
-        x: mx - w / 2 - 5,
-        y: my - 6.5,
-        width: w + 10,
-        height: 13,
-        'data-edge': i
-      });
-      patch.style.setProperty('--delay', labelDelay);
-      edgeLayer.appendChild(patch);
-
-      const text = el('text', {
-        class: 'g-edge-label',
-        x: mx, y: my + 3,
-        'text-anchor': 'middle',
-        'data-edge': i
-      });
-      text.textContent = edge.label;
-      text.style.setProperty('--delay', labelDelay);
-      edgeLayer.appendChild(text);
-
-      (touches[edge.from] = touches[edge.from] || []).push(i);
-      (touches[edge.to] = touches[edge.to] || []).push(i);
+    // ── Build the simulation state ──────────────────────────
+    const sim = {};
+    Object.keys(NODES).forEach(function (id) {
+      const n = NODES[id];
+      const box = measure(n);
+      sim[id] = {
+        id: id, x: n.x, y: n.y, ax: n.x, ay: n.y, vx: 0, vy: 0,
+        w: box.w, h: box.h, kind: n.kind,
+        born: depth[id] * STEP, held: false
+      };
     });
 
-    Object.keys(NODES).forEach(function (id) {
-      const node = NODES[id];
-      const box = measure(node);
-      const g = el('g', { class: 'g-node', 'data-kind': node.kind, 'data-node': id });
-      g.style.setProperty('--delay', depth[id] * STEP + 'ms');
-      settles = Math.max(settles, depth[id] * STEP + NODE_IN);
+    const links = EDGES.map(function (e, i) {
+      const a = sim[e.from], b = sim[e.to];
+      const seed = Math.hypot(b.x - a.x, b.y - a.y);
+      const labelW = e.label.length * EDGE_ADV;
+      return {
+        i: i, from: e.from, to: e.to, label: e.label, soft: !!e.soft,
+        labelW: labelW,
+        // An edge is never shorter than the words written on it need.
+        // This is what stops the labels from being cramped: the layout
+        // is obliged to make room for its own annotations.
+        rest: Math.max(seed, labelW + 76),
+        born: depth[e.from] * STEP + NODE_IN
+      };
+    });
 
+    const spawnDone = Math.max.apply(null, links.map(function (l) { return l.born + DRAW; })
+      .concat(Object.keys(sim).map(function (id) { return sim[id].born + POP; })));
+
+    // ── DOM ─────────────────────────────────────────────────
+    const touches = {};
+    links.forEach(function (l) {
+      l.line = el('line', {
+        class: 'g-edge' + (l.soft ? ' g-edge-soft' : ''), 'data-edge': l.i
+      });
+      l.patch = el('rect', { class: 'g-edge-patch', height: 16, 'data-edge': l.i,
+        width: l.labelW + 16 });
+      l.text = el('text', { class: 'g-edge-label', 'text-anchor': 'middle', 'data-edge': l.i });
+      l.text.textContent = l.label;
+      edgeLayer.appendChild(l.line);
+      edgeLayer.appendChild(l.patch);
+      edgeLayer.appendChild(l.text);
+      (touches[l.from] = touches[l.from] || []).push(l.i);
+      (touches[l.to] = touches[l.to] || []).push(l.i);
+    });
+
+    Object.keys(sim).forEach(function (id) {
+      const n = sim[id], src = NODES[id];
+      const g = el('g', { class: 'g-node', 'data-kind': n.kind, 'data-node': id });
       g.appendChild(el('rect', {
-        class: 'g-node-box',
-        x: node.x - box.w / 2,
-        y: node.y - box.h / 2,
-        width: box.w,
-        height: box.h,
-        rx: 2
+        class: 'g-node-box', x: -n.w / 2, y: -n.h / 2, width: n.w, height: n.h, rx: 2
       }));
-
-      const label = el('text', {
-        class: 'g-node-label',
-        x: node.x, y: node.y - 1,
-        'text-anchor': 'middle'
-      });
-      label.textContent = node.label;
+      const label = el('text', { class: 'g-node-label', x: 0, y: -1, 'text-anchor': 'middle' });
+      label.textContent = src.label;
       g.appendChild(label);
-
-      const sub = el('text', {
-        class: 'g-node-sub',
-        x: node.x, y: node.y + 11,
-        'text-anchor': 'middle'
-      });
-      sub.textContent = node.sub;
+      const sub = el('text', { class: 'g-node-sub', x: 0, y: 11, 'text-anchor': 'middle' });
+      sub.textContent = src.sub;
       g.appendChild(sub);
-
-      const near = touches[id] || [];
-      g.addEventListener('mouseenter', function () { light(id, near); });
-      g.addEventListener('mouseleave', dim);
-
+      n.g = g;
       nodeLayer.appendChild(g);
     });
 
     svg.appendChild(edgeLayer);
     svg.appendChild(nodeLayer);
+    mount.insertBefore(svg, mount.firstChild);
 
-    // Hovering a node pulls its neighbourhood forward and pushes the
-    // rest back — tracing one thought through the graph.
+    // ── Physics ─────────────────────────────────────────────
+    const ids = Object.keys(sim);
+
+    function step(active) {
+      for (let a = 0; a < active.length; a++) {
+        const i = sim[active[a]];
+        if (i.held) continue;
+        let fx = 0, fy = 0;
+
+        for (let b = 0; b < active.length; b++) {
+          if (a === b) continue;
+          const j = sim[active[b]];
+          let dx = i.x - j.x, dy = i.y - j.y;
+          let d2 = dx * dx + dy * dy;
+          if (d2 < 1) { dx = (i.x < j.x ? -1 : 1) * 0.5; dy = 0.5; d2 = 0.5; }
+          const d = Math.sqrt(d2);
+          const f = REP / d2;
+          fx += (dx / d) * f;
+          fy += (dy / d) * f;
+
+          // Boxes are rectangles, so plain point repulsion still lets
+          // two wide labels sit on top of each other. Push apart along
+          // whichever axis is least overlapped.
+          const ox = (i.w + j.w) / 2 + GAP - Math.abs(dx);
+          const oy = (i.h + j.h) / 2 + GAP - Math.abs(dy);
+          if (ox > 0 && oy > 0) {
+            if (ox < oy) fx += (dx < 0 ? -1 : 1) * ox * 0.35;
+            else fy += (dy < 0 ? -1 : 1) * oy * 0.35;
+          }
+        }
+
+        fx += (i.ax - i.x) * K_ANCHOR;
+        fy += (i.ay - i.y) * K_ANCHOR;
+
+        i.fx = fx; i.fy = fy;
+      }
+
+      links.forEach(function (l) {
+        const a = sim[l.from], b = sim[l.to];
+        if (active.indexOf(l.from) === -1 || active.indexOf(l.to) === -1) return;
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const d = Math.hypot(dx, dy) || 0.01;
+        const f = K_SPRING * (d - l.rest);
+        const ux = dx / d, uy = dy / d;
+        if (!a.held) { a.fx += ux * f; a.fy += uy * f; }
+        if (!b.held) { b.fx -= ux * f; b.fy -= uy * f; }
+      });
+
+      let energy = 0;
+      for (let a = 0; a < active.length; a++) {
+        const i = sim[active[a]];
+        if (i.held) { i.vx = 0; i.vy = 0; continue; }
+        i.vx = (i.vx + i.fx) * DAMP;
+        i.vy = (i.vy + i.fy) * DAMP;
+        i.vx = Math.max(-V_MAX, Math.min(V_MAX, i.vx));
+        i.vy = Math.max(-V_MAX, Math.min(V_MAX, i.vy));
+        let nx = i.x + i.vx, ny = i.y + i.vy;
+
+        // Keep every box inside the frame. Zeroing the velocity on
+        // contact matters: a node pressed against a wall otherwise keeps
+        // banking speed it can never spend, and the graph never cools.
+        const loX = VIEW_X + i.w / 2 + 4, hiX = VIEW_X + VIEW_W - i.w / 2 - 4;
+        const loY = VIEW_Y + i.h / 2 + 4, hiY = VIEW_Y + VIEW_H - i.h / 2 - 4;
+        if (nx < loX || nx > hiX) { nx = Math.max(loX, Math.min(hiX, nx)); i.vx = 0; }
+        if (ny < loY || ny > hiY) { ny = Math.max(loY, Math.min(hiY, ny)); i.vy = 0; }
+        i.x = nx; i.y = ny;
+        energy += i.vx * i.vx + i.vy * i.vy;
+      }
+      return energy;
+    }
+
+    function render(t) {
+      ids.forEach(function (id) {
+        const n = sim[id];
+        const p = t === null ? 1 : Math.max(0, Math.min(1, (t - n.born) / POP));
+        if (p <= 0) { n.g.setAttribute('opacity', '0'); return; }
+        const s = 0.9 + 0.1 * p;
+        n.g.setAttribute('opacity', p.toFixed(3));
+        n.g.setAttribute('transform',
+          'translate(' + n.x.toFixed(1) + ',' + n.y.toFixed(1) + ') scale(' + s.toFixed(3) + ')');
+      });
+
+      links.forEach(function (l) {
+        const a = sim[l.from], b = sim[l.to];
+        const p = t === null ? 1 : Math.max(0, Math.min(1, (t - l.born) / DRAW));
+        if (p <= 0) {
+          l.line.setAttribute('opacity', '0');
+          l.text.setAttribute('opacity', '0');
+          l.patch.setAttribute('opacity', '0');
+          l.line.removeAttribute('marker-end');
+          return;
+        }
+        const s0 = trim(a, b), e0 = trim(b, a);
+        // The line grows toward its target, following the endpoints even
+        // while the graph is still settling.
+        const ex = s0.x + (e0.x - s0.x) * p;
+        const ey = s0.y + (e0.y - s0.y) * p;
+        l.line.setAttribute('x1', s0.x.toFixed(1));
+        l.line.setAttribute('y1', s0.y.toFixed(1));
+        l.line.setAttribute('x2', ex.toFixed(1));
+        l.line.setAttribute('y2', ey.toFixed(1));
+        l.line.removeAttribute('opacity');
+        if (p >= 1) l.line.setAttribute('marker-end', 'url(#g-arrow)');
+        else l.line.removeAttribute('marker-end');
+
+        const mx = (s0.x + e0.x) / 2, my = (s0.y + e0.y) / 2;
+        l.text.setAttribute('x', mx.toFixed(1));
+        l.text.setAttribute('y', (my + 3).toFixed(1));
+        l.patch.setAttribute('x', (mx - l.labelW / 2 - 8).toFixed(1));
+        l.patch.setAttribute('y', (my - 8).toFixed(1));
+        const lp = Math.max(0, Math.min(1, (p - 0.5) * 2));
+        l.text.setAttribute('opacity', lp.toFixed(2));
+        l.patch.setAttribute('opacity', lp.toFixed(2));
+      });
+    }
+
+    // ── Loop ────────────────────────────────────────────────
+    let raf = null, t0 = 0, dragging = false;
+
+    function activeAt(t) {
+      return ids.filter(function (id) { return t >= sim[id].born; });
+    }
+
+    function frame(now) {
+      const t = now - t0;
+      const energy = step(activeAt(t));
+      render(t);
+      if (dragging || t < spawnDone + 400 || energy > COOL) {
+        raf = requestAnimationFrame(frame);
+      } else {
+        raf = null;   // settled: stop burning frames until something moves
+      }
+    }
+
+    function kick() {
+      if (raf === null) {
+        t0 = performance.now() - (spawnDone + 500);   // already grown
+        raf = requestAnimationFrame(frame);
+      }
+    }
+
+    // ── Drag ────────────────────────────────────────────────
+    const pt = svg.createSVGPoint();
+    function toLocal(evt) {
+      pt.x = evt.clientX; pt.y = evt.clientY;
+      const m = svg.getScreenCTM();
+      return m ? pt.matrixTransform(m.inverse()) : null;
+    }
+
+    ids.forEach(function (id) {
+      const n = sim[id];
+      n.g.addEventListener('pointerdown', function (evt) {
+        evt.preventDefault();
+        n.held = true;
+        dragging = true;
+        n.g.setPointerCapture(evt.pointerId);
+        n.g.classList.add('is-held');
+        kick();
+      });
+      n.g.addEventListener('pointermove', function (evt) {
+        if (!n.held) return;
+        const p = toLocal(evt);
+        if (!p) return;
+        n.x = p.x; n.y = p.y;
+      });
+      const release = function (evt) {
+        if (!n.held) return;
+        n.held = false;
+        dragging = false;
+        n.g.classList.remove('is-held');
+        try { n.g.releasePointerCapture(evt.pointerId); } catch (err) { /* already gone */ }
+        kick();
+      };
+      n.g.addEventListener('pointerup', release);
+      n.g.addEventListener('pointercancel', release);
+
+      // Hovering a node pulls its neighbourhood forward.
+      const near = touches[id] || [];
+      n.g.addEventListener('mouseenter', function () { light(id, near); });
+      n.g.addEventListener('mouseleave', dim);
+    });
+
     function light(id, near) {
       svg.classList.add('is-tracing');
       const linked = {};
       linked[id] = true;
-      near.forEach(function (i) {
-        linked[EDGES[i].from] = true;
-        linked[EDGES[i].to] = true;
-      });
+      near.forEach(function (i) { linked[EDGES[i].from] = true; linked[EDGES[i].to] = true; });
       svg.querySelectorAll('[data-edge]').forEach(function (n) {
         n.classList.toggle('is-lit', near.indexOf(Number(n.getAttribute('data-edge'))) !== -1);
       });
@@ -259,64 +410,48 @@
         n.classList.toggle('is-lit', !!linked[n.getAttribute('data-node')]);
       });
     }
-
     function dim() {
       svg.classList.remove('is-tracing');
-      svg.querySelectorAll('.is-lit').forEach(function (n) {
-        n.classList.remove('is-lit');
-      });
+      svg.querySelectorAll('.is-lit').forEach(function (n) { n.classList.remove('is-lit'); });
     }
 
-    mount.insertBefore(svg, mount.firstChild);
-
-    // Anyone who asked for less motion gets the finished graph, not a
-    // performance of it.
+    // ── Start ───────────────────────────────────────────────
+    // Reduced motion: solve the layout without showing the work, then
+    // render it once. Dragging still runs, because that is the reader's
+    // own doing rather than something moving at them.
     if (prefersReduced()) {
-      svg.setAttribute('data-build', 'done');
+      for (let i = 0; i < 600; i++) step(ids);
+      render(null);
       return;
     }
 
-    svg.setAttribute('data-build', 'pending');
+    render(0);
 
-    let started = false;
-    const run = function () {
-      if (started) return;
-      started = true;
-      svg.setAttribute('data-build', 'running');
-      // Reveal each arrowhead only once its line has actually arrived.
-      svg.querySelectorAll('.g-edge').forEach(function (line) {
-        const at = parseFloat(line.style.getPropertyValue('--delay')) + DRAW;
-        setTimeout(function () { line.classList.add('is-drawn'); }, at);
-      });
-      // Once everything has landed, drop the build state so hover and
-      // tracing take over cleanly.
-      setTimeout(function () { svg.setAttribute('data-build', 'done'); }, settles + 400);
+    const start = function () {
+      if (t0) return;
+      t0 = performance.now();
+      raf = requestAnimationFrame(frame);
     };
 
-    if (!('IntersectionObserver' in window)) { run(); return; }
-
+    if (!('IntersectionObserver' in window)) { start(); return; }
     const io = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (!entry.isIntersecting) return;
         io.disconnect();
-        run();
+        start();
       });
     }, { threshold: 0.25 });
     io.observe(svg);
-
-    // "pending" holds the graph at opacity 0, so anything that stops the
-    // observer from firing would hide it for good. The graph matters more
-    // than its entrance: if nothing has started it shortly after load,
-    // play it anyway.
-    setTimeout(run, 2500);
-  }
-
-  function prefersReduced() {
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // If the observer never fires, the graph must still appear.
+    setTimeout(start, 2500);
   }
 
   const mount = document.querySelector('[data-graph-canvas]');
   if (mount) buildGraph(mount);
+
+  function prefersReduced() {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
 
   /* ── 2. The name decodes itself ────────────────────────── */
 
@@ -521,9 +656,36 @@
     }, 45);
   }
 
+  // The repo count comes from GitHub so it can't go stale. If the call
+  // fails, is rate-limited, or is blocked, the number already in the
+  // markup stands and nobody sees a difference.
+  const GH_USER = 'The007Programmer';
+  let livePromise = null;
+
+  function liveRepos() {
+    if (livePromise) return livePromise;
+    livePromise = fetch('https://api.github.com/users/' + GH_USER)
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { return d && typeof d.public_repos === 'number' ? d.public_repos : null; })
+      .catch(function () { return null; });
+    return livePromise;
+  }
+
   function countUp(el) {
-    const target = parseFloat(el.getAttribute('data-count'));
     const dp = parseInt(el.getAttribute('data-decimals') || '0', 10);
+
+    if (el.getAttribute('data-live') === 'repos') {
+      // Give the network a moment, then count to whatever we have.
+      const timeout = new Promise(function (res) { setTimeout(function () { res(null); }, 1200); });
+      Promise.race([liveRepos(), timeout]).then(function (n) {
+        runCount(el, n === null ? parseFloat(el.getAttribute('data-count')) : n, dp);
+      });
+      return;
+    }
+    runCount(el, parseFloat(el.getAttribute('data-count')), dp);
+  }
+
+  function runCount(el, target, dp) {
     if (isNaN(target)) return;
     const dur = 1100;
     const t0 = performance.now();

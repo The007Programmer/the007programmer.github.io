@@ -37,6 +37,22 @@ figure. `--field` on `.figure-section` is the colour the graph is drawn on;
 node boxes and label patches fill with it so edges stop cleanly at the box.
 Move the graph to a different ground and that one variable follows.
 
+It is a live force simulation and every node is draggable. Each node is sprung
+to its seed position (`ax`/`ay`), so the graph relaxes out of the hand-placed
+layout and returns to it when you let go. That anchor is load-bearing: without
+it the repulsion wins, the graph expands until every box is pinned against the
+frame, and it never cools. Edge rest length is never shorter than the label
+written on it needs, so the layout is obliged to make room for its own
+annotations.
+
+The constants (`REP`, `K_SPRING`, `K_ANCHOR`, `DAMP`, `GAP`) were solved
+offline against the real node sizes rather than tuned by eye — they reach zero
+energy with no overlapping boxes. If you change them, check convergence rather
+than trusting a screenshot: Chrome's `--virtual-time-budget` does not drive
+`requestAnimationFrame`, so a headless capture of this graph is meaningless.
+`--force-prefers-reduced-motion` solves the layout synchronously and renders it
+once, which is the way to see the settled result.
+
 Below 64rem the SVG is hidden and the vertical trace in `index.html` takes over
 — the same data, readable on a phone. That trace is also what screen readers
 and no-JS visitors get.
