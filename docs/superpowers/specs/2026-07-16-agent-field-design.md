@@ -85,25 +85,36 @@ so contrast is guaranteed by the physics rather than by a colour compromise. No 
 no alpha fades, no fencing logic bolted on beside the sim: the text is a participant
 *in* it.
 
-That frees the palette completely. Each agent reads its colour from whichever ground
-it is currently over, and takes the boldest available:
+That frees the palette completely — and the answer turns out to need no table at all.
 
-| Ground | Text on it | Agent colour | Visibility |
+**The agent colour is the section's own text colour.** Not a coincidence: text colour
+is already chosen to be the most readable thing its ground supports, so it is by
+definition the boldest mark that ground allows. Since agents never go behind text,
+nothing conflicts. Agent visibility therefore *equals* the site's own text/ground
+contrast ratio, and is guaranteed ≥4.5:1 by the same property that makes the page
+readable.
+
+Verified against the real CSS (the first draft of this table was wrong on two rows —
+`.toolkit` has no background and inherits `--paper` from `body`; `.contact` is
+`--ember`, not `--paper-2`; the `--paper-2` at `main.css:548` is an inner card, not a
+section ground):
+
+| Sections | Ground | Text = agent | Visibility |
 |---|---|---|---|
-| `--signal` #D62B22 | `--paper` | `--paper` #FFF1ED | 4.51:1 |
-| `--paper` #FFF1ED | `--slate` | `--slate` #39434F | 9.12:1 |
-| `--slate` #39434F | `--paper` | `--paper` #FFF1ED | 9.12:1 |
-| `--ember` #B5241B | `--paper` | `--paper` #FFF1ED | 5.89:1 |
+| `.hero`, `.tally` | `--signal` #D62B22 | `--paper` #FFF1ED | 4.51:1 |
+| `.figure-section`, `.work`, `.toolkit` | `--paper` #FFF1ED | `--slate` #39434F | 9.12:1 |
+| `.path` | `--slate` #39434F | `--paper` #FFF1ED | 9.12:1 |
+| `.contact` | `--ember` #B5241B | `--paper` #FFF1ED | 5.89:1 |
+
+**Implementation consequence: there is no colour table in the code.** Each band reads
+`getComputedStyle(section).color`. This cannot drift from the palette, needs no
+maintenance when a ground changes, and requires no background resolution at all —
+which matters because `.work` and `.toolkit` have no `background` of their own and
+inherit it, so their ground is not readable from the element directly. Text colour
+inherits correctly; ground does not. Read the thing that inherits.
 
 Text contrast is **untouched** — every ratio in `main.css:6-20` still holds exactly,
-because no agent ever occupies a pixel behind text. Contrast on this site is solved
-numerically, never by eye; this preserves that property by construction rather than by
-negotiation.
-
-The page is not one field. Grounds alternate by design: hero `--signal`, figure
-`--paper`, work `--paper`, tally `--signal`, path `--slate`, toolkit `--ember`,
-contact `--paper-2`. Any new ground added later must extend the table above before the
-field is allowed over it.
+because no agent ever occupies a pixel behind text.
 
 Agents switch colour hard at a band boundary rather than lerping. The site's edges are
 crisp everywhere else and a crossing agent reading as a state change is on-vocabulary.
@@ -200,7 +211,7 @@ What can honestly be verified, and how:
 |---|---|---|
 | Flocks form, drift apart, re-form | Port the integrator to Python, run 2,000+ steps, assert mean pairwise distance **oscillates** rather than converging or exploding | yes — this is the technique that solved the graph's constants |
 | **No agent ever reaches text** | Python port with the real repulsor rects, 2,000+ steps, assert **zero** agent centres enter any inflated rect. This is the whole contrast argument; it is a physics claim now, not a colour claim | yes |
-| Agent colours are the boldest legal per ground | Recompute the ratio table | yes |
+| Agent colours are the boldest legal per ground | Holds by construction — agent colour *is* the text colour, so visibility equals the site's own text/ground ratio. Verify by asserting the band's resolved colour equals the section's computed `color` | yes |
 | Reduced-motion paints a settled frame | Headless screenshot with `--force-prefers-reduced-motion` — one frame is the whole feature here | yes |
 | No JS errors | Chrome stderr grep | yes |
 | Content sits above the canvas | Headless screenshot, any ground | yes |
