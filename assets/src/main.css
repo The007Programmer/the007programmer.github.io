@@ -237,7 +237,10 @@ a { color: inherit; }
 .hero-meta     { animation: hero-rise 0.8s ease 0.62s both; }
 
 .hero-thesis {
-  max-width: 30ch;
+  /* 34ch, not 38: at 38 the line count drops to 4 but the last sentence gets
+     swallowed onto a shared line. At 34 each sentence breaks on its own and the
+     closing claim lands alone. Re-measure if the hook's length changes. */
+  max-width: 34ch;
   font-family: var(--display);
   font-weight: 600;
   font-size: clamp(1.35rem, 3.2vw, 2.35rem);
