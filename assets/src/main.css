@@ -773,7 +773,7 @@ a { color: inherit; }
   .tally-inner { grid-template-columns: repeat(2, 1fr); }
 }
 @media (min-width: 62rem) {
-  .tally-inner { grid-template-columns: repeat(4, 1fr); }
+  .tally-inner { grid-template-columns: repeat(3, 1fr); }
 }
 
 /* ── Path ────────────────────────────────────────────────── */
