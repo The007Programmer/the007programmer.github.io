@@ -85,6 +85,25 @@
       lines.push('EMPTY bands is NOT a hardcoded literal: ' +
         (typeof emptyResult === 'string' && emptyResult.length > 0 && emptyResult === bodyColour));
 
+      /* ── Repulsors (Task 3) ──────────────────────────────────
+         The harness's only text element is a bare <h1>: not in
+         TEXT_SEL by design (opt-in list, see field.js). It must be
+         given a real TEXT_SEL class - see the "h1.hero-name" markup
+         above - or this assertion is vacuous (would pass even if
+         readRepulsors did nothing). */
+      const rects = window.AgentField.readRepulsors();
+      lines.push('repulsors: ' + rects.length);
+      const h1 = document.querySelector('h1').getBoundingClientRect();
+      const hit = rects.filter(function (r) {
+        return r.left < h1.right && r.right > h1.left &&
+               r.top < h1.bottom && r.bottom > h1.top;
+      })[0];
+      lines.push('h1 has a repulsor: ' + !!hit);
+      if (hit) {
+        lines.push('inflated left by: ' + Math.round(h1.left - hit.left));
+        lines.push('inflated top by: ' + Math.round(h1.top - hit.top));
+      }
+
       document.getElementById('out').textContent = lines.join('\n');
     }());
   </script>

@@ -49,11 +49,51 @@
     return bands[bands.length - 1].colour;
   }
 
+  /* ── 2. Repulsors ──────────────────────────────────────────
+     Text is a participant in the sim, not an obstacle bolted on
+     beside it. Agents are pushed off text by the same separation
+     force they apply to each other, so no agent ever occupies a
+     pixel behind text and every contrast ratio in main.css:6-20
+     survives untouched. This is the whole contrast argument: it
+     is a physics claim, not a colour claim.
+     ──────────────────────────────────────────────────────────── */
+
+  const STANDOFF = 24; /* px of clear air around glyphs */
+
+  const TEXT_SEL = [
+    '.hero-name', '.hero-thesis', '.hero-meta', '.eyebrow',
+    '.section-title', '.card-title', '.card-desc',
+    '.feature h3', '.feature p',
+    '.tally-num', '.tally-label', '.tally-note',
+    '.ledger-when', '.ledger-what',
+    '.kit-group', '.contact-title', '.contact-copy', '.contact-links',
+    '.form', '.graph', '.graph-caption',
+    '.foot-name', '.foot-meta'
+  ].join(',');
+
+  function readRepulsors() {
+    const out = [];
+    const nodes = document.querySelectorAll(TEXT_SEL);
+    Array.prototype.forEach.call(nodes, function (el) {
+      const r = el.getBoundingClientRect();
+      if (r.width <= 0 || r.height <= 0) return;
+      out.push({
+        left: r.left - STANDOFF,
+        top: r.top - STANDOFF,
+        right: r.right + STANDOFF,
+        bottom: r.bottom + STANDOFF
+      });
+    });
+    return out;
+  }
+
   window.AgentField = {
     createField: function () {
       return null; /* Task 4 */
     },
     readBands: readBands,
-    colourAt: colourAt
+    colourAt: colourAt,
+    readRepulsors: readRepulsors,
+    STANDOFF: STANDOFF
   };
 }());
