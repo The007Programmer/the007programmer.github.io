@@ -61,6 +61,30 @@
       }
       lines.push('BOUNDARY all: ' + boundaryOk);
 
+      /* bands[0] is .hero and the last real band is .contact - both paper,
+         so testing "above first" against the real page bands would pass
+         vacuously even under the old buggy fall-through-to-last behaviour.
+         Use a synthetic two-band array with deliberately distinct colours
+         so the assertion actually discriminates first-band-clamp from
+         last-band-fall-through. */
+      const synth = [
+        { top: 500, bottom: 600, colour: 'rgb(9, 9, 9)' },
+        { top: 600, bottom: 700, colour: 'rgb(8, 8, 8)' }
+      ];
+      lines.push('ABOVE FIRST clamps to first band: ' +
+        (window.AgentField.colourAt(synth, synth[0].top - 500) === synth[0].colour));
+
+      lines.push('BELOW LAST clamps to last band: ' +
+        (window.AgentField.colourAt(bands, bands[bands.length - 1].bottom + 500) === bands[bands.length - 1].colour));
+
+      const bodyColour = window.getComputedStyle(document.body).color;
+      lines.push('EMPTY bands reads body colour: ' +
+        (window.AgentField.colourAt([], 100) === bodyColour));
+
+      const emptyResult = window.AgentField.colourAt([], 100);
+      lines.push('EMPTY bands is NOT a hardcoded literal: ' +
+        (typeof emptyResult === 'string' && emptyResult.length > 0 && emptyResult === bodyColour));
+
       document.getElementById('out').textContent = lines.join('\n');
     }());
   </script>

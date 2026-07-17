@@ -37,10 +37,16 @@
   }
 
   function colourAt(bands, y) {
+    /* No bands means no DOM to read from - fall back to the thing every
+       band would have inherited from anyway, still read rather than
+       hardcoded. */
+    if (!bands.length) return window.getComputedStyle(document.body).color;
+    /* Out of range clamps to the NEAREST band, not the last one. */
+    if (y < bands[0].top) return bands[0].colour;
     for (let i = 0; i < bands.length; i++) {
       if (y >= bands[i].top && y < bands[i].bottom) return bands[i].colour;
     }
-    return bands.length ? bands[bands.length - 1].colour : 'rgb(57, 67, 79)';
+    return bands[bands.length - 1].colour;
   }
 
   window.AgentField = {
