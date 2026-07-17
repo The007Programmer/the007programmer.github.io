@@ -123,6 +123,49 @@
       });
       lines.push('TOPBAR has a repulsor: ' + topbarHit);
 
+      /* ── The sim (Task 4) ─────────────────────────────────────
+         step() must be a plain synchronous function: called 2000x
+         in a for-loop here, no rAF, no timing, no screenshots. */
+      const F = window.AgentField.createField({ w: 1440, h: 900, n: 70, seed: 7 });
+      F.setRepulsors(window.AgentField.readRepulsors());
+
+      function meanPairwise(ag) {
+        let s = 0, c = 0;
+        for (let i = 0; i < ag.length; i++) {
+          for (let j = i + 1; j < ag.length; j++) {
+            const dx = ag[i].x - ag[j].x, dy = ag[i].y - ag[j].y;
+            s += Math.sqrt(dx * dx + dy * dy); c++;
+          }
+        }
+        return s / c;
+      }
+
+      const series = [];
+      let escaped = 0;
+      const simRects = window.AgentField.readRepulsors();
+      for (let t = 0; t < 2000; t++) {
+        F.step(1);
+        if (t % 20 === 0) series.push(meanPairwise(F.agents));
+        F.agents.forEach(function (a) {
+          for (let k = 0; k < simRects.length; k++) {
+            const r = simRects[k];
+            if (a.x > r.left && a.x < r.right && a.y > r.top && a.y < r.bottom) escaped++;
+          }
+          if (a.x < 0 || a.x > 1440 || a.y < 0 || a.y > 900) escaped++;
+        });
+      }
+
+      const lo = Math.min.apply(null, series), hi = Math.max.apply(null, series);
+      lines.push('samples: ' + series.length);
+      lines.push('mean pairwise min: ' + lo.toFixed(1) + ' max: ' + hi.toFixed(1));
+      lines.push('OSCILLATES (hi/lo > 1.15): ' + (hi / lo > 1.15));
+      lines.push('NOT collapsed (lo > 40): ' + (lo > 40));
+      lines.push('NOT exploded (hi < 900): ' + (hi < 900));
+      lines.push('agents in text or offscreen: ' + escaped + ' (must be 0)');
+      lines.push('trust spread: ' +
+        F.agents.filter(function (a) { return a.trust > 0.5; }).length + ' trusting / ' +
+        F.agents.filter(function (a) { return a.trust <= 0.5; }).length + ' drifted');
+
       document.getElementById('out').textContent = lines.join('\n');
     }());
   </script>
