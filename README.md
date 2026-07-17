@@ -1,6 +1,7 @@
 # the007programmer.github.io
 
-My portfolio: agent security and applied AI work.
+My portfolio: applied AI and systems work — video, agents, and the things
+underneath them.
 
 Live at **https://the007programmer.github.io**
 
