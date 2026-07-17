@@ -218,7 +218,7 @@ a { color: inherit; }
    text at this level — so one rule lifts all content over the
    canvas. Verified against index.html's structure. */
 main > section > *,
-main > footer > * {
+body > footer > * {
   position: relative;
   z-index: 2;
 }
