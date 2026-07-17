@@ -61,6 +61,11 @@
   const STANDOFF = 24; /* px of clear air around glyphs */
 
   const TEXT_SEL = [
+    /* The topbar is transparent over the hero (main.css:110) and only gains
+       an opaque slate ground once stuck, so agents would otherwise drift
+       behind paper links on the paper-coloured field and erase them. It is
+       fixed, so this is one stationary rect at the top of the viewport. */
+    '.topbar',
     '.hero-name', '.hero-thesis', '.hero-meta', '.eyebrow',
     '.section-title', '.card-title', '.card-desc',
     '.feature h3', '.feature p',

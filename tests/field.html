@@ -7,6 +7,10 @@
 </head>
 <body>
   <canvas class="agent-field" aria-hidden="true"></canvas>
+  <header class="topbar">
+    <a class="topbar-mark" href="#top">AS</a>
+    <nav class="topbar-nav"><a href="#work">Work</a></nav>
+  </header>
   <main id="main">
     <section class="hero"><div class="hero-inner"><h1 class="hero-name">A</h1></div></section>
     <section class="figure-section"><div class="section-head"><h2 class="section-title">B</h2></div></section>
@@ -103,6 +107,21 @@
         lines.push('inflated left by: ' + Math.round(h1.left - hit.left));
         lines.push('inflated top by: ' + Math.round(h1.top - hit.top));
       }
+
+      /* ── Topbar (Task 3 gap) ──────────────────────────────────
+         .topbar is fixed, transparent over the hero, and its links
+         are paper-coloured text (main.css:102-119). Assert its rect
+         is actually covered by a repulsor by testing the topbar's
+         CENTRE point against every returned rect - a real containment
+         check, not just a non-empty count. */
+      const topbarRect = document.querySelector('.topbar').getBoundingClientRect();
+      const topbarCx = (topbarRect.left + topbarRect.right) / 2;
+      const topbarCy = (topbarRect.top + topbarRect.bottom) / 2;
+      const topbarHit = rects.some(function (r) {
+        return topbarCx > r.left && topbarCx < r.right &&
+               topbarCy > r.top && topbarCy < r.bottom;
+      });
+      lines.push('TOPBAR has a repulsor: ' + topbarHit);
 
       document.getElementById('out').textContent = lines.join('\n');
     }());
