@@ -8,9 +8,11 @@
 <body>
   <canvas class="agent-field" aria-hidden="true"></canvas>
   <main id="main">
-    <section class="hero"><div class="hero-inner"><h1>A</h1></div></section>
-    <section class="path"><div class="section-head"><h2>B</h2></div></section>
-    <section class="contact"><div class="contact-grid"><h2>C</h2></div></section>
+    <section class="hero"><div class="hero-inner"><h1 class="hero-name">A</h1></div></section>
+    <section class="figure-section"><div class="section-head"><h2 class="section-title">B</h2></div></section>
+    <section class="path"><div class="section-head"><h2 class="section-title">C</h2></div></section>
+    <section class="work"><div class="section-head"><h2 class="section-title">D</h2></div></section>
+    <section class="contact"><div class="contact-grid"><h2 class="section-title">E</h2></div></section>
   </main>
   <pre id="out">not run</pre>
   <script src="../assets/src/field.js"></script>
@@ -18,18 +20,47 @@
     (function () {
       const lines = [];
       const bands = window.AgentField.readBands();
-      lines.push('bands: ' + bands.length);
+      const PAPER = 'rgb(255, 241, 237)';
+      const SLATE = 'rgb(57, 67, 79)';
+
+      lines.push('bands.length === 5: ' + (bands.length === 5));
+
       bands.forEach(function (b, i) {
-        lines.push(i + ' colour=' + b.colour + ' h=' + Math.round(b.bottom - b.top));
+        const el = document.querySelectorAll('main > section, body > footer')[i];
+        const cls = el ? el.className : '?';
+        lines.push(i + ' class=' + cls + ' colour=' + b.colour + ' h=' + Math.round(b.bottom - b.top));
       });
-      const mid0 = (bands[0].top + bands[0].bottom) / 2;
-      const mid1 = (bands[1].top + bands[1].bottom) / 2;
-      lines.push('colourAt(mid band0) === band0: ' +
-        (window.AgentField.colourAt(bands, mid0) === bands[0].colour));
-      lines.push('colourAt(mid band1) === band1: ' +
-        (window.AgentField.colourAt(bands, mid1) === bands[1].colour));
-      lines.push('boundary belongs to lower band: ' +
-        (window.AgentField.colourAt(bands, bands[1].top) === bands[1].colour));
+
+      const distinct = {};
+      bands.forEach(function (b) { distinct[b.colour] = true; });
+      const distinctCount = Object.keys(distinct).length;
+      lines.push('distinct colour count: ' + distinctCount);
+      lines.push('DISCRIMINATION (distinct >= 2): ' + (distinctCount >= 2));
+
+      lines.push('INHERITANCE .figure-section === slate: ' + (bands[1].colour === SLATE));
+      lines.push('INHERITANCE .work === slate: ' + (bands[3].colour === SLATE));
+
+      lines.push('.hero === paper: ' + (bands[0].colour === PAPER));
+      lines.push('.path === paper: ' + (bands[2].colour === PAPER));
+      lines.push('.contact === paper: ' + (bands[4].colour === PAPER));
+
+      let mappingOk = true;
+      bands.forEach(function (b, i) {
+        const mid = (b.top + b.bottom) / 2;
+        const ok = window.AgentField.colourAt(bands, mid) === b.colour;
+        lines.push('MAPPING band' + i + ' (mid=' + Math.round(mid) + '): ' + ok);
+        if (!ok) mappingOk = false;
+      });
+      lines.push('MAPPING all bands: ' + mappingOk);
+
+      let boundaryOk = true;
+      for (let i = 1; i < bands.length; i++) {
+        const ok = window.AgentField.colourAt(bands, bands[i].top) === bands[i].colour;
+        lines.push('BOUNDARY band' + i + ' top belongs to lower band: ' + ok);
+        if (!ok) boundaryOk = false;
+      }
+      lines.push('BOUNDARY all: ' + boundaryOk);
+
       document.getElementById('out').textContent = lines.join('\n');
     }());
   </script>
