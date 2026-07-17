@@ -476,24 +476,46 @@ Expected: PASS — `repulsors: 1`, `h1 has a repulsor: true`, `inflated left by:
 
 - [ ] **Step 5: Verify against the real page, not the harness**
 
-Add to `tests/field.html` a second block that fetches nothing — instead, run this against the real page by temporarily appending to `index.html` a script that logs the count. Simpler: use `--dump-dom` on a copy with an injected probe.
+The harness has a handful of sections; the real page has dozens of text elements. `TEXT_SEL` matching the harness proves nothing about the real markup, and a `TEXT_SEL` that silently misses real elements means agents drift over text and the contrast argument collapses without a sound.
+
+**Inject the probe BEFORE `</body>`, not by appending to the end of the file.** Appending after `</html>` yields a `<pre>` that renders EMPTY — the script does not run, and you will read the empty element as a result. This was verified the hard way; do not use `cat >>` here.
 
 ```bash
 OUT=/tmp/claude-1000/-home-t007p-Documents-Code-the007programmer-github-io/e274a99c-f2e2-413f-801f-a9ecf11898a5/scratchpad
 rm -rf "$OUT/site"; cp -r /home/t007p/Documents/Code/the007programmer.github.io "$OUT/site"
-cat >> "$OUT/site/index.html" <<'EOF'
-<pre id="probe"></pre>
+
+python3 - <<'PY'
+p = '/tmp/claude-1000/-home-t007p-Documents-Code-the007programmer-github-io/e274a99c-f2e2-413f-801f-a9ecf11898a5/scratchpad/site/index.html'
+src = open(p).read()
+probe = """<pre id="probe">pending</pre>
 <script>
-  document.getElementById('probe').textContent =
-    'repulsors on real page: ' + window.AgentField.readRepulsors().length;
+(function () {
+  var r = window.AgentField.readRepulsors();
+  var out = ['repulsors on real page: ' + r.length];
+  var bad = r.filter(function (x) { return x.right <= x.left || x.bottom <= x.top; });
+  out.push('degenerate rects: ' + bad.length + ' (must be 0)');
+  document.getElementById('probe').textContent = out.join('\\n');
+}());
 </script>
-EOF
+</body>"""
+open(p, 'w').write(src.replace('</body>', probe, 1))
+PY
+
 flatpak run --filesystem="$OUT" com.google.Chrome --headless --disable-gpu \
   --window-size=1440,900 --virtual-time-budget=5000 --dump-dom \
-  "file://$OUT/site/index.html" 2>/dev/null | grep -A2 'id="probe"'
+  "file://$OUT/site/index.html" 2>/dev/null > "$OUT/probe.html"
+
+python3 -c "
+import re, html
+src = open('$OUT/probe.html').read()
+m = re.search(r'<pre id=\"probe\">(.*?)</pre>', src, re.S)
+print(html.unescape(m.group(1)) if m else 'PROBE DID NOT RUN')
+"
 ```
 
-Expected: a count in the dozens (every card, ledger row, tally item). **If it is 0 or under ~10, `TEXT_SEL` is not matching the real markup** — fix the selectors before continuing. Getting this wrong means agents drift over text and the contrast argument collapses silently.
+Expected: `repulsors on real page: 68` (approximately — every card, ledger row, tally item, and the two footer lines), and `degenerate rects: 0`.
+
+**If the count is 0, under ~10, or the probe prints `PROBE DID NOT RUN`, stop and fix it before continuing.** A near-zero count means `TEXT_SEL` is not matching the real markup.
 
 - [ ] **Step 6: Commit**
 
