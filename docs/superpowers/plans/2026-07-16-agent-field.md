@@ -46,7 +46,7 @@ flatpak run --filesystem="$OUT" com.google.Chrome --headless --disable-gpu \
 | File | Responsibility |
 |---|---|
 | `assets/src/field.js` | **Create.** The entire feature: bands, repulsors, sim, render, gates. Exposes `window.AgentField`. Self-contained; shares no state with `script.js`. |
-| `assets/src/main.css` | **Modify.** Two rules: `.field` canvas positioning, and one rule raising section content above it. |
+| `assets/src/main.css` | **Modify.** Two rules: `.agent-field` canvas positioning, and one rule raising section content above it. |
 | `index.html` | **Modify.** One `<canvas>`, one `<script>`. |
 | `tests/field.html` | **Create.** Harness page. Drives `step()` synchronously, prints metrics to `#out`. |
 
@@ -58,12 +58,12 @@ flatpak run --filesystem="$OUT" com.google.Chrome --headless --disable-gpu \
 
 **Files:**
 - Modify: `index.html` (add canvas + script tag)
-- Modify: `assets/src/main.css` (add `.field` rule + content-raise rule)
+- Modify: `assets/src/main.css` (add `.agent-field` rule + content-raise rule)
 - Create: `assets/src/field.js` (stub that proves the stacking)
 
 **Interfaces:**
 - Consumes: nothing
-- Produces: `window.AgentField.createField(opts)` — stubbed here, filled in Task 4. A `<canvas class="field">` present in the DOM.
+- Produces: `window.AgentField.createField(opts)` — stubbed here, filled in Task 4. A `<canvas class="agent-field">` present in the DOM.
 
 **Why this is first:** the entire feature is invisible if the stacking is wrong, and section backgrounds are opaque so "behind everything" shows nothing. Prove the canvas is visible over a ground and hidden under text before building anything on it.
 
@@ -80,11 +80,11 @@ Create `tests/field-stack.html` — a page that loads the real CSS and a red-fil
   <link rel="stylesheet" href="../assets/src/main.css">
   <style>
     /* Fill the canvas so layering is unambiguous in a screenshot. */
-    .field { background: #00FF00 !important; }
+    .agent-field { background: #00FF00 !important; }
   </style>
 </head>
 <body>
-  <canvas class="field" aria-hidden="true"></canvas>
+  <canvas class="agent-field" aria-hidden="true"></canvas>
   <main id="main">
     <section class="hero">
       <div class="hero-inner">
@@ -108,7 +108,7 @@ flatpak run --filesystem="$OUT" com.google.Chrome --headless --disable-gpu \
   --screenshot="$OUT/stack.png" "file://$OUT/site/tests/field-stack.html" 2>/dev/null
 ```
 
-Expected: FAIL — no `.field` rule exists yet, so the canvas is inline-sized (300×150) at the top of the flow and STACK is not layered over it.
+Expected: FAIL — no `.agent-field` rule exists yet, so the canvas is inline-sized (300×150) at the top of the flow and STACK is not layered over it.
 
 - [ ] **Step 3: Write the minimal CSS**
 
@@ -122,7 +122,7 @@ Append to `assets/src/main.css`, after the `.topbar` block (keep z-index rules n
    children are free to be raised over a fixed canvas. Give
    .hero a z-index and this breaks.
    ──────────────────────────────────────────────────────────── */
-.field {
+.agent-field {
   position: fixed;
   inset: 0;
   z-index: 1;
@@ -149,7 +149,7 @@ Expected: PASS — full-viewport green, with STACK legible on top of it. If STAC
 In `index.html`, immediately after `<body>` and before the skip link:
 
 ```html
-  <canvas class="field" aria-hidden="true"></canvas>
+  <canvas class="agent-field" aria-hidden="true"></canvas>
 ```
 
 And beside the existing script tag at `index.html:564`:
@@ -244,7 +244,7 @@ Create `tests/field.html`:
   <link rel="stylesheet" href="../assets/src/main.css">
 </head>
 <body>
-  <canvas class="field" aria-hidden="true"></canvas>
+  <canvas class="agent-field" aria-hidden="true"></canvas>
   <main id="main">
     <section class="hero"><div class="hero-inner"><h1>A</h1></div></section>
     <section class="path"><div class="section-head"><h2>B</h2></div></section>
@@ -803,7 +803,7 @@ Append to `field.js` before the export:
   }
 
   function mount() {
-    const cv = document.querySelector('canvas.field');
+    const cv = document.querySelector('canvas.agent-field');
     if (!cv || !cv.getContext) return;
     const ctx = cv.getContext('2d');
     if (!ctx) return;

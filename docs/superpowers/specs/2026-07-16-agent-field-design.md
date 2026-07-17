@@ -146,9 +146,9 @@ state with it; a separate file keeps both readable and lets the field be deleted
 move if it gets reverted.
 
 ```
-index.html      <canvas class="field" aria-hidden="true"> as a direct child of <body>
+index.html      <canvas class="agent-field" aria-hidden="true"> as a direct child of <body>
                 <script src="assets/src/field.js" defer>
-main.css        .field { position: fixed; inset: 0; z-index: 1; pointer-events: none }
+main.css        .agent-field { position: fixed; inset: 0; z-index: 1; pointer-events: none }
                 main > section > *, main > footer > * { position: relative; z-index: 2 }
 field.js        band mapping · sim · render · gates
 ```
