@@ -133,7 +133,7 @@ Append to `assets/src/main.css`, after the `.topbar` block (keep z-index rules n
    text at this level — so one rule lifts all content over the
    canvas. Verified against index.html's structure. */
 main > section > *,
-main > footer > * {
+body > footer > * {
   position: relative;
   z-index: 2;
 }
@@ -294,7 +294,7 @@ In `field.js`, inside the IIFE, above the `window.AgentField` assignment:
      element - but colour inherits correctly. Read what inherits.
      ──────────────────────────────────────────────────────────── */
 
-  const BAND_SEL = 'main > section, main > footer';
+  const BAND_SEL = 'main > section, body > footer';
 
   function readBands() {
     const out = [];
@@ -444,7 +444,8 @@ In `field.js`, after the bands section:
     '.tally-num', '.tally-label', '.tally-note',
     '.ledger-when', '.ledger-what',
     '.kit-group', '.contact-title', '.contact-copy', '.contact-links',
-    '.form', '.graph', '.graph-caption'
+    '.form', '.graph', '.graph-caption',
+    '.foot-name', '.foot-meta'
   ].join(',');
 
   function readRepulsors() {
