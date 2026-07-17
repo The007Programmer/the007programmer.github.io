@@ -666,7 +666,45 @@ In `field.js`, after the repulsors section:
       });
     }
 
-    function setRepulsors(next) { rects = next || []; }
+    /* Agents are seeded at random positions and some land ON text.
+       Repulsion would push them off over the next few ticks, but that is
+       not good enough for two reasons: the test asserts ZERO intrusions
+       from t=0, and - worse - the reduced-motion path paints after only
+       200 steps, so a slow-to-clear agent would be painted sitting on a
+       headline in exactly the accessibility path where contrast must not
+       break. So eject on contact rather than waiting for the force.
+
+       Two passes: ejecting along the shortest axis can land an agent
+       inside a neighbouring rect, and the rects overlap (a card's title
+       and its body both repel). Two passes clears the overlap cases that
+       actually occur here; the test's zero-intrusion assertion is what
+       proves it, so if it reports non-zero, add a third pass rather than
+       weakening the assertion. */
+    function ejectFromRects() {
+      for (let pass = 0; pass < 2; pass++) {
+        for (let i = 0; i < agents.length; i++) {
+          const a = agents[i];
+          for (let k = 0; k < rects.length; k++) {
+            const r = rects[k];
+            if (a.x <= r.left || a.x >= r.right || a.y <= r.top || a.y >= r.bottom) continue;
+            const dl = a.x - r.left, dr = r.right - a.x;
+            const dtop = a.y - r.top, db = r.bottom - a.y;
+            const m = Math.min(dl, dr, dtop, db);
+            if (m === dl) a.x = r.left - 1;
+            else if (m === dr) a.x = r.right + 1;
+            else if (m === dtop) a.y = r.top - 1;
+            else a.y = r.bottom + 1;
+            a.vx = 0;
+            a.vy = 0;
+          }
+        }
+      }
+    }
+
+    function setRepulsors(next) {
+      rects = next || [];
+      ejectFromRects();
+    }
 
     function step(dt) {
       clock += dt;
@@ -766,7 +804,7 @@ This is where the graph's constants were solved and where guessing wasted a whol
 | `OSCILLATES: false`, one stable blob | `COH` down, `TRUST_DECAY` up |
 | `NOT collapsed: false` | `SEP` up or `COH` down |
 | `NOT exploded: false` | `COH` up or `WANDER` down |
-| `agents in text: > 0` | `REP` up; if still failing, `V_MAX` down — a fast agent can tunnel a thin rect in one tick |
+| `agents in text: > 0` | First check WHEN: if non-zero from t=0 it is a seeding/ejection problem — add a third pass to `ejectFromRects`. If it only appears later, it is tunnelling: `REP` up, then `V_MAX` down (a fast agent crosses a thin rect in one tick). **Never weaken the assertion** — a non-zero here means agents land on text and the whole contrast argument is void |
 | `trust spread` all one side | `TRUST_DECAY`/`TRUST_RECOVER` ratio |
 
 Re-run Step 4 after each change. Change **one** knob at a time.
