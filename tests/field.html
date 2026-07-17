@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>field harness</title>
+  <link rel="stylesheet" href="../assets/src/main.css">
+</head>
+<body>
+  <canvas class="agent-field" aria-hidden="true"></canvas>
+  <main id="main">
+    <section class="hero"><div class="hero-inner"><h1>A</h1></div></section>
+    <section class="path"><div class="section-head"><h2>B</h2></div></section>
+    <section class="contact"><div class="contact-grid"><h2>C</h2></div></section>
+  </main>
+  <pre id="out">not run</pre>
+  <script src="../assets/src/field.js"></script>
+  <script>
+    (function () {
+      const lines = [];
+      const bands = window.AgentField.readBands();
+      lines.push('bands: ' + bands.length);
+      bands.forEach(function (b, i) {
+        lines.push(i + ' colour=' + b.colour + ' h=' + Math.round(b.bottom - b.top));
+      });
+      const mid0 = (bands[0].top + bands[0].bottom) / 2;
+      const mid1 = (bands[1].top + bands[1].bottom) / 2;
+      lines.push('colourAt(mid band0) === band0: ' +
+        (window.AgentField.colourAt(bands, mid0) === bands[0].colour));
+      lines.push('colourAt(mid band1) === band1: ' +
+        (window.AgentField.colourAt(bands, mid1) === bands[1].colour));
+      lines.push('boundary belongs to lower band: ' +
+        (window.AgentField.colourAt(bands, bands[1].top) === bands[1].colour));
+      document.getElementById('out').textContent = lines.join('\n');
+    }());
+  </script>
+</body>
+</html>
