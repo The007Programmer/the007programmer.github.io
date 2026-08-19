@@ -18,6 +18,29 @@
   --font-mono: 'Martian Mono', ui-monospace, monospace;
 }
 
+/*
+ * Dev-only font-pairing switcher (Task 5, deleted in Task 16 once a
+ * winner is picked). Set via useFontPairing() -> data-font on <html>.
+ * "tempting", "athelas"/"vanguard" are placeholder substitutions —
+ * see index.html's <head> comment and the Task 5 report for why.
+ */
+[data-font="tempting"] {
+  --font-display: 'Bricolage Grotesque', 'Arial Black', sans-serif;
+  --font-body: 'Manrope', system-ui, sans-serif;
+}
+[data-font="athelas"] {
+  --font-display: 'Source Serif 4', Georgia, serif;
+  --font-body: 'Work Sans', system-ui, sans-serif;
+}
+[data-font="inter"] {
+  --font-display: 'Inter', system-ui, sans-serif;
+  --font-body: 'Times New Roman', 'Times New Roman MT', Times, serif;
+}
+[data-font="archivo"] {
+  --font-display: 'Archivo', 'Arial Black', sans-serif;
+  --font-body: 'Abril Fatface', 'STIX Two Text', Georgia, serif;
+}
+
 html {
   scroll-behavior: smooth;
 }

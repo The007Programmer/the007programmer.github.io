@@ -1,4 +1,8 @@
+import { useFontPairing } from "@/hooks/useFontPairing"
+
 export default function App() {
+  useFontPairing()
+
   return (
     <main className="min-h-screen bg-paper text-slate font-body p-8">
       <h1 className="font-display font-extrabold text-4xl">Aahil Shaikh</h1>
