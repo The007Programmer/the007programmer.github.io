@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { Reorder, motion, useDragControls } from "motion/react"
 import { ProjectCard } from "@/components/kit/ProjectCard"
 import { ELECTRA, PROJECT_CARDS, OSS_ITEMS, type ProjectCardData } from "@/data/work"
@@ -14,6 +14,7 @@ interface WorkCardProps {
 
 function WorkCard({ project, reduced, expanded, onExpand, onToggle }: WorkCardProps) {
   const controls = useDragControls()
+  const didDragRef = useRef(false)
 
   return (
     <Reorder.Item
@@ -39,10 +40,18 @@ function WorkCard({ project, reduced, expanded, onExpand, onToggle }: WorkCardPr
         dragConstraints={{ top: 0, bottom: 60 }}
         dragElastic={0.2}
         dragMomentum={false}
+        dragSnapToOrigin
         onDragEnd={(_, info) => {
+          didDragRef.current = true
           if (info.offset.y > 40) onExpand()
         }}
-        onClick={onToggle}
+        onTap={() => {
+          if (didDragRef.current) {
+            didDragRef.current = false
+            return
+          }
+          onToggle()
+        }}
         className={expanded ? "scale-[1.03]" : undefined}
       >
         <ProjectCard
