@@ -2802,11 +2802,11 @@ Expected: every test file from Tasks 1–15 passes.
 
 Run: `npm run dev`. Confirm, in order top to bottom: hero renders with entrance animation, agent field dots are visible and drifting, cursor glow follows the pointer, timeline draws in on scroll with hoverable edge tooltips, work section renders Electra + all 6 cards + all 5 OSS items and both drag interactions work, tally counts up, path ledger rules in row by row, toolkit hovers respond, contact form fields and résumé link work. No console errors.
 
-- [ ] **Step 4: Compare all 4 font pairings and lock one in**
+- [ ] **Step 4: Lock in the `archivo` pairing (Archivo + Abril Fatface / STIX Two Text)**
 
-Visit `/?font=tempting`, `/?font=athelas`, `/?font=inter`, `/?font=archivo` in the real assembled layout (not the earlier isolated check from Task 5 — this is the first time they're visible against real content). Once a winner is picked, hardcode it:
+Ruling recorded in the SDD ledger: the user picked the `archivo` pairing directly (both fonts are real, no substitution involved — see §2 of `handoffs/handoff-2026-08-18-portfolio-react-rework.md` for the full comparison context). A quick sanity check at `/?font=archivo` in the real assembled layout is still worthwhile before hardcoding, but the 4-way live comparison this step originally required is no longer needed — the decision is made. Hardcode the winner:
 
-- In `src/index.css`, delete the `[data-font="..."]` blocks for the other 3 pairings and fold the winning pairing's values directly into the base `@theme` block's `--font-display`/`--font-body`.
+- In `src/index.css`, delete the `[data-font="..."]` blocks for the other 3 pairings and fold the `archivo` pairing's values directly into the base `@theme` block's `--font-display`/`--font-body`.
 - Delete `src/hooks/useFontPairing.ts`, `src/hooks/useFontPairing.test.ts`, and the `useFontPairing()` call + import in `App.tsx`.
 - In `index.html`, delete the `<link>` tags for the 3 unused pairings, keeping only the winner's.
 - In `public/thanks.html` and `public/404.html`, update the Google Fonts `<link>` to match the winning pairing (they currently still load Bricolage Grotesque/Instrument Sans/Martian Mono from the old site — update both the font names in the link and the `page.css` `--display`/`--body` variables to the winner).
@@ -2924,15 +2924,60 @@ If that 404s because Pages was never configured via the API before, use POST ins
 gh api -X POST repos/The007Programmer/the007programmer.github.io/pages -f build_type=workflow
 ```
 
-- [ ] **Step 6: Push and verify the live deploy**
+- [ ] **Step 6: Live-deploy verification is deferred past this branch's merge**
+
+Ruling recorded in the SDD ledger: the user decided `portfolio-react-rework` merges into `agent-field` first, and `agent-field` merges into `main` separately, later — not directly into `main`. The deploy workflow only triggers `on: push: branches: [main]`, so pushing `portfolio-react-rework` or even `agent-field` alone will not fire it. Do not push to `main` or attempt live-deploy verification as part of finishing this branch: create the workflow file and flip the Pages source setting (Steps 1–5 above) as this branch's deliverable, then stop. The actual push-to-main-and-verify step belongs to whatever later work merges `agent-field` into `main` — flag this explicitly in the final whole-branch review and in the handoff to `superpowers:finishing-a-development-branch`, so it isn't silently dropped.
+
+---
+
+## Task 18: Work section — restore the 3-column grid with hand-rolled drag-reorder
+
+**Ruling that created this task:** Task 12 shipped the Work section's project cards as a single-column `flex flex-col` list instead of the originally planned `grid sm:grid-cols-2 lg:grid-cols-3`, because Motion's `Reorder.Group`/`Reorder.Item` primitive is architecturally 1D-only — proven three times over during Task 12's fix loop by tracing Motion's actual installed source (`Reorder/Group.mjs`'s `compareMin` sort, `Reorder/utils/check-reorder.mjs`'s adjacent-neighbor swap logic). There is no prop or config that makes `Reorder` grid-aware. The user was asked to choose between keeping the list or paying for a grid-aware reorder implementation, and chose the grid. This task is that implementation — a genuinely new sub-task, not a revert, since it requires dropping `Reorder.Group`/`Item` entirely and hand-rolling the reorder logic. See `handoffs/handoff-2026-08-18-portfolio-react-rework.md` §2, Decision 1, for the full tradeoff writeup this ruling resolved.
+
+**Files:**
+- Modify: `src/components/sections/Work.tsx`, `src/components/sections/Work.test.tsx`
+
+**Interfaces:**
+- Consumes: same as Task 12 (`ProjectCard` from Task 3, `PROJECT_CARDS`/`ELECTRA`/`OSS_ITEMS` from Task 6, `useReducedMotionGate` from Task 2).
+- Produces: `<Work />`, same export shape as Task 12 — no change to how `App.tsx` (Task 16) consumes it.
+- Must preserve Task 12's final, independently-verified drag-to-expand architecture unchanged: the drag-handle separation (`dragListener={false}` + `useDragControls()` so the reorder-drag gesture and the expand-drag gesture don't fight each other), `onTap` (not `onClick`) for the collapse/expand toggle, and the `didDragRef` flag cleared via Motion's own `frame.postRender` scheduler hook (not `setTimeout`, which was proven timing-unsafe in Task 12's round-2 fix). Read the current `src/components/sections/Work.tsx` on this branch before starting — it is the authoritative source for that architecture, more precise than reproducing it from prose here.
+
+**What must change:**
+1. `.cards` goes back to `grid gap-6 sm:grid-cols-2 lg:grid-cols-3` (Task 12's original, pre-fix className).
+2. Replace `Reorder.Group`/`Reorder.Item` with a hand-rolled reorder:
+   - Each card renders as a `motion.div` with `layout` (FLIP-animates the grid reflow — this is Motion's general layout-animation capability, unrelated to `Reorder` and not subject to its 1D limitation).
+   - The existing drag handle (from Task 12's fix-round architecture) drives a free 2D drag (`drag`, no `axis` constraint — both x and y, since reordering must work across rows and columns, not just within one column).
+   - On `onDragEnd`, compute the drop target by a **nearest-center algorithm**: read the bounding rect of every card (via refs), find the index whose rect center is closest (Euclidean distance) to the dragged card's rect center at drop time, and splice the array so the dragged item moves to that index. This is the standard technique for grid-aware reorder-by-drag and is what makes the drag work across both axes — do not attempt to adapt `Reorder`'s adjacent-swap algorithm, it has no column concept to adapt.
+   - Snap the dragged card back visually (Motion's `layout` animation handles this automatically once the array state updates) — no manual transform reset should be needed if `layout` is wired correctly.
+3. Keep everything else — the Electra feature block, the OSS list, the section head — byte-for-byte unchanged from the current file.
+
+- [ ] **Step 1: Update the failing/changed assertions in `Work.test.tsx`**
+
+Keep the two existing tests (Electra title + all project titles render; every OSS item renders) — they're layout-agnostic and should still pass unchanged. Add one static assertion (no drag simulation, consistent with the project's existing "don't test drag headlessly" rule) that the cards container carries the grid classes (`grid`, `sm:grid-cols-2`, `lg:grid-cols-3`) rather than the single-column list classes.
+
+- [ ] **Step 2: Implement the grid + hand-rolled reorder in `Work.tsx`**
+
+Design and write the nearest-center drop-target computation, the `motion.div`/`layout` wiring, and the 2D `drag` handle — using the constraints above. Port Task 12's drag-to-expand block (handle separation, `onTap`, `didDragRef` + `frame.postRender`) from the current file verbatim; do not redesign a part of the architecture that's already independently verified sound.
+
+- [ ] **Step 3: Run the test suite**
+
+Run: `npx vitest run src/components/sections/Work.test.tsx`
+Expected: PASS, 3 tests (the 2 existing + the new grid-class assertion).
+
+- [ ] **Step 4: Verify both drag interactions in a real browser, at every breakpoint**
+
+Run: `npm run dev`. At each of the 3 grid breakpoints (1-col mobile, 2-col `sm`, 3-col `lg`), confirm: (a) dragging a card to a different row AND a different column reorders it correctly and every other card resettles smoothly via the `layout` animation, (b) the drag-to-expand gesture (drag a card downward past the threshold) still works and does not fight with the reorder-handle drag, (c) at the 1-column breakpoint this still behaves at least as well as Task 12's shipped list did. Do not verify drag with a headless screenshot — it needs a real pointer, per the project's existing convention (Task 12, Step 5).
+
+- [ ] **Step 5: Run `npm run build`**
+
+Confirm it stays green — the project's existing hard constraint (Global Conventions #9 in the handoff) applies here as much as any other task.
+
+- [ ] **Step 6: Commit**
 
 ```bash
-git push origin agent-field
+git add src/components/sections/Work.tsx src/components/sections/Work.test.tsx
+git commit -m "SAFE: Work section grid restored, hand-rolled grid-aware drag-reorder replaces Reorder.Group"
 ```
-
-(Or `main`, depending on which branch this work landed on and the user's merge preference — confirm before pushing to `main` specifically, per standard practice for a branch that isn't yet the default.)
-
-Run: `gh run list --workflow=deploy.yml --limit 1` to confirm the workflow ran, then visit `https://the007programmer.github.io` in a real browser (not headless — this is the final check, not a probe) and confirm the rebuilt site loads correctly.
 
 ---
 
