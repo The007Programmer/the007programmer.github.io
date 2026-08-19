@@ -1,3 +1,6 @@
 
 # SDD scratch (ledger, briefs, review packages)
 .superpowers/
+
+# Local git worktrees
+.worktrees/
