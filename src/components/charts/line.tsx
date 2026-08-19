@@ -110,7 +110,11 @@ function LineSeriesStroke({
   animatedPathD: string;
   curve: CurveFactory;
   getY: (datum: Record<string, unknown>) => number;
-  pathRef: RefObject<SVGPathElement | null>;
+  // Matches what `useRef<SVGPathElement>(null)` actually produces
+  // (`RefObject<SVGPathElement>`) — `RefObject<SVGPathElement | null>` looks
+  // equivalent but isn't assignable to a native `ref`/`innerRef` prop under
+  // TS's generic-instantiation variance check.
+  pathRef: RefObject<SVGPathElement>;
   renderData: Record<string, unknown>[];
   strokeWidth: number;
   useDataTransitionPath: boolean;

@@ -98,8 +98,11 @@ export function SeriesMarkers({
     [radius, strokeWidth, ringGap, outlineWidth, showActiveHighlight]
   );
 
+  const resolvedRevealTransition = clipRevealTransition(enterTransition);
   const revealDurationSec =
-    clipRevealTransition(enterTransition).duration ?? animationDuration / 1000;
+    ("duration" in resolvedRevealTransition
+      ? resolvedRevealTransition.duration
+      : undefined) ?? animationDuration / 1000;
   const enterDuration = 0.5;
   const isRevealing = animate && !isLoaded;
 

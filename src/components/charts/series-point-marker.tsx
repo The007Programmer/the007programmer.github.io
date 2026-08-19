@@ -3,7 +3,7 @@
 import type { Variants } from "motion/react";
 import { motion } from "motion/react";
 import { memo } from "react";
-import { DEFAULT_CHART_ENTER_TRANSITION } from "./animation";
+import { DEFAULT_CHART_ENTER_EASE } from "./animation";
 
 export interface SeriesPointMarkerStyle {
   /** Fill color for the inner circle */
@@ -160,7 +160,7 @@ export function SeriesPointMarker({
       transition: {
         delay: revealDelay,
         duration: enterDuration,
-        ease: DEFAULT_CHART_ENTER_TRANSITION.ease,
+        ease: DEFAULT_CHART_ENTER_EASE,
       },
     },
   };

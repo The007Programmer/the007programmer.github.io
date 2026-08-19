@@ -12,25 +12,37 @@ export const DEFAULT_CHART_ENTER_TRANSITION: Transition = {
   ease: [0.85, 0, 0.15, 1],
 };
 
+/** `DEFAULT_CHART_ENTER_TRANSITION.ease`, pulled out once since `Transition`'s
+ * property-specific union (tween/spring/inertia/...) means TS can't confirm
+ * an `.ease` field exists without an `in` narrowing check at each read site. */
+export const DEFAULT_CHART_ENTER_EASE =
+  "ease" in DEFAULT_CHART_ENTER_TRANSITION
+    ? DEFAULT_CHART_ENTER_TRANSITION.ease
+    : undefined;
+
 /**
  * Clip-path width reveal must use tween — spring does not reliably animate SVG width.
  */
 export function clipRevealTransition(enterTransition?: Transition): Transition {
   if (enterTransition?.type === "tween") {
+    const ease =
+      "ease" in enterTransition ? enterTransition.ease : undefined;
     return {
       ...enterTransition,
-      ease: enterTransition.ease ?? DEFAULT_CHART_ENTER_TRANSITION.ease,
+      ease: ease ?? DEFAULT_CHART_ENTER_EASE,
     };
   }
 
   const duration =
-    typeof enterTransition?.duration === "number"
+    enterTransition &&
+    "duration" in enterTransition &&
+    typeof enterTransition.duration === "number"
       ? enterTransition.duration
       : DEFAULT_ANIMATION_DURATION_MS / 1000;
 
   return {
     type: "tween",
     duration,
-    ease: DEFAULT_CHART_ENTER_TRANSITION.ease,
+    ease: DEFAULT_CHART_ENTER_EASE,
   };
 }

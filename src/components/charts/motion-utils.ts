@@ -25,13 +25,15 @@ export function springOptionsFromTransition(
   }
   if (transition.type === "spring") {
     const bounce =
-      typeof transition.bounce === "number" ? transition.bounce : undefined;
+      "bounce" in transition && typeof transition.bounce === "number"
+        ? transition.bounce
+        : undefined;
     const baseStiffness =
-      typeof transition.stiffness === "number"
+      "stiffness" in transition && typeof transition.stiffness === "number"
         ? transition.stiffness
         : fallback.stiffness;
     const baseDamping =
-      typeof transition.damping === "number"
+      "damping" in transition && typeof transition.damping === "number"
         ? transition.damping
         : fallback.damping;
     return {
@@ -44,7 +46,9 @@ export function springOptionsFromTransition(
           ? baseDamping
           : Math.max(8, baseDamping * (1 - bounce * 0.25)),
       mass:
-        typeof transition.mass === "number" ? transition.mass : fallback.mass,
+        "mass" in transition && typeof transition.mass === "number"
+          ? transition.mass
+          : fallback.mass,
     };
   }
   const duration =
