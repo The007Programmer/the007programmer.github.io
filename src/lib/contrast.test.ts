@@ -29,4 +29,12 @@ describe('contrastRatio', () => {
   it('rejects a pairing that does not clear AA, proving the check is not tautological', () => {
     expect(contrastRatio('#FFA795', '#FFF1ED')).toBeLessThan(4.5)
   })
+
+  it('clears 4.5:1 for paper text on signal button background', () => {
+    expect(contrastRatio('#FFF1ED', '#D62B22')).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('clears 4.5:1 for paper text on the button hover background', () => {
+    expect(contrastRatio('#FFF1ED', '#B5241B')).toBeGreaterThanOrEqual(4.5)
+  })
 })
