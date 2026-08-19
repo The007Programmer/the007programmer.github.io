@@ -1,22 +1,566 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Aahil Shaikh — Applied AI &amp; systems</title>
-    <meta name="description" content="Aahil Shaikh works on the parts of agents nobody's solved yet — drift, identity, cooperation. Applied AI and systems engineering, two terms at TwelveLabs." />
-    <link rel="icon" href="/img/favicon.png" type="image/png" />
-    <meta property="og:title" content="Aahil Shaikh — Applied AI & systems" />
-    <meta property="og:description" content="At work it's the parts of agents nobody's solved yet — drift, identity, cooperation. At home it's whatever annoyed me that week. Both keep outgrowing what I built them for." />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://the007programmer.github.io" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Archivo + Abril (STIX Two Text as Abril's serif fallback) + Martian Mono -->
-    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Abril+Fatface&family=STIX+Two+Text&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aahil Shaikh — Applied AI &amp; systems</title>
+  <meta name="description" content="Aahil Shaikh works on the parts of agents nobody's solved yet — drift, identity, cooperation. Applied AI and systems engineering, two terms at TwelveLabs.">
+  <link rel="icon" href="img/favicon.png" type="image/png">
+
+  <meta property="og:title" content="Aahil Shaikh — Applied AI & systems">
+  <meta property="og:description" content="At work it's the parts of agents nobody's solved yet — drift, identity, cooperation. At home it's whatever annoyed me that week. Both keep outgrowing what I built them for.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://the007programmer.github.io">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/src/main.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <a class="topbar-mark" href="#top">AS</a>
+    <nav class="topbar-nav" aria-label="Sections">
+      <!-- The marker slides to whichever link is the current section.
+           It is decoration over links that already say where they go,
+           so it stays out of the accessibility tree. -->
+      <span class="topbar-ink" aria-hidden="true"></span>
+      <a href="#work">Work</a>
+      <a href="#path">Path</a>
+      <a href="#toolkit">Toolkit</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <span class="topbar-progress" aria-hidden="true"></span>
+  </header>
+
+  <main id="main">
+
+    <!-- ── Hero: the trajectory graph ───────────────────────────── -->
+    <section id="top" class="hero">
+      <div class="hero-inner" data-parallax="0.28">
+        <p class="eyebrow" data-decode>Applied AI &amp; systems</p>
+        <h1 class="hero-name" data-scramble>
+          <span class="line">Aahil</span>
+          <span class="line">Shaikh</span>
+        </h1>
+        <p class="hero-thesis">
+          At work it&rsquo;s the parts of agents nobody&rsquo;s solved yet &mdash;
+          drift, identity, cooperation. At home it&rsquo;s whatever annoyed me
+          that week. Both keep outgrowing what I built them for.
+        </p>
+        <p class="hero-meta">
+          Sophomore at Texas A&amp;M · Two terms at TwelveLabs · Bay Area
+        </p>
+      </div>
+    </section>
+
+    <!-- ── The trajectory graph, on its own ground ──────────────── -->
+    <section class="figure-section">
+      <figure class="graph" id="graph">
+        <figcaption class="graph-caption">
+          <span class="graph-caption-label" data-decode>Trajectory</span>
+          Every job I&rsquo;ve had was caused by the one before it. Drawn as the
+          thing it actually is.
+        </figcaption>
+
+        <!--
+          script.js draws the graph here. The chain below is the same
+          data as a vertical trace: it carries the graph to screen
+          readers, to anyone without JS, and to narrow screens, where a
+          scaled-down node diagram would be unreadable. It runs oldest
+          to newest because the arrows are causal — reversed, the graph
+          would claim each job caused the one that got him there.
+        -->
+        <div class="graph-canvas" data-graph-canvas>
+          <ol class="graph-fallback">
+            <li class="gf-step">
+              <div class="gf-node">
+                <p class="gf-name">Chinatown Hacks</p>
+                <p class="gf-sub">Mar 2025</p>
+              </div>
+              <p class="gf-edge"><span>prototyped</span></p>
+            </li>
+            <li class="gf-step">
+              <div class="gf-node">
+                <p class="gf-name">Sentinel</p>
+                <p class="gf-sub">Prototype</p>
+              </div>
+              <p class="gf-edge"><span>led to an offer</span></p>
+            </li>
+            <li class="gf-step">
+              <div class="gf-node gf-role">
+                <p class="gf-name">TwelveLabs · DevEx</p>
+                <p class="gf-sub">Jun–Dec 2025</p>
+              </div>
+              <p class="gf-branch">
+                <span>built SAGE and Bastion · proposed Recurser · alongside Texas A&amp;M</span>
+              </p>
+              <p class="gf-edge"><span>returned as</span></p>
+            </li>
+            <li class="gf-step">
+              <div class="gf-node gf-role">
+                <p class="gf-name">TwelveLabs · Agent Security</p>
+                <p class="gf-sub">Feb–Jun 2026</p>
+              </div>
+              <p class="gf-edge"><span>led the build</span></p>
+            </li>
+            <li class="gf-step gf-end">
+              <div class="gf-node">
+                <p class="gf-name">Electra</p>
+                <p class="gf-sub">Beta</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </figure>
+    </section>
+
+
+    <!-- ── Work ─────────────────────────────────────────────────── -->
+    <section id="work" class="work">
+      <div class="section-head">
+        <p class="eyebrow eyebrow-dark" data-decode>Work</p>
+        <h2 class="section-title">What I shipped</h2>
+      </div>
+
+      <!-- Featured -->
+      <article class="feature">
+        <div class="feature-body">
+          <p class="stamp">Feb – Jun 2026 · TwelveLabs · Shipped to beta</p>
+          <h3 class="feature-title">Electra</h3>
+          <p class="feature-lede">
+            An internal AI agent built on top of the company&rsquo;s IT ticketing
+            system. I owned most of the implementation alongside my manager, and
+            shipped it to beta before my term ended.
+          </p>
+          <p class="note">Internal tool — no public repo.</p>
+        </div>
+
+        <div class="feature-aside">
+          <dl class="spec">
+            <div class="spec-row">
+              <dt>Memory</dt>
+              <dd>
+                Every conversation, interaction, and thought links into a
+                graph-based knowledge network — prototyped in Obsidian, then
+                migrated to GBrain, our internal graph memory. Context persists
+                across sessions and the reasoning stays traceable.
+              </dd>
+            </div>
+            <div class="spec-row">
+              <dt>Defense</dt>
+              <dd>
+                Hardened against prompt injection, jailbreaks, and token-bomb
+                exploits: rate limiting, input sanitization and validation,
+                RBAC-style permissions, and anomaly detection with logging.
+              </dd>
+            </div>
+            <div class="spec-row">
+              <dt>Next</dt>
+              <dd>
+                Designed the foundational architecture for a Hermes-style
+                self-learning structure, so agent behavior improves on its own
+                over time.
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </article>
+
+      <!-- Grid -->
+      <div class="cards">
+
+        <article class="card">
+          <p class="stamp stamp-card">Aug – Dec 2025 · TwelveLabs</p>
+          <h3 class="card-title">SAGE</h3>
+          <p class="card-desc">
+            A full-stack tool for comparing video assets. Runs Marengo embeddings
+            through cosine similarity over 2-second segments, across a
+            1024-dimensional space.
+          </p>
+          <ul class="tags">
+            <li>Embeddings</li>
+            <li>Similarity search</li>
+            <li>Full-stack</li>
+          </ul>
+          <a class="card-link" href="https://www.twelvelabs.io/blog/sage">
+            I wrote the writeup <span class="arw">↗</span>
+          </a>
+        </article>
+        <article class="card">
+          <p class="stamp stamp-card">Jun – Aug 2025 · TwelveLabs</p>
+          <h3 class="card-title">Recurser</h3>
+          <p class="card-desc">
+            My proposal, then my ship. Analyzes AI-generated video, refines the
+            prompt, and runs it again — each pass closer to the intent.
+          </p>
+          <ul class="tags">
+            <li>Prompt engineering</li>
+            <li>Iterative systems</li>
+          </ul>
+          <a class="card-link" href="https://www.twelvelabs.io/blog/recurser">
+            I wrote the writeup <span class="arw">↗</span>
+          </a>
+        </article>
+        <article class="card">
+          <p class="stamp stamp-card">Jun – Jul 2025 · TwelveLabs</p>
+          <h3 class="card-title">Jockey</h3>
+          <p class="card-desc">
+            Bug fixes and feature work on the conversational video agent built on
+            Marengo and Pegasus.
+          </p>
+          <ul class="tags">
+            <li>Contributor</li>
+            <li>Video agents</li>
+          </ul>
+        </article>
+        <article class="card">
+          <p class="stamp stamp-card">Jun 2025 · TwelveLabs</p>
+          <h3 class="card-title">Bastion</h3>
+          <p class="card-desc">
+            A real-time security dashboard for live HTTPS video streams. Pushed
+            monitoring past the fixed-length-video workflows the platform
+            assumed.
+          </p>
+          <ul class="tags">
+            <li>Real-time video</li>
+            <li>Monitoring</li>
+          </ul>
+        </article>
+        <article class="card">
+          <p class="stamp stamp-card">Mar 2025 · Chinatown Hacks</p>
+          <h3 class="card-title">Sentinel</h3>
+          <p class="card-desc">
+            An AI security application on the TwelveLabs API. Started as a
+            hackathon prototype, became a one-week technical project, then became
+            the internship.
+          </p>
+          <ul class="tags">
+            <li>Computer vision</li>
+            <li>TwelveLabs API</li>
+          </ul>
+        </article>
+        <article class="card">
+          <p class="stamp stamp-card">Mar 2025 · Chinatown Hacks</p>
+          <h3 class="card-title">Density tracker</h3>
+          <p class="card-desc">
+            Real-time population density with YOLO detection and custom
+            rasterization. Vector-to-bitmap conversion means the data can never
+            carry a face out with it.
+          </p>
+          <ul class="tags">
+            <li>YOLO</li>
+            <li>Rasterization</li>
+            <li>Privacy by design</li>
+          </ul>
+        </article>
+
+</div>
+
+      <!-- Personal work. Not everything here is open source — MAGI runs on my
+           own hardware and stays private — so the heading is about whose time
+           it was built on, not the licence. -->
+      <div class="oss">
+        <h3 class="oss-head">On my own time</h3>
+        <ul class="oss-list">
+          <li class="oss-item">
+            <div class="oss-main">
+              <h4 class="oss-title">MAGI</h4>
+              <p class="oss-desc">
+                A multi-agent system on hardware I own, with no cloud in the
+                path. An orchestrator scores each task for complexity, picks a
+                local model to match, and hands it to the agent for that domain.
+                Every task clears a security assessor first — 35+ patterns for
+                prompt injection, jailbreaks, and system-prompt extraction,
+                graded safe through critical, where a hit either downgrades the
+                model the task is allowed to reach or blocks it outright.
+              </p>
+            </div>
+            <div class="oss-side">
+              <span class="pill">Private</span>
+            </div>
+          </li>
+          <li class="oss-item">
+            <div class="oss-main">
+              <h4 class="oss-title">clair</h4>
+              <p class="oss-desc">
+                My Claude Code environment as code. One dependency-free Python
+                tool rebuilds the whole setup — settings, hooks, commands,
+                skills, plugins — on a fresh macOS, Linux, or Windows machine,
+                and re-running it converges to the same state. Anything personal
+                or secret lives in a private overlay and never touches the public
+                repo. MIT, installs from a Homebrew tap.
+              </p>
+            </div>
+            <div class="oss-side">
+              <span class="pill pill-live">Published</span>
+              <a class="oss-link" href="https://github.com/The007Programmer/clair">GitHub <span class="arw">↗</span></a>
+            </div>
+          </li>
+          <li class="oss-item">
+            <div class="oss-main">
+              <h4 class="oss-title">UFW Manager</h4>
+              <p class="oss-desc">
+                A Python tool that makes UFW firewall rules bearable — add,
+                remove, and list IP bans without the ceremony. Published to my
+                PPA, so Ubuntu installs it straight from apt.
+              </p>
+            </div>
+            <div class="oss-side">
+              <span class="pill pill-live">Published</span>
+              <a class="oss-link" href="https://github.com/The007Programmer/UFW-Manager">GitHub <span class="arw">↗</span></a>
+            </div>
+          </li>
+          <li class="oss-item">
+            <div class="oss-main">
+              <h4 class="oss-title">FlashGuard</h4>
+              <p class="oss-desc">
+                Watches USB storage for unauthorized access and malware, and
+                stops the transfers you didn&rsquo;t ask for.
+              </p>
+            </div>
+            <div class="oss-side">
+              <span class="pill">In progress</span>
+              <a class="oss-link" href="https://github.com/The007Programmer/FlashGuard">GitHub <span class="arw">↗</span></a>
+            </div>
+          </li>
+          <li class="oss-item">
+            <div class="oss-main">
+              <h4 class="oss-title">Mailsmith</h4>
+              <p class="oss-desc">
+                Give it a prompt, get a written email, sent through the Gmail API
+                to the person you meant.
+              </p>
+            </div>
+            <div class="oss-side">
+              <span class="pill">In progress</span>
+              <a class="oss-link" href="https://github.com/The007Programmer/Mailsmith">GitHub <span class="arw">↗</span></a>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ── Tally ────────────────────────────────────────────────
+         Four numbers spanning four different things — my own code, my
+         writing, the technical work, and school. The repo count is
+         pulled live from the GitHub API; the markup value is the
+         fallback if that call fails.
+    -->
+    <section class="tally" aria-label="By the numbers">
+      <div class="tally-inner">
+        <div class="tally-item">
+          <p class="tally-num"><span data-count="15" data-live="repos">15</span></p>
+          <p class="tally-label">public repositories</p>
+          <p class="tally-note">
+            My own, not my employer&rsquo;s. clair installs from a Homebrew tap,
+            UFW Manager from my Ubuntu PPA.
+          </p>
+        </div>
+        <div class="tally-item">
+          <p class="tally-num"><span data-count="2">2</span></p>
+          <p class="tally-label">writeups, my byline</p>
+          <p class="tally-note">
+            SAGE and Recurser, on the TwelveLabs engineering blog.
+          </p>
+        </div>
+        <div class="tally-item">
+          <p class="tally-num"><span data-count="4.0" data-decimals="1">4.0</span></p>
+          <p class="tally-label">GPA at Texas A&amp;M</p>
+          <p class="tally-note">Sophomore, College Station.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Path ─────────────────────────────────────────────────── -->
+    <section id="path" class="path">
+      <div class="section-head">
+        <p class="eyebrow" data-decode>Path</p>
+        <h2 class="section-title section-title-light">How it went</h2>
+      </div>
+
+      <ol class="ledger">
+        <li class="ledger-row">
+          <p class="ledger-when">Feb – Jun 2026</p>
+          <div class="ledger-what">
+            <h3>Software Engineering Intern — Agent Security &amp; Internal Tools</h3>
+            <p class="ledger-org">TwelveLabs</p>
+            <p>
+              Came back for a second term, this time pointed squarely at agent
+              security and applied AI architecture. Led Electra end to end and
+              proposed features past the original scope. Shipped to beta.
+            </p>
+          </div>
+        </li>
+        <li class="ledger-row">
+          <p class="ledger-when">Jun – Dec 2025</p>
+          <div class="ledger-what">
+            <h3>Software Engineering Intern — DevEx</h3>
+            <p class="ledger-org">TwelveLabs</p>
+            <p>
+              Built SAGE, Bastion, and Recurser, and contributed to Jockey. Ran
+              live demos, made product and UX calls, and wrote the docs and blogs
+              that explained it all. The internship was extended from three
+              months to six.
+            </p>
+          </div>
+        </li>
+        <li class="ledger-row">
+          <p class="ledger-when">Aug 2025 → now</p>
+          <div class="ledger-what">
+            <h3>Texas A&amp;M University</h3>
+            <p class="ledger-org">College Station, TX · Sophomore · 4.0 GPA</p>
+          </div>
+        </li>
+        <li class="ledger-row">
+          <p class="ledger-when">Mar 2025</p>
+          <div class="ledger-what">
+            <h3>Avionics Lead</h3>
+            <p class="ledger-org">Blinn Propulsion Laboratory</p>
+            <p>
+              Owned avionics end to end — design, integration, and the
+              troubleshooting at 2am — with directors rather than over my
+              shoulder.
+            </p>
+          </div>
+        </li>
+        <li class="ledger-row">
+          <p class="ledger-when">Mar 2025</p>
+          <div class="ledger-what">
+            <h3>Chinatown Hacks</h3>
+            <p class="ledger-org">Participant</p>
+            <p>
+              Presented to a judging panel and to sponsors from TwelveLabs. Left
+              with a site-visit invitation, which turned into everything above.
+            </p>
+          </div>
+        </li>
+        <li class="ledger-row">
+          <p class="ledger-when">Aug 2024 – Mar 2025</p>
+          <div class="ledger-what">
+            <h3>Manager &amp; Co-Lead</h3>
+            <p class="ledger-org">Circuit Bakers FRC</p>
+            <p>
+              Took a rookie team to competition standard. Managed a sub-team of
+              10, co-led finances, ran mechanical, and programmed.
+            </p>
+          </div>
+        </li>
+        <li class="ledger-row">
+          <p class="ledger-when">Jun – Aug 2024</p>
+          <div class="ledger-what">
+            <h3>CS61A</h3>
+            <p class="ledger-org">UC Berkeley Pre-College Studies</p>
+            <p>
+              Eight weeks on campus in Structure and Interpretation of Computer
+              Programs — recursion, abstraction, inheritance, and the habits that
+              stuck.
+            </p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ── Toolkit ──────────────────────────────────────────────── -->
+    <section id="toolkit" class="toolkit">
+      <div class="section-head">
+        <p class="eyebrow eyebrow-dark" data-decode>Toolkit</p>
+        <h2 class="section-title">What I reach for</h2>
+      </div>
+
+      <div class="kit">
+        <div class="kit-group">
+          <h3 class="kit-title">Languages</h3>
+          <p class="kit-items">Python · TypeScript · JavaScript · HTML · CSS</p>
+        </div>
+        <div class="kit-group">
+          <h3 class="kit-title">AI &amp; ML</h3>
+          <p class="kit-items">
+            Computer vision · Object detection (YOLO) · Video embeddings ·
+            Vector and similarity search · Local model inference · Prompt
+            engineering
+          </p>
+        </div>
+        <div class="kit-group kit-group-accent">
+          <h3 class="kit-title">Agents</h3>
+          <p class="kit-items">
+            Multi-agent orchestration · Memory and context · Knowledge graphs ·
+            Behavior drift · Inter-agent communication · Task routing and model
+            selection · Prompt-injection and jailbreak defense · RBAC and auth ·
+            Anomaly detection and logging
+          </p>
+        </div>
+        <div class="kit-group">
+          <h3 class="kit-title">Systems</h3>
+          <p class="kit-items">
+            Linux · macOS · Windows · Git · RESTful APIs · Real-time video
+            streams
+          </p>
+        </div>
+        <div class="kit-group">
+          <h3 class="kit-title">Hardware</h3>
+          <p class="kit-items">Microcontrollers · Avionics systems · Soldering</p>
+        </div>
+        <div class="kit-group">
+          <h3 class="kit-title">Working with people</h3>
+          <p class="kit-items">
+            Cross-functional collaboration · Technical documentation · Live
+            product demos · Team management
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Contact ──────────────────────────────────────────────── -->
+    <section id="contact" class="contact">
+      <div class="contact-grid">
+        <div class="contact-pitch">
+          <p class="eyebrow" data-decode>Contact</p>
+          <h2 class="contact-title">Say something<br>interesting.</h2>
+          <p class="contact-copy">
+            Agents, graph memory, video models, or a problem that doesn&rsquo;t
+            have a name yet — I read everything that comes through here.
+          </p>
+          <ul class="contact-links">
+            <li><a href="mailto:aahils2019@gmail.com">aahils2019@gmail.com</a></li>
+            <li><a href="https://github.com/The007Programmer">GitHub</a></li>
+            <li><a href="https://www.linkedin.com/in/aahil-shaikh-04b9ba356/">LinkedIn</a></li>
+            <li><a href="assets/aahil-shaikh-resume.pdf">Résumé (PDF)</a></li>
+          </ul>
+        </div>
+
+        <form class="form" action="https://formsubmit.co/aahils2019@gmail.com" method="POST">
+          <div class="field">
+            <label for="name">Name</label>
+            <input id="name" type="text" name="name" required autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" type="email" name="email" required autocomplete="email">
+          </div>
+          <div class="field">
+            <label for="message">Message</label>
+            <textarea id="message" name="message" rows="5" required></textarea>
+          </div>
+          <input type="text" name="_honey" style="display:none" tabindex="-1" aria-hidden="true">
+          <input type="hidden" name="_captcha" value="true">
+          <input type="hidden" name="_subject" value="New Contact Form Submission">
+          <input type="hidden" name="_template" value="table">
+          <input type="hidden" name="_next" value="https://the007programmer.github.io/thanks.html">
+          <input type="hidden" name="_autoresponse" value="Thanks for your message. I'll get back to you soon. — Aahil">
+          <button type="submit" class="submit">Send message</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p class="foot-name">Aahil Shaikh</p>
+    <p class="foot-meta">Built from scratch, no framework. © 2026</p>
+  </footer>
+
+  <script src="assets/src/script.js"></script>
+</body>
 </html>
