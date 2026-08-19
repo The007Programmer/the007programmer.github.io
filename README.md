@@ -137,9 +137,8 @@ Red-forward and bright; slate `#39434F` is the darkest tone on the site. The
 signal red `#C4261E` is picked so it clears WCAG AA (4.5:1) against the paper
 `#FFF1ED` in both directions — paper on red in the hero, red on paper for small
 text elsewhere — with enough headroom left over that the cursor glow compositing
-on top of it does not push the pairing under. Type is Archivo (display), Abril
-Fatface with STIX Two Text as its serif fallback (body), and Martian Mono
-(labels and data).
+on top of it does not push the pairing under. Type is Bricolage Grotesque
+(display), Instrument Sans (body), and Martian Mono (labels and data).
 
 Every pairing that ships is checked numerically rather than by eye.
 `src/lib/contrast.ts` implements the WCAG relative-luminance formula and

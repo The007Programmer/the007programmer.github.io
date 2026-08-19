@@ -1,25 +1,37 @@
-import { useMemo, useRef, useState } from "react"
-import { motion, useInView } from "motion/react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { useInView } from "motion/react"
 import { TIMELINE_NODES, TIMELINE_EDGES, type TimelineTrack } from "@/data/timeline"
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
 
 const TRACK_Y: Record<TimelineTrack, number> = { twelvelabs: 90, personal: 290, school: 445 }
 const TRACK_LABEL: Record<TimelineTrack, string> = { twelvelabs: "TwelveLabs", personal: "Personal / OSS", school: "School" }
 
-// Nodes are boxes, not dots: a dot carries no information at a glance and
-// pushes every label into the space around it, where labels then collide.
-// The box IS the label, so position only has to keep boxes from overlapping.
 const BOX_H = 40
 const ARTIFACT_LANE = 68
 const NODE_X_MIN = 150
 const NODE_X_SPAN = 700
-
-// A box's width has to be known at layout time to keep boxes from overlapping
-// and to clamp the rightmost one inside the viewBox. Measuring real text needs
-// a DOM pass; the labels here are a fixed, known set in mono at a known size,
-// so estimating from character count is accurate enough and stays pure.
 const CHAR_W = 7.1
 const BOX_PAD = 14
+
+const VIEW_W = 1000
+const VIEW_H = 510
+
+// Every node is sprung to its seed position, so the figure always returns to a
+// layout that reads. Without the anchor, repulsion wins and the graph wanders
+// off into a shape that says nothing about when anything happened.
+// The anchor has to win: the seed layout encodes *when* things happened, so
+// repulsion is a nudge that keeps boxes off each other, not a layout solver
+// allowed to drag a node off its own track.
+const K_ANCHOR = 0.09
+const REP = 3500
+const GAP = 14
+const SEP_K = 0.018
+const DAMP = 0.84
+const V_MAX = 5
+// The anchors themselves drift on a slow lissajous, so the graph is never
+// quite still — it breathes rather than sitting there as a diagram.
+const DRIFT_A = 7
+const DRIFT_W = 0.00028
 
 function boxWidth(label: string): number {
   return Math.max(label.length * CHAR_W + BOX_PAD * 2, 90)
@@ -53,7 +65,6 @@ function placeLabel(
   const len = Math.hypot(vx, vy) || 1
   const nx = -vy / len
   const ny = vx / len
-
   const ts = [0.5, 0.62, 0.38, 0.72, 0.28, 0.82, 0.2]
   const offs = [13, -13, 22, -22, 32, -32]
 
@@ -68,16 +79,34 @@ function placeLabel(
   return { x: x1 + vx * 0.5 + nx * 13, y: y1 + vy * 0.5 + ny * 13 }
 }
 
-const VIEW_W = 1000
-const VIEW_H = 510
+interface Seed { id: string; label: string; sub: string; kind: string; ax0: number; ay0: number; w: number }
+interface SimNode { x: number; y: number; vx: number; vy: number }
+
+// Edges attach to box edges, not centres, so a line never disappears under the
+// box it points at.
+function anchorPair(
+  fx: number, fy: number, fw: number,
+  tx: number, ty: number, tw: number,
+) {
+  const dx = tx - fx
+  const dy = ty - fy
+  const horiz = Math.abs(dx) > Math.abs(dy)
+  return {
+    x1: horiz ? fx + Math.sign(dx) * (fw / 2) : fx,
+    y1: horiz ? fy : fy + Math.sign(dy) * (BOX_H / 2),
+    x2: horiz ? tx - Math.sign(dx) * (tw / 2) : tx,
+    y2: horiz ? ty : ty - Math.sign(dy) * (BOX_H / 2),
+  }
+}
 
 export function Timeline() {
   const sectionRef = useRef<HTMLElement | null>(null)
+  const svgRef = useRef<SVGSVGElement | null>(null)
   const inView = useInView(sectionRef, { once: true, amount: 0.15 })
   const reduced = useReducedMotionGate()
   const [hoverNode, setHoverNode] = useState<string | null>(null)
 
-  const positioned = useMemo(() => {
+  const seeds = useMemo<Seed[]>(() => {
     const idx = TIMELINE_NODES.map((n) => monthIndex(n.date))
     const minX = Math.min(...idx)
     const maxX = Math.max(...idx)
@@ -92,34 +121,168 @@ export function Timeline() {
       }
       const w = boxWidth(n.label)
       const rawX = NODE_X_MIN + ((monthIndex(n.date) - minX) / Math.max(maxX - minX, 1)) * NODE_X_SPAN
-      // Keep the whole box inside the viewBox — the rightmost label used to
-      // run off the edge and render truncated.
-      const cx = Math.min(rawX, VIEW_W - w / 2 - 10)
-      return { ...n, cx, cy: TRACK_Y[n.track] + lane * ARTIFACT_LANE, w }
+      return {
+        id: n.id, label: n.label, sub: n.sub, kind: n.kind,
+        ax0: Math.min(rawX, VIEW_W - w / 2 - 10),
+        ay0: TRACK_Y[n.track] + lane * ARTIFACT_LANE,
+        w,
+      }
     })
   }, [])
 
-  const byId = useMemo(() => new Map(positioned.map((n) => [n.id, n])), [positioned])
+  const indexById = useMemo(() => {
+    const m = new Map<string, number>()
+    seeds.forEach((s, i) => m.set(s.id, i))
+    return m
+  }, [seeds])
 
-  // Node boxes plus a little breathing room — edge labels route around these.
-  const nodeBoxes = useMemo<Box[]>(
-    () => positioned.map((n) => ({ x: n.cx - n.w / 2 - 4, y: n.cy - BOX_H / 2 - 4, w: n.w + 8, h: BOX_H + 8 })),
-    [positioned],
-  )
+  // Seed geometry drives the initial render, so the markup is a correct,
+  // readable layout before a single frame runs (and in a test environment,
+  // where no frame ever runs).
+  const seedEdges = useMemo(() => TIMELINE_EDGES.map((e) => {
+    const f = seeds[indexById.get(e.from)!]
+    const t = seeds[indexById.get(e.to)!]
+    const a = anchorPair(f.ax0, f.ay0, f.w, t.ax0, t.ay0, t.w)
+    const boxes = seeds.map((s) => ({ x: s.ax0 - s.w / 2 - 4, y: s.ay0 - BOX_H / 2 - 4, w: s.w + 8, h: BOX_H + 8 }))
+    return { ...e, ...a, text: e.label, label: placeLabel(e.label, a.x1, a.y1, a.x2, a.y2, boxes) }
+  }), [seeds, indexById])
 
-  // Edges attach to box edges, not centres, so a line never disappears under
-  // the box it points at.
-  function anchor(from: typeof positioned[number], to: typeof positioned[number]) {
-    const dx = to.cx - from.cx
-    const dy = to.cy - from.cy
-    const fromSide = Math.abs(dx) > Math.abs(dy)
-    return {
-      x1: fromSide ? from.cx + Math.sign(dx) * (from.w / 2) : from.cx,
-      y1: fromSide ? from.cy : from.cy + Math.sign(dy) * (BOX_H / 2),
-      x2: fromSide ? to.cx - Math.sign(dx) * (to.w / 2) : to.cx,
-      y2: fromSide ? to.cy : to.cy - Math.sign(dy) * (BOX_H / 2),
+  const nodeRefs = useRef<(SVGGElement | null)[]>([])
+  const edgeRefs = useRef<(SVGLineElement | null)[]>([])
+  const edgeLabelRefs = useRef<(SVGTextElement | null)[]>([])
+  const dragRef = useRef<{ i: number; dx: number; dy: number } | null>(null)
+
+  useEffect(() => {
+    if (reduced || !inView) return
+
+    const sim: SimNode[] = seeds.map((s) => ({ x: s.ax0, y: s.ay0, vx: 0, vy: 0 }))
+    let raf = 0
+    let t0 = performance.now()
+
+    function frame(now: number) {
+      const t = now - t0
+      const drag = dragRef.current
+
+      for (let i = 0; i < sim.length; i++) {
+        const s = seeds[i]
+        const n = sim[i]
+        if (drag && drag.i === i) continue
+
+        // Anchor, drifting so the whole figure keeps breathing.
+        const ax = s.ax0 + Math.sin(t * DRIFT_W + i * 1.7) * DRIFT_A
+        const ay = s.ay0 + Math.cos(t * DRIFT_W * 0.83 + i * 2.3) * DRIFT_A * 0.7
+        let fx = (ax - n.x) * K_ANCHOR
+        let fy = (ay - n.y) * K_ANCHOR
+
+        for (let j = 0; j < sim.length; j++) {
+          if (i === j) continue
+          const o = sim[j]
+          const dx = n.x - o.x
+          const dy = n.y - o.y
+          const d2 = Math.max(dx * dx + dy * dy, 400)
+          const f = REP / d2 / Math.sqrt(d2)
+          fx += dx * f
+          fy += dy * f
+
+          // Boxes must not overlap even while the springs argue about it.
+          const ox = (s.w + seeds[j].w) / 2 + GAP - Math.abs(dx)
+          const oy = BOX_H + GAP - Math.abs(dy)
+          if (ox > 0 && oy > 0) {
+            if (ox < oy) fx += Math.sign(dx || 1) * ox * SEP_K
+            else fy += Math.sign(dy || 1) * oy * SEP_K
+          }
+        }
+
+        n.vx = (n.vx + fx) * DAMP
+        n.vy = (n.vy + fy) * DAMP
+        const sp = Math.hypot(n.vx, n.vy)
+        if (sp > V_MAX) { n.vx = (n.vx / sp) * V_MAX; n.vy = (n.vy / sp) * V_MAX }
+        n.x += n.vx
+        n.y += n.vy
+
+        // Nothing leaves the frame.
+        const halfW = s.w / 2 + 4
+        n.x = Math.max(halfW, Math.min(VIEW_W - halfW, n.x))
+        n.y = Math.max(BOX_H / 2 + 4, Math.min(VIEW_H - BOX_H / 2 - 4, n.y))
+      }
+
+      for (let i = 0; i < sim.length; i++) {
+        const g = nodeRefs.current[i]
+        if (g) g.setAttribute("transform", `translate(${(sim[i].x - seeds[i].ax0).toFixed(2)},${(sim[i].y - seeds[i].ay0).toFixed(2)})`)
+      }
+
+      const boxes: Box[] = sim.map((n, i) => ({
+        x: n.x - seeds[i].w / 2 - 4, y: n.y - BOX_H / 2 - 4, w: seeds[i].w + 8, h: BOX_H + 8,
+      }))
+
+      TIMELINE_EDGES.forEach((e, i) => {
+        const fi = indexById.get(e.from)!
+        const ti = indexById.get(e.to)!
+        const a = anchorPair(sim[fi].x, sim[fi].y, seeds[fi].w, sim[ti].x, sim[ti].y, seeds[ti].w)
+        const ln = edgeRefs.current[i]
+        if (ln) {
+          ln.setAttribute("x1", a.x1.toFixed(2)); ln.setAttribute("y1", a.y1.toFixed(2))
+          ln.setAttribute("x2", a.x2.toFixed(2)); ln.setAttribute("y2", a.y2.toFixed(2))
+        }
+        const lb = edgeLabelRefs.current[i]
+        if (lb) {
+          const p = placeLabel(e.label, a.x1, a.y1, a.x2, a.y2, boxes)
+          lb.setAttribute("x", p.x.toFixed(2)); lb.setAttribute("y", (p.y + 3).toFixed(2))
+        }
+      })
+
+      raf = requestAnimationFrame(frame)
     }
-  }
+    raf = requestAnimationFrame(frame)
+
+    function toSvg(clientX: number, clientY: number) {
+      const svg = svgRef.current
+      if (!svg) return { x: 0, y: 0 }
+      const ctm = svg.getScreenCTM()
+      if (!ctm) return { x: 0, y: 0 }
+      const inv = ctm.inverse()
+      const pt = new DOMPoint(clientX, clientY).matrixTransform(inv)
+      return { x: pt.x, y: pt.y }
+    }
+
+    function onMove(ev: PointerEvent) {
+      const d = dragRef.current
+      if (!d) return
+      const p = toSvg(ev.clientX, ev.clientY)
+      const n = sim[d.i]
+      n.x = p.x + d.dx
+      n.y = p.y + d.dy
+      n.vx = 0; n.vy = 0
+    }
+    function onUp() {
+      dragRef.current = null
+      document.body.style.removeProperty("cursor")
+    }
+    window.addEventListener("pointermove", onMove)
+    window.addEventListener("pointerup", onUp)
+    window.addEventListener("pointercancel", onUp)
+
+    const svg = svgRef.current
+    function onDown(ev: PointerEvent) {
+      const target = (ev.target as Element).closest("[data-node-index]")
+      if (!target) return
+      const i = Number(target.getAttribute("data-node-index"))
+      const p = toSvg(ev.clientX, ev.clientY)
+      dragRef.current = { i, dx: sim[i].x - p.x, dy: sim[i].y - p.y }
+      document.body.style.cursor = "grabbing"
+      ev.preventDefault()
+    }
+    svg?.addEventListener("pointerdown", onDown)
+
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener("pointermove", onMove)
+      window.removeEventListener("pointerup", onUp)
+      window.removeEventListener("pointercancel", onUp)
+      svg?.removeEventListener("pointerdown", onDown)
+      document.body.style.removeProperty("cursor")
+    }
+  }, [reduced, inView, seeds, indexById])
 
   return (
     <section className="figure-section bg-slate text-paper py-20 px-[var(--edge,1.5rem)]" ref={sectionRef as React.RefObject<HTMLElement>}>
@@ -127,122 +290,118 @@ export function Timeline() {
         <figcaption className="timeline-caption mb-8">
           <span className="font-mono text-[0.6875rem] uppercase tracking-wide text-coral block mb-2">Trajectory</span>
           Every job I've had was caused by the one before it. Drawn as the thing it actually is.
+          <span className="block mt-2 font-mono text-[0.625rem] uppercase tracking-wide text-coral/70">Drag any node</span>
         </figcaption>
 
         {/* Below ~900px the diagram would scale down far enough to make its
             12px labels unreadable. Scrolling it keeps type at a legible size
             instead of shrinking the whole figure to fit. */}
         <div className="overflow-x-auto -mx-[var(--edge,1.5rem)] px-[var(--edge,1.5rem)]">
-        <svg
-          viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-          className="h-auto w-full min-w-[860px]"
-          role="img"
-          aria-label="Career timeline across three tracks — TwelveLabs, Personal/OSS, and School — showing how each role caused the next"
-        >
-          {(Object.keys(TRACK_Y) as TimelineTrack[]).map((track) => (
-            <g key={track}>
-              <line
-                x1={20} y1={TRACK_Y[track]} x2={VIEW_W - 10} y2={TRACK_Y[track]}
-                stroke="#FFA795" strokeOpacity={0.18} strokeWidth={1}
-              />
-              {/* Clears the tallest box on the row (top = TRACK_Y - BOX_H/2)
-                  so a long track name never runs under a node. */}
-              <text x={20} y={TRACK_Y[track] - BOX_H / 2 - 12} className="fill-coral font-mono text-[11px] uppercase tracking-wider">
-                {TRACK_LABEL[track]}
-              </text>
-            </g>
-          ))}
-
-          {TIMELINE_EDGES.map((edge, i) => {
-            const from = byId.get(edge.from)
-            const to = byId.get(edge.to)
-            if (!from || !to) return null
-            const key = `${edge.from}-${edge.to}`
-            const a = anchor(from, to)
-            const { x: mx, y: my } = placeLabel(edge.label, a.x1, a.y1, a.x2, a.y2, nodeBoxes)
-            const lit = hoverNode === edge.from || hoverNode === edge.to
-            // Soft edges read as "alongside, not caused by" through dashes and
-            // a lighter weight — never through a dimmer colour, which is what
-            // made this edge invisible against the slate ground.
-            const stroke = edge.soft ? "#FFA795" : "#FF7A63"
-            return (
-              <motion.g
-                key={key}
-                initial={reduced ? false : { opacity: 0 }}
-                animate={inView ? { opacity: 1 } : {}}
-                transition={{ duration: 0.4, delay: reduced ? 0 : 0.25 + i * 0.07 }}
-              >
+          <svg
+            ref={svgRef}
+            viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+            className="h-auto w-full min-w-[860px] touch-none select-none"
+            role="img"
+            aria-label="Career timeline across three tracks — TwelveLabs, Personal/OSS, and School — showing how each role caused the next"
+          >
+            {(Object.keys(TRACK_Y) as TimelineTrack[]).map((track) => (
+              <g key={track}>
                 <line
-                  x1={a.x1} y1={a.y1} x2={a.x2} y2={a.y2}
-                  stroke={stroke}
-                  strokeOpacity={lit ? 1 : edge.soft ? 0.5 : 0.75}
-                  strokeDasharray={edge.soft ? "5 5" : undefined}
-                  strokeWidth={lit ? 2.5 : 1.5}
+                  x1={20} y1={TRACK_Y[track]} x2={VIEW_W - 10} y2={TRACK_Y[track]}
+                  stroke="#FFA795" strokeOpacity={0.18} strokeWidth={1}
                 />
-                <text
-                  x={mx} y={my + 3}
-                  textAnchor="middle"
-                  className="font-mono text-[10px] uppercase tracking-wide"
-                  fill={lit ? "#FFF1ED" : "#FFA795"}
-                  fillOpacity={lit ? 1 : 0.85}
-                  // Punches the ground colour out from under the glyphs so an
-                  // edge passing behind the label never strikes through it.
-                  stroke="#39434F"
-                  strokeWidth={4}
-                  strokeLinejoin="round"
-                  paintOrder="stroke"
-                >
-                  {edge.label}
+                <text x={20} y={TRACK_Y[track] - BOX_H / 2 - 12} className="fill-coral font-mono text-[11px] uppercase tracking-wider">
+                  {TRACK_LABEL[track]}
                 </text>
-              </motion.g>
-            )
-          })}
+              </g>
+            ))}
 
-          {positioned.map((node, i) => {
-            const isRole = node.kind === "role"
-            const active = hoverNode === node.id
-            return (
-              <motion.g
-                key={node.id}
-                initial={reduced ? false : { opacity: 0, y: 8 }}
-                animate={inView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.35, delay: reduced ? 0 : i * 0.06 }}
-                onMouseEnter={() => setHoverNode(node.id)}
-                onMouseLeave={() => setHoverNode(null)}
-                style={{ cursor: "default" }}
-              >
-                <rect
-                  x={node.cx - node.w / 2}
-                  y={node.cy - BOX_H / 2}
-                  width={node.w}
-                  height={BOX_H}
-                  rx={3}
-                  fill={isRole ? "#C4261E" : "#39434F"}
-                  stroke={isRole ? "#FF7A63" : "#FFA795"}
-                  strokeWidth={active ? 2 : 1}
-                  strokeOpacity={isRole ? 1 : active ? 1 : 0.65}
-                />
-                <text
-                  x={node.cx}
-                  y={node.cy - 3}
-                  textAnchor="middle"
-                  className="fill-paper font-mono text-[12px]"
+            {seedEdges.map((edge, i) => {
+              const lit = hoverNode === edge.from || hoverNode === edge.to
+              // Soft edges read as "alongside, not caused by" through dashes and
+              // weight — never through a dimmer colour, which is what made this
+              // edge invisible against the slate ground.
+              const stroke = edge.soft ? "#FFA795" : "#FF7A63"
+              return (
+                <g
+                  key={`${edge.from}-${edge.to}`}
+                  style={{
+                    opacity: reduced || inView ? 1 : 0,
+                    transition: reduced ? undefined : `opacity .45s ease ${0.25 + i * 0.07}s`,
+                  }}
                 >
-                  {node.label}
-                </text>
-                <text
-                  x={node.cx}
-                  y={node.cy + 12}
-                  textAnchor="middle"
-                  className="font-mono text-[9px] uppercase tracking-wide"
-                  fill={isRole ? "#FFD9D0" : "#FFA795"}
+                  <line
+                    ref={(el) => { edgeRefs.current[i] = el }}
+                    x1={edge.x1} y1={edge.y1} x2={edge.x2} y2={edge.y2}
+                    stroke={stroke}
+                    strokeOpacity={lit ? 1 : edge.soft ? 0.5 : 0.75}
+                    strokeDasharray={edge.soft ? "5 5" : undefined}
+                    strokeWidth={lit ? 2.5 : 1.5}
+                    style={{ transition: "stroke-opacity .2s ease, stroke-width .2s ease" }}
+                  />
+                  <text
+                    ref={(el) => { edgeLabelRefs.current[i] = el }}
+                    x={edge.label.x} y={edge.label.y + 3}
+                    textAnchor="middle"
+                    className="font-mono text-[10px] uppercase tracking-wide"
+                    fill={lit ? "#FFF1ED" : "#FFA795"}
+                    fillOpacity={lit ? 1 : 0.85}
+                    // Punches the ground colour out from under the glyphs so an
+                    // edge passing behind the label never strikes through it.
+                    stroke="#39434F"
+                    strokeWidth={4}
+                    strokeLinejoin="round"
+                    paintOrder="stroke"
+                    style={{ transition: "fill .2s ease" }}
+                  >
+                    {edge.text}
+                  </text>
+                </g>
+              )
+            })}
+
+            {seeds.map((node, i) => {
+              const isRole = node.kind === "role"
+              const active = hoverNode === node.id
+              return (
+                <g
+                  key={node.id}
+                  ref={(el) => { nodeRefs.current[i] = el }}
+                  data-node-index={i}
+                  onMouseEnter={() => setHoverNode(node.id)}
+                  onMouseLeave={() => setHoverNode(null)}
+                  style={{
+                    cursor: reduced ? "default" : "grab",
+                    opacity: reduced || inView ? 1 : 0,
+                    transition: reduced ? undefined : `opacity .4s ease ${i * 0.06}s`,
+                  }}
                 >
-                  {node.sub}
-                </text>
-              </motion.g>
-            )
-          })}
-        </svg>
+                  <rect
+                    x={node.ax0 - node.w / 2}
+                    y={node.ay0 - BOX_H / 2}
+                    width={node.w}
+                    height={BOX_H}
+                    rx={3}
+                    fill={isRole ? "#C4261E" : "#39434F"}
+                    stroke={isRole ? "#FF7A63" : "#FFA795"}
+                    strokeWidth={active ? 2 : 1}
+                    strokeOpacity={isRole ? 1 : active ? 1 : 0.65}
+                    style={{ transition: "stroke-width .18s ease, stroke-opacity .18s ease" }}
+                  />
+                  <text x={node.ax0} y={node.ay0 - 3} textAnchor="middle" className="fill-paper font-mono text-[12px]">
+                    {node.label}
+                  </text>
+                  <text
+                    x={node.ax0} y={node.ay0 + 12} textAnchor="middle"
+                    className="font-mono text-[9px] uppercase tracking-wide"
+                    fill={isRole ? "#FFD9D0" : "#FFA795"}
+                  >
+                    {node.sub}
+                  </text>
+                </g>
+              )
+            })}
+          </svg>
         </div>
       </figure>
     </section>

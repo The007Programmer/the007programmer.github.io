@@ -56,10 +56,18 @@ export function Topbar({ sections }: TopbarProps) {
           stuck && "bg-slate py-[0.85rem]"
         )}
       >
-        <a className="font-display font-extrabold text-lg text-paper no-underline" href="#top">AS</a>
+        <motion.a
+          className="font-display font-extrabold text-lg text-paper no-underline"
+          href="#top"
+          whileHover={reduced ? undefined : { scale: 1.08 }}
+          whileTap={reduced ? undefined : { scale: 0.94 }}
+          transition={{ type: "spring", stiffness: 500, damping: 24 }}
+        >
+          AS
+        </motion.a>
         <nav ref={navRef} className="relative flex gap-[clamp(0.9rem,2.5vw,2rem)]" aria-label="Sections">
           {sections.map((s) => (
-            <a
+            <motion.a
               key={s.id}
               href={`#${s.id}`}
               className={cn(
@@ -67,9 +75,12 @@ export function Topbar({ sections }: TopbarProps) {
                 active && active !== s.id && "opacity-55",
                 active === s.id && "opacity-100 border-paper"
               )}
+              whileHover={reduced ? undefined : { y: -2 }}
+              whileTap={reduced ? undefined : { y: 0, scale: 0.96 }}
+              transition={{ type: "spring", stiffness: 500, damping: 26 }}
             >
               {s.label}
-            </a>
+            </motion.a>
           ))}
         </nav>
         <motion.span

@@ -2,16 +2,17 @@ import { motion } from "motion/react"
 import { TOOLKIT_GROUPS } from "@/data/toolkit"
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
 import { cn } from "@/lib/utils"
+import { Reveal } from "@/components/kit/Reveal"
 
 export function Toolkit() {
   const reduced = useReducedMotionGate()
 
   return (
     <section id="toolkit" className="toolkit py-20 px-[var(--edge,1.5rem)]">
-      <div className="section-head mb-10">
+      <Reveal className="section-head mb-10">
         <p className="eyebrow eyebrow-dark font-mono text-[0.6875rem] uppercase tracking-wide text-ember mb-5">Toolkit</p>
         <h2 className="section-title font-display font-extrabold text-[clamp(2.5rem,7vw,5rem)] tracking-[-0.035em] text-slate">What I reach for</h2>
-      </div>
+      </Reveal>
       <div className="kit grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {TOOLKIT_GROUPS.map((group) => (
           <motion.div

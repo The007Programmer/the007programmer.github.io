@@ -1,6 +1,7 @@
 import { useRef } from "react"
 import { motion, useInView } from "motion/react"
 import { LEDGER_ROWS } from "@/data/path"
+import { Reveal } from "@/components/kit/Reveal"
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
 
 function LedgerRowItem({ row, index }: { row: (typeof LEDGER_ROWS)[number]; index: number }) {
@@ -34,10 +35,10 @@ export function Path() {
       {/* Heading and ledger share one container: centring the list under a
           full-bleed heading left a dead column down the whole section. */}
       <div className="max-w-[1100px] mx-auto">
-        <div className="section-head mb-10">
+        <Reveal className="section-head mb-10">
           <p className="eyebrow font-mono text-[0.6875rem] uppercase tracking-wide text-paper mb-5">Path</p>
           <h2 className="section-title section-title-light font-display font-extrabold text-[clamp(2.5rem,7vw,5rem)] tracking-[-0.035em] text-paper">How it went</h2>
-        </div>
+        </Reveal>
         <ol className="ledger">
           {LEDGER_ROWS.map((row, i) => (
             <LedgerRowItem key={row.id} row={row} index={i} />

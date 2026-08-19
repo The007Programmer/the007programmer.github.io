@@ -2,6 +2,7 @@ import { useRef, useState } from "react"
 import { motion, useDragControls, useMotionValue, useTransform, frame } from "motion/react"
 import { ProjectCard } from "@/components/kit/ProjectCard"
 import { ELECTRA, PROJECT_CARDS, OSS_ITEMS, type ProjectCardData } from "@/data/work"
+import { Reveal } from "@/components/kit/Reveal"
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
 
 export interface Offset {
@@ -162,10 +163,10 @@ export function Work() {
 
   return (
     <section id="work" className="work py-20 px-[var(--edge,1.5rem)]">
-      <div className="section-head mb-10">
+      <Reveal className="section-head mb-10">
         <p className="eyebrow eyebrow-dark font-mono text-[0.6875rem] uppercase tracking-wide text-ember mb-5">Work</p>
         <h2 className="section-title font-display font-extrabold text-[clamp(2.5rem,7vw,5rem)] tracking-[-0.035em] text-slate">What I shipped</h2>
-      </div>
+      </Reveal>
 
       <article className="feature grid md:grid-cols-2 gap-10 mb-12">
         <div>

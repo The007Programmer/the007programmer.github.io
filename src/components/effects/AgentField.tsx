@@ -2,8 +2,8 @@ import { useEffect, useRef } from "react"
 import { createField, readBands, readRepulsors, colourAt } from "@/lib/agentField"
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
 
-const AGENT_COUNT = 70
-const AGENT_RADIUS = 1.5
+const AGENT_COUNT = 120
+const AGENT_RADIUS = 2.2
 // Unlinked dots read as dust — random specks over the copy. The links are what
 // make the layer legible as a *field*: agents that found each other. Only close
 // pairs link, so the structure appears and dissolves as flocks form and break.
@@ -35,6 +35,7 @@ export default function AgentField() {
     let raf = 0
     let last = performance.now()
     let bandRefreshClock = 0
+    let bands = readBands()
 
     function onResize() {
       width = window.innerWidth
@@ -46,6 +47,7 @@ export default function AgentField() {
       canvas!.style.height = `${height}px`
       ctx!.scale(dpr, dpr)
       field.setRepulsors(readRepulsors())
+      bands = readBands()
     }
     window.addEventListener("resize", onResize)
 
@@ -60,10 +62,13 @@ export default function AgentField() {
       if (bandRefreshClock > 250) {
         bandRefreshClock = 0
         field.setRepulsors(readRepulsors())
+        // readBands() forces a synchronous layout; doing it per frame stalled
+        // the loop and made the drift stutter. It changes with the same
+        // scroll/resize events the repulsors do, so it refreshes with them.
+        bands = readBands()
       }
 
       field.step(dt)
-      const bands = readBands()
 
       ctx!.clearRect(0, 0, width, height)
 
@@ -78,7 +83,7 @@ export default function AgentField() {
           if (d2 > LINK_DIST * LINK_DIST) continue
           const closeness = 1 - Math.sqrt(d2) / LINK_DIST
           ctx!.strokeStyle = colourAt(bands, (a.y + b.y) / 2)
-          ctx!.globalAlpha = closeness * 0.22 * Math.min(a.trust + b.trust, 1)
+          ctx!.globalAlpha = closeness * 0.34 * Math.min(a.trust + b.trust, 1)
           ctx!.lineWidth = 1
           ctx!.beginPath()
           ctx!.moveTo(a.x, a.y)
@@ -89,7 +94,7 @@ export default function AgentField() {
 
       for (const a of agents) {
         ctx!.fillStyle = colourAt(bands, a.y)
-        ctx!.globalAlpha = 0.28 + a.trust * 0.32
+        ctx!.globalAlpha = 0.42 + a.trust * 0.38
         ctx!.beginPath()
         ctx!.arc(a.x, a.y, AGENT_RADIUS, 0, Math.PI * 2)
         ctx!.fill()
@@ -112,7 +117,12 @@ export default function AgentField() {
     <canvas
       ref={canvasRef}
       aria-hidden="true"
-      className="fixed inset-0 z-[1] pointer-events-none"
+      // Above <main> (z-2), not below it: every section that paints its own
+      // background — hero, timeline, tally, path, contact — hid the field
+      // entirely, so it only ever showed through the two sections that inherit
+      // the body colour. Sitting above is safe because text is a repulsor in
+      // the sim: no agent occupies a pixel a glyph is using.
+      className="fixed inset-0 z-[3] pointer-events-none"
     />
   )
 }

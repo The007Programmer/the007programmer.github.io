@@ -11,7 +11,7 @@ export interface Field {
   setRepulsors: (rects: Rect[]) => void
 }
 
-export const STANDOFF = 24 // px of clear air around glyphs
+export const STANDOFF = 10 // px of clear air around glyphs
 
 // The footer is not a child of <body> — the whole app mounts inside #root — so
 // this must not be anchored the way the old static page's selector was.
@@ -54,10 +54,17 @@ export function readRepulsors(): Rect[] {
   return out
 }
 
-const SEP = 260, SEP_R = 34, ALIGN = 0.055, COH = 0.0016, NEAR = 130
-const WANDER = 0.055, REP = 3.6, DAMP = 0.94, V_MAX = 1.5
-const EDGE = 60, EDGE_K = 0.02
-const TRUST_DECAY = 0.0022, TRUST_RECOVER = 0.003, TRUST_FLOOR = 0.06
+// These are per-frame quantities. `step` is handed milliseconds, so it
+// converts to frames first — integrating velocity against a raw millisecond
+// delta moved agents ~25px per frame and flung them into the corners.
+const FRAME_MS = 1000 / 60
+
+const SEP = 300, SEP_R = 46, ALIGN = 0.04, COH = 0.0004, NEAR = 150
+const WANDER = 0.035, REP = 1.1, DAMP = 0.92, V_MAX = 0.42
+// A hard basin at the rim is what piles agents into the corners: two axes push
+// at once wherever the margins overlap. Keep it gentle and start it further in.
+const EDGE = 110, EDGE_K = 0.0016
+const TRUST_DECAY = 0.02, TRUST_RECOVER = 0.012, TRUST_FLOOR = 0.06
 
 function mulberry32(a: number) {
   return function () {
@@ -139,6 +146,9 @@ export function createField(opts: FieldOpts): Field {
 
   function step(dt: number) {
     clock += dt
+    // Frames, not milliseconds — every constant above is per-frame.
+    const f = Math.min(dt / FRAME_MS, 3)
+    const damp = Math.pow(DAMP, f)
     for (const a of agents) {
       let ax = 0, ay = 0, cx = 0, cy = 0, hx = 0, hy = 0, n = 0
 
@@ -157,9 +167,9 @@ export function createField(opts: FieldOpts): Field {
         ay += (hy / n - a.vy) * ALIGN * a.trust
         ax += (cx / n - a.x) * COH * a.trust
         ay += (cy / n - a.y) * COH * a.trust
-        a.trust -= TRUST_DECAY * dt * n * 0.12
+        a.trust -= TRUST_DECAY * f * n * 0.12
       } else {
-        a.trust += TRUST_RECOVER * dt
+        a.trust += TRUST_RECOVER * f
       }
       if (a.trust < TRUST_FLOOR) a.trust = TRUST_FLOOR
       if (a.trust > 1) a.trust = 1
@@ -182,19 +192,23 @@ export function createField(opts: FieldOpts): Field {
       if (a.y < EDGE) ay += (EDGE - a.y) * EDGE_K
       if (a.y > h - EDGE) ay -= (a.y - (h - EDGE)) * EDGE_K
 
-      a.vx = (a.vx + ax) * DAMP
-      a.vy = (a.vy + ay) * DAMP
+      a.vx = (a.vx + ax * f) * damp
+      a.vy = (a.vy + ay * f) * damp
       const sp = Math.sqrt(a.vx * a.vx + a.vy * a.vy)
       if (sp > V_MAX) { a.vx = (a.vx / sp) * V_MAX; a.vy = (a.vy / sp) * V_MAX }
-      a.x += a.vx * dt
-      a.y += a.vy * dt
+      a.x += a.vx * f
+      a.y += a.vy * f
 
       if (a.x < 0) { a.x = 0; a.vx = 0 }
       if (a.x > w) { a.x = w; a.vx = 0 }
       if (a.y < 0) { a.y = 0; a.vy = 0 }
       if (a.y > h) { a.y = h; a.vy = 0 }
     }
-    ejectFromRects()
+    // No hard eject per step: snapping agents onto rect borders lined them up
+    // along the text's bounding boxes, printing a visible rectangular ghost of
+    // the copy across the page. The soft REP push above is enough — and an
+    // agent takes the section's own text colour, so one drifting over a glyph
+    // is the same ink the glyph is, not a contrast loss.
   }
 
   return { agents, step, setRepulsors }

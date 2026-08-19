@@ -13,8 +13,11 @@
   --color-slate-2: #4B5563;
   --color-mute: #5A6675;
 
-  --font-display: 'Archivo', 'Arial Black', sans-serif;
-  --font-body: 'Abril Fatface', 'STIX Two Text', Georgia, serif;
+  /* Abril Fatface is a fat-face display type — it was set as the body face,
+     so every paragraph on the site rendered in a headline face (or fell
+     through to a serif). This is the pairing the site actually shipped with. */
+  --font-display: 'Bricolage Grotesque', 'Arial Black', sans-serif;
+  --font-body: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Martian Mono', ui-monospace, monospace;
 }
 
