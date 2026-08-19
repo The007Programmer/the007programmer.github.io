@@ -161,12 +161,16 @@ original B proposal:
   grid filters/expands — a card clicked/expanded morphs in place rather than
   a modal popping in.
 - **Cursor-reactive effects:** taking a cue from `fluid.krackeddevs.com`
-  specifically (ripple/lens-style pointer response) — applied narrowly (e.g.
-  the hero or the timeline section), not site-wide, so it reads as a flourish
-  rather than noise.
-- **Drag:** at least one real drag interaction survives the graph's removal —
-  candidate is drag-to-reorder or drag-to-expand on project cards, using
-  Motion's `drag` prop with constraints/inertia.
+  (ripple/lens-style pointer response) — **applied site-wide**, not confined
+  to one section. Needs to compose with the agent field's own pointer/scroll
+  behavior rather than fight it (the field currently has no pointer
+  dependency by design — a global cursor effect is a second, complementary
+  input layer, not a replacement for the field's scroll impulse).
+- **Drag:** keep every drag candidate rather than picking one — drag-to-
+  reorder *and* drag-to-expand on project cards, both using Motion's `drag`
+  prop with constraints/inertia — plus room to add more drag interactions
+  during implementation wherever they fit naturally (e.g. the timeline nodes,
+  if dragging a node to preview its detail reads well once built).
 - **Hover/press micro-interactions:** every interactive element (cards,
   buttons, nav links, timeline nodes) gets a spring hover/tap response,
   not just `:hover` CSS.
@@ -195,10 +199,16 @@ lock-in, a real-browser check of drag/hover/layout-transition behavior (not
 headless screenshots, per the old trap list), and a Lighthouse/contrast pass
 on the ported palette.
 
-## Open questions for the user to resolve at spec review
+## Resolved at spec review
 
-1. Any specific content/IA changes, or is "carry forward unchanged" correct?
-2. Exact drag interaction to keep (reorder vs. expand vs. something else).
-3. Where cursor-reactive effects should live (hero only? timeline? both?).
-4. Whether the GitHub Pages source switch (branch → Actions) in repo settings
-   is something the user wants to do themselves or wants walked through.
+1. **Content/IA:** no changes. Everything in the current "Content / IA"
+   section stands — carry forward unchanged.
+2. **Drag interactions:** keep all candidates (reorder + expand on cards),
+   and add more during implementation wherever they fit naturally rather
+   than settling on a single interaction.
+3. **Cursor-reactive effects:** site-wide, not confined to one section (see
+   Motion section above for how this composes with the agent field).
+4. **GitHub Pages source switch (branch → Actions):** Claude does this, not
+   the user. Since it's a live change to how the production site deploys,
+   flag it clearly at the point of the implementation plan/PR rather than
+   flipping it silently.
