@@ -8,7 +8,10 @@ export default function CursorEffect() {
   const y = useMotionValue(-9999)
   const springX = useSpring(x, { stiffness: 120, damping: 20, mass: 0.4 })
   const springY = useSpring(y, { stiffness: 120, damping: 20, mass: 0.4 })
-  const background = useMotionTemplate`radial-gradient(320px circle at ${springX}px ${springY}px, rgba(214,43,34,0.10), transparent 70%)`
+  // The layer composites over text as well as background, so its alpha is
+  // capped at what keeps every shipped pairing above 4.5:1 at the gradient's
+  // centre — see the "under the cursor glow" cases in contrast.test.ts.
+  const background = useMotionTemplate`radial-gradient(320px circle at ${springX}px ${springY}px, rgba(196,38,30,0.06), transparent 70%)`
 
   useEffect(() => {
     if (reduced) return

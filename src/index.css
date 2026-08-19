@@ -3,7 +3,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --color-signal: #D62B22;
+  --color-signal: #C4261E;
   --color-ember: #B5241B;
   --color-coral: #FFA795;
   --color-rust: #8E1A13;

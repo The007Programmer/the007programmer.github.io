@@ -6,6 +6,13 @@ import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
 const TRACK_Y: Record<TimelineTrack, number> = { twelvelabs: 60, personal: 160, school: 260 }
 const TRACK_LABEL: Record<TimelineTrack, string> = { twelvelabs: "TwelveLabs", personal: "Personal / OSS", school: "School" }
 
+// x is a pure function of the month, so any two nodes in the same track and
+// month would land on the same point and hide each other. Artifacts drop into
+// lanes below their track line — which also encodes "roles sit on the track,
+// what they produced hangs off it" — and a second artifact in the same month
+// drops one lane further.
+const ARTIFACT_LANE = 30
+
 function monthIndex(date: string): number {
   const [y, m] = date.split("-").map(Number)
   return y * 12 + m
@@ -21,11 +28,20 @@ export function Timeline() {
     const idx = TIMELINE_NODES.map((n) => monthIndex(n.date))
     const minX = Math.min(...idx)
     const maxX = Math.max(...idx)
-    const positioned = TIMELINE_NODES.map((n) => ({
-      ...n,
-      cx: 60 + ((monthIndex(n.date) - minX) / Math.max(maxX - minX, 1)) * 840,
-      cy: TRACK_Y[n.track],
-    }))
+    const laneTaken = new Map<string, number>()
+    const positioned = TIMELINE_NODES.map((n) => {
+      let lane = 0
+      if (n.kind === "artifact") {
+        const slot = `${n.track}:${n.date}`
+        lane = (laneTaken.get(slot) ?? 0) + 1
+        laneTaken.set(slot, lane)
+      }
+      return {
+        ...n,
+        cx: 60 + ((monthIndex(n.date) - minX) / Math.max(maxX - minX, 1)) * 840,
+        cy: TRACK_Y[n.track] + lane * ARTIFACT_LANE,
+      }
+    })
     return { positioned, minX, maxX }
   }, [])
 
@@ -41,7 +57,7 @@ export function Timeline() {
 
         <svg viewBox="0 0 960 320" className="w-full h-auto" role="img" aria-label="Career timeline, three tracks: TwelveLabs, Personal, School">
           {(Object.keys(TRACK_Y) as TimelineTrack[]).map((track) => (
-            <text key={track} x={8} y={TRACK_Y[track] + 4} className="fill-mute font-mono text-[10px] uppercase">
+            <text key={track} x={8} y={TRACK_Y[track] + 4} className="fill-coral font-mono text-[10px] uppercase">
               {TRACK_LABEL[track]}
             </text>
           ))}
@@ -78,7 +94,7 @@ export function Timeline() {
               animate={inView ? { opacity: 1, scale: 1 } : {}}
               transition={{ duration: 0.3, delay: reduced ? 0 : 0.15 + i * 0.08 }}
             >
-              <circle cx={node.cx} cy={node.cy} r={node.kind === "role" ? 7 : 5} fill={node.kind === "role" ? "#D62B22" : "#FFF1ED"} />
+              <circle cx={node.cx} cy={node.cy} r={node.kind === "role" ? 7 : 5} fill={node.kind === "role" ? "#C4261E" : "#FFF1ED"} />
               <text x={node.cx} y={node.cy - 12} textAnchor="middle" className="fill-paper font-mono text-[9px]">
                 {node.label}
               </text>

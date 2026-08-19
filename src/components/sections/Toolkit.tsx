@@ -20,7 +20,7 @@ export function Toolkit() {
               "kit-group border rounded-sm p-6",
               group.accent ? "border-signal/40 bg-paper-2" : "border-slate/10"
             )}
-            whileHover={reduced ? undefined : { y: -3, borderColor: "#D62B22" }}
+            whileHover={reduced ? undefined : { y: -3, borderColor: "#C4261E" }}
             transition={{ type: "spring", stiffness: 300, damping: 22 }}
           >
             <h3 className="kit-title font-display font-bold text-lg text-slate mb-2">{group.title}</h3>
