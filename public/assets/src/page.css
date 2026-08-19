@@ -10,8 +10,8 @@
   --paper: #FFF1ED;
   --slate: #39434F;
 
-  --display: 'Bricolage Grotesque', 'Arial Black', sans-serif;
-  --body: 'Instrument Sans', system-ui, sans-serif;
+  --display: 'Archivo', 'Arial Black', sans-serif;
+  --body: 'Abril Fatface', 'STIX Two Text', Georgia, serif;
   --mono: 'Martian Mono', ui-monospace, monospace;
 }
 

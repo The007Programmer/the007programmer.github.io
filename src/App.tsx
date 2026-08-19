@@ -1,12 +1,38 @@
-import { useFontPairing } from "@/hooks/useFontPairing"
+import { Topbar } from "@/components/layout/Topbar"
+import { Footer } from "@/components/layout/Footer"
+import AgentField from "@/components/effects/AgentField"
+import CursorEffect from "@/components/effects/CursorEffect"
+import { Hero } from "@/components/sections/Hero"
+import { Timeline } from "@/components/sections/Timeline"
+import { Work } from "@/components/sections/Work"
+import { Tally } from "@/components/sections/Tally"
+import { Path } from "@/components/sections/Path"
+import { Toolkit } from "@/components/sections/Toolkit"
+import { Contact } from "@/components/sections/Contact"
+
+const SECTIONS = [
+  { id: "work", label: "Work" },
+  { id: "path", label: "Path" },
+  { id: "toolkit", label: "Toolkit" },
+  { id: "contact", label: "Contact" },
+]
 
 export default function App() {
-  useFontPairing()
-
   return (
-    <main className="min-h-screen bg-paper text-slate font-body p-8">
-      <h1 className="font-display font-extrabold text-4xl">Aahil Shaikh</h1>
-      <p>Scaffold running.</p>
-    </main>
+    <>
+      <AgentField />
+      <CursorEffect />
+      <Topbar sections={SECTIONS} />
+      <main id="main" className="relative z-[2]">
+        <Hero />
+        <Timeline />
+        <Work />
+        <Tally />
+        <Path />
+        <Toolkit />
+        <Contact />
+      </main>
+      <Footer />
+    </>
   )
 }
