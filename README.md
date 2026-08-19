@@ -7,22 +7,39 @@ Live at **https://the007programmer.github.io**
 
 ## How it's built
 
-Plain HTML, CSS, and JavaScript — no framework and no build step. This is a
-GitHub Pages user site, so pushing to the default branch publishes the repo
-root as-is. Nothing to install and nothing to compile.
+Vite + React + TypeScript, styled with Tailwind CSS v4 and animated with
+Motion. UI primitives come from KokonutUI and Bklit UI (via `radix-ui` and
+`class-variance-authority`), with `@visx/*` and `d3-shape`/`d3-array` driving
+the charts. This is a GitHub Pages site: a GitHub Actions workflow
+(`.github/workflows/deploy.yml`) builds the site on every push to `main` and
+publishes the output.
 
 ```
-index.html          the whole site, one page
-404.html            not-found page (must live at the root to work)
-thanks.html         contact-form landing page
-assets/src/
-  main.css          the site
-  page.css          shared shell for 404 + thanks
-  script.js         trajectory graph, sticky nav, scroll reveals
-img/                favicon and images
+index.html          the HTML shell Vite mounts into
+src/
+  main.tsx           app entry point
+  App.tsx            top-level layout, assembles the sections
+  index.css          global styles, Tailwind entry
+  components/
+    layout/          topbar, footer
+    sections/        hero, path, timeline, toolkit, work, tally, contact
+    charts/          the time-series chart primitives
+    kokonutui/       KokonutUI components (particle button, mouse effect card)
+    kit/             shared building blocks (action button, project card)
+    effects/         cursor and agent-field visual effects
+    ui/              base primitives (button, card)
+  data/              content for the timeline, toolkit, and path sections
+  hooks/             reusable React hooks
+  lib/               utilities (contrast checks, agent-field logic, cn helper)
+public/
+  404.html           not-found page
+  thanks.html        contact-form landing page
+  img/               favicon and images
+  assets/            resume PDF and legacy page.css
 ```
 
-Run it locally with `python3 -m http.server` and open `localhost:8000`.
+Run it locally with `npm install` then `npm run dev`. `npm run build` type-checks
+and produces the static `dist/` output; `npm run test` runs the Vitest suite.
 
 ## The graph
 
