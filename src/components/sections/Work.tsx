@@ -44,12 +44,12 @@ function WorkCard({ project, reduced, expanded, onExpand, onToggle }: WorkCardPr
         onDragEnd={(_, info) => {
           didDragRef.current = true
           if (info.offset.y > 40) onExpand()
+          setTimeout(() => {
+            didDragRef.current = false
+          }, 0)
         }}
         onTap={() => {
-          if (didDragRef.current) {
-            didDragRef.current = false
-            return
-          }
+          if (didDragRef.current) return
           onToggle()
         }}
         className={expanded ? "scale-[1.03]" : undefined}
