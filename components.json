@@ -13,5 +13,8 @@
     "components": "@/components",
     "utils": "@/lib/utils",
     "ui": "@/components/ui"
+  },
+  "registries": {
+    "@bklit": "https://ui.bklit.com/r/{name}.json"
   }
 }
