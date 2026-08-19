@@ -4,15 +4,39 @@ import { ProjectCard } from "@/components/kit/ProjectCard"
 import { ELECTRA, PROJECT_CARDS, OSS_ITEMS, type ProjectCardData } from "@/data/work"
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
 
-interface Offset {
+export interface Offset {
   x: number
   y: number
 }
 
-interface CardCenter {
+export interface CardCenter {
   id: string
   cx: number
   cy: number
+}
+
+// Which card's slot the dragged card was released over. Ties resolve to the
+// earliest card in `centers`, so a drop exactly between two slots is stable
+// rather than dependent on iteration order.
+export function pickNearest(centers: CardCenter[], id: string, offset: Offset): string | null {
+  const dragged = centers.find((c) => c.id === id)
+  if (!dragged) return null
+
+  const cx = dragged.cx + offset.x
+  const cy = dragged.cy + offset.y
+  const distance = (c: CardCenter) => (c.cx - cx) ** 2 + (c.cy - cy) ** 2
+  return centers.reduce((best, c) => (distance(c) < distance(best) ? c : best)).id
+}
+
+export function moveById<T extends { id: string }>(list: T[], fromId: string, toId: string): T[] {
+  const from = list.findIndex((item) => item.id === fromId)
+  const to = list.findIndex((item) => item.id === toId)
+  if (from === -1 || to === -1 || from === to) return list
+
+  const next = [...list]
+  const [moved] = next.splice(from, 1)
+  next.splice(to, 0, moved)
+  return next
 }
 
 interface WorkCardProps {
@@ -110,43 +134,30 @@ export function Work() {
     else itemRefs.current.delete(id)
   }
 
-  // Snapshot every card's untransformed centre in document space. Taken at drag
-  // start because by drag end the dragged card's own rect carries the drag
-  // transform (and dragSnapToOrigin has begun unwinding it).
+  // Layout-box centres, relative to the offsetParent every card shares. These
+  // must exclude transforms: by the time this runs Motion has already flushed
+  // the pan-threshold offset to the dragged card, and a previous drop's layout
+  // animation may still be settling on the others. offsetLeft/offsetTop are
+  // layout-only, so both cases measure the settled position `info.offset` is a
+  // delta against.
   const measureCenters = () => {
     centersRef.current = order.flatMap((p) => {
       const el = itemRefs.current.get(p.id)
       if (!el) return []
-      const r = el.getBoundingClientRect()
       return [
         {
           id: p.id,
-          cx: r.left + r.width / 2 + window.scrollX,
-          cy: r.top + r.height / 2 + window.scrollY,
+          cx: el.offsetLeft + el.offsetWidth / 2,
+          cy: el.offsetTop + el.offsetHeight / 2,
         },
       ]
     })
   }
 
   const dropNearest = (id: string, offset: Offset) => {
-    const centers = centersRef.current
-    const dragged = centers.find((c) => c.id === id)
-    if (!dragged) return
-
-    const cx = dragged.cx + offset.x
-    const cy = dragged.cy + offset.y
-    const distance = (c: CardCenter) => (c.cx - cx) ** 2 + (c.cy - cy) ** 2
-    const target = centers.reduce((best, c) => (distance(c) < distance(best) ? c : best))
-    if (target.id === id) return
-
-    setOrder((prev) => {
-      const from = prev.findIndex((p) => p.id === id)
-      const to = prev.findIndex((p) => p.id === target.id)
-      const next = [...prev]
-      const [moved] = next.splice(from, 1)
-      next.splice(to, 0, moved)
-      return next
-    })
+    const target = pickNearest(centersRef.current, id, offset)
+    if (target === null || target === id) return
+    setOrder((prev) => moveById(prev, id, target))
   }
 
   return (
