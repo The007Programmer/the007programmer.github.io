@@ -13,6 +13,12 @@ const TRACK_LABEL: Record<TimelineTrack, string> = { twelvelabs: "TwelveLabs", p
 // drops one lane further.
 const ARTIFACT_LANE = 30
 
+// Track labels sit at x=8 and run out to roughly x=102 for the longest
+// ("Personal / OSS"). The earliest node's circle (up to r=7 for role nodes)
+// must clear that, or the coral label text collides with the node.
+const NODE_X_MIN = 120
+const NODE_X_SPAN = 780
+
 function monthIndex(date: string): number {
   const [y, m] = date.split("-").map(Number)
   return y * 12 + m
@@ -38,7 +44,7 @@ export function Timeline() {
       }
       return {
         ...n,
-        cx: 60 + ((monthIndex(n.date) - minX) / Math.max(maxX - minX, 1)) * 840,
+        cx: NODE_X_MIN + ((monthIndex(n.date) - minX) / Math.max(maxX - minX, 1)) * NODE_X_SPAN,
         cy: TRACK_Y[n.track] + lane * ARTIFACT_LANE,
       }
     })

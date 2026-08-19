@@ -36,4 +36,15 @@ describe('Timeline', () => {
       expect(from).not.toBe(to)
     }
   })
+
+  // Track labels are drawn at x=8 and run out to roughly x=90 for the
+  // longest ("Personal / OSS"). No node may sit left of that or its circle
+  // collides with the label text — a real, visible collision the fill-mute
+  // -> fill-coral change made legible for the first time.
+  it('keeps every node clear of the track labels on the left edge', () => {
+    const { container } = render(<Timeline />)
+    const circles = Array.from(container.querySelectorAll('circle'))
+    const minCx = Math.min(...circles.map((c) => Number(c.getAttribute('cx'))))
+    expect(minCx).toBeGreaterThanOrEqual(120)
+  })
 })
