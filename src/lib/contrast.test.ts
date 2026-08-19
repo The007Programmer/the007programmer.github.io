@@ -45,4 +45,16 @@ describe('contrastRatio', () => {
   it('clears 4.5:1 for slate-2 stamp/description on the project card background', () => {
     expect(contrastRatio('#4B5563', '#FFE4DC')).toBeGreaterThanOrEqual(4.5)
   })
+
+  it('clears 4.5:1 for paper/70 opacity text (Path ledger org) on slate background', () => {
+    // paper (#FFF1ED) at 70% opacity alpha-blended over slate (#39434F)
+    // Result: RGB(196, 189, 190) = #C4BDBE
+    expect(contrastRatio('#C4BDBE', '#39434F')).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('clears 4.5:1 for paper/85 opacity text (Path ledger body) on slate background', () => {
+    // paper (#FFF1ED) at 85% opacity alpha-blended over slate (#39434F)
+    // Result: RGB(225, 215, 213) = #E1D7D5
+    expect(contrastRatio('#E1D7D5', '#39434F')).toBeGreaterThanOrEqual(4.5)
+  })
 })
