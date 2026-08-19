@@ -499,8 +499,8 @@ export function ProjectCard({ title, stamp, desc, tags, link, className }: Proje
       transition={{ type: "spring", stiffness: 320, damping: 24 }}
     >
       <p className="font-mono text-[0.6875rem] uppercase tracking-wide text-slate-2">{stamp}</p>
-      <h3 className="font-display font-extrabold text-2xl text-slate">{title}</h3>
-      <p className="text-slate-2">{desc}</p>
+      <h3 className="card-title font-display font-extrabold text-2xl text-slate">{title}</h3>
+      <p className="card-desc text-slate-2">{desc}</p>
       {tags.length > 0 && (
         <ul className="flex flex-wrap gap-2 mt-1">
           {tags.map((tag) => (
@@ -1766,7 +1766,7 @@ export function Topbar({ sections }: TopbarProps) {
       </a>
       <header
         className={cn(
-          "fixed top-0 inset-x-0 z-50 flex items-center justify-between gap-4 px-[clamp(1.25rem,5vw,5.5rem)] py-[1.1rem] transition-colors duration-300",
+          "topbar fixed top-0 inset-x-0 z-50 flex items-center justify-between gap-4 px-[clamp(1.25rem,5vw,5.5rem)] py-[1.1rem] transition-colors duration-300",
           stuck && "bg-slate py-[0.85rem]"
         )}
       >
@@ -2641,8 +2641,12 @@ describe('Contact', () => {
   })
 
   it('renders a form posting to formsubmit.co', () => {
-    render(<Contact />)
-    const form = screen.getByRole('form', { hidden: true }) ?? document.querySelector('form')
+    const { container } = render(<Contact />)
+    // A <form> with no accessible name isn't exposed under role "form" by
+    // Testing Library's role queries, so query the DOM directly rather
+    // than through getByRole.
+    const form = container.querySelector('form')
+    expect(form).not.toBeNull()
     expect(form).toHaveAttribute('action', 'https://formsubmit.co/aahils2019@gmail.com')
     expect(form).toHaveAttribute('method', 'POST')
   })
