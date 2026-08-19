@@ -2,7 +2,7 @@ import { ActionButton } from "@/components/kit/ActionButton"
 
 export function Contact() {
   return (
-    <section id="contact" className="contact bg-ember text-paper py-24 px-[var(--edge,1.5rem)]">
+    <section id="contact" className="contact bg-ember text-paper py-20 px-[var(--edge,1.5rem)]">
       <div className="contact-grid grid md:grid-cols-2 gap-16 max-w-[1100px] mx-auto">
         <div className="contact-pitch">
           <p className="eyebrow font-mono text-[0.6875rem] uppercase tracking-wide mb-5">Contact</p>

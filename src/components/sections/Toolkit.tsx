@@ -7,8 +7,8 @@ export function Toolkit() {
   const reduced = useReducedMotionGate()
 
   return (
-    <section id="toolkit" className="toolkit py-24 px-[var(--edge,1.5rem)]">
-      <div className="section-head mb-16">
+    <section id="toolkit" className="toolkit py-20 px-[var(--edge,1.5rem)]">
+      <div className="section-head mb-10">
         <p className="eyebrow eyebrow-dark font-mono text-[0.6875rem] uppercase tracking-wide text-ember mb-5">Toolkit</p>
         <h2 className="section-title font-display font-extrabold text-[clamp(2.5rem,7vw,5rem)] tracking-[-0.035em] text-slate">What I reach for</h2>
       </div>

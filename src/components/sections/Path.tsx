@@ -30,16 +30,20 @@ function LedgerRowItem({ row, index }: { row: (typeof LEDGER_ROWS)[number]; inde
 
 export function Path() {
   return (
-    <section id="path" className="path bg-slate py-24 px-[var(--edge,1.5rem)]">
-      <div className="section-head mb-16">
-        <p className="eyebrow font-mono text-[0.6875rem] uppercase tracking-wide text-paper mb-5">Path</p>
-        <h2 className="section-title section-title-light font-display font-extrabold text-[clamp(2.5rem,7vw,5rem)] tracking-[-0.035em] text-paper">How it went</h2>
+    <section id="path" className="path bg-slate py-20 px-[var(--edge,1.5rem)]">
+      {/* Heading and ledger share one container: centring the list under a
+          full-bleed heading left a dead column down the whole section. */}
+      <div className="max-w-[1100px] mx-auto">
+        <div className="section-head mb-10">
+          <p className="eyebrow font-mono text-[0.6875rem] uppercase tracking-wide text-paper mb-5">Path</p>
+          <h2 className="section-title section-title-light font-display font-extrabold text-[clamp(2.5rem,7vw,5rem)] tracking-[-0.035em] text-paper">How it went</h2>
+        </div>
+        <ol className="ledger">
+          {LEDGER_ROWS.map((row, i) => (
+            <LedgerRowItem key={row.id} row={row} index={i} />
+          ))}
+        </ol>
       </div>
-      <ol className="ledger max-w-[900px] mx-auto">
-        {LEDGER_ROWS.map((row, i) => (
-          <LedgerRowItem key={row.id} row={row} index={i} />
-        ))}
-      </ol>
     </section>
   )
 }

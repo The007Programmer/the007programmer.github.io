@@ -161,13 +161,13 @@ export function Work() {
   }
 
   return (
-    <section id="work" className="work py-24 px-[var(--edge,1.5rem)]">
-      <div className="section-head mb-16">
+    <section id="work" className="work py-20 px-[var(--edge,1.5rem)]">
+      <div className="section-head mb-10">
         <p className="eyebrow eyebrow-dark font-mono text-[0.6875rem] uppercase tracking-wide text-ember mb-5">Work</p>
         <h2 className="section-title font-display font-extrabold text-[clamp(2.5rem,7vw,5rem)] tracking-[-0.035em] text-slate">What I shipped</h2>
       </div>
 
-      <article className="feature grid md:grid-cols-2 gap-10 mb-16">
+      <article className="feature grid md:grid-cols-2 gap-10 mb-12">
         <div>
           <p className="stamp font-mono text-[0.6875rem] uppercase text-slate-2 mb-2">{ELECTRA.stamp}</p>
           <h3 className="font-display font-extrabold text-3xl text-slate mb-3">{ELECTRA.title}</h3>
