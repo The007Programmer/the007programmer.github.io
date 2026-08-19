@@ -2908,25 +2908,14 @@ git add .github/workflows/deploy.yml README.md
 git commit -m "SAFE: GitHub Actions deploy workflow, README reflects the new stack"
 ```
 
-- [ ] **Step 4: Flag the live Pages settings change before making it**
+- [ ] **Steps 4–6: the Pages settings flip and live-deploy verification are both deferred past this branch's merge**
 
-Tell the user explicitly: *"Ready to flip the GitHub Pages source from 'deploy from branch' to 'deploy via GitHub Actions.' This changes how the live site publishes — confirm before I run it."* Wait for confirmation — this is exactly the kind of hard-to-reverse, production-affecting change that needs a check-in even though the spec says Claude handles it.
+Ruling recorded in the SDD ledger, superseding the original Steps 4–6: the user decided `portfolio-react-rework` merges into `agent-field` first, and `agent-field` merges into `main` separately, later — not directly into `main`. Two consequences:
 
-- [ ] **Step 5: Flip the Pages source via the GitHub API**, once confirmed:
+- The deploy workflow only triggers `on: push: branches: [main]`, so pushing `portfolio-react-rework` or even `agent-field` alone will not fire it — live-deploy verification is meaningless until `main` actually has this workflow file.
+- Flipping the Pages source setting *now* (while `main` still runs the old branch-based deploy and doesn't yet have `.github/workflows/deploy.yml`) would leave the live site unable to receive any update via either mechanism until `agent-field` eventually merges to `main` — a live production risk with no corresponding benefit today.
 
-```bash
-gh api -X PUT repos/The007Programmer/the007programmer.github.io/pages -f build_type=workflow
-```
-
-If that 404s because Pages was never configured via the API before, use POST instead:
-
-```bash
-gh api -X POST repos/The007Programmer/the007programmer.github.io/pages -f build_type=workflow
-```
-
-- [ ] **Step 6: Live-deploy verification is deferred past this branch's merge**
-
-Ruling recorded in the SDD ledger: the user decided `portfolio-react-rework` merges into `agent-field` first, and `agent-field` merges into `main` separately, later — not directly into `main`. The deploy workflow only triggers `on: push: branches: [main]`, so pushing `portfolio-react-rework` or even `agent-field` alone will not fire it. Do not push to `main` or attempt live-deploy verification as part of finishing this branch: create the workflow file and flip the Pages source setting (Steps 1–5 above) as this branch's deliverable, then stop. The actual push-to-main-and-verify step belongs to whatever later work merges `agent-field` into `main` — flag this explicitly in the final whole-branch review and in the handoff to `superpowers:finishing-a-development-branch`, so it isn't silently dropped.
+This task's deliverable is Steps 1–3 only: create the workflow file, update the README, commit. Do not flag the Pages settings change to the user, do not run the `gh api` flip, and do not push or attempt live-deploy verification as part of finishing this branch — stop after Step 3's commit. The settings flip, the confirmation check-in, and the push-and-verify step all belong together, bundled into whatever later work merges `agent-field` into `main`. Flag this explicitly in the final whole-branch review and in the handoff to `superpowers:finishing-a-development-branch`, so it isn't silently dropped. (For that later work's reference, the flip command is still: `gh api -X PUT repos/The007Programmer/the007programmer.github.io/pages -f build_type=workflow`, or `-X POST` if Pages was never configured via the API before.)
 
 ---
 
