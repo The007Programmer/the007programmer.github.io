@@ -4,3 +4,7 @@
 
 # Local git worktrees
 .worktrees/
+
+# Node.js
+node_modules/
+dist/
