@@ -1,5 +1,5 @@
 import { useRef, useState } from "react"
-import { Reorder, motion, useDragControls } from "motion/react"
+import { Reorder, motion, useDragControls, frame } from "motion/react"
 import { ProjectCard } from "@/components/kit/ProjectCard"
 import { ELECTRA, PROJECT_CARDS, OSS_ITEMS, type ProjectCardData } from "@/data/work"
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
@@ -44,9 +44,9 @@ function WorkCard({ project, reduced, expanded, onExpand, onToggle }: WorkCardPr
         onDragEnd={(_, info) => {
           didDragRef.current = true
           if (info.offset.y > 40) onExpand()
-          setTimeout(() => {
+          frame.postRender(() => {
             didDragRef.current = false
-          }, 0)
+          })
         }}
         onTap={() => {
           if (didDragRef.current) return
