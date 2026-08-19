@@ -37,4 +37,12 @@ describe('contrastRatio', () => {
   it('clears 4.5:1 for paper text on the button hover background', () => {
     expect(contrastRatio('#FFF1ED', '#B5241B')).toBeGreaterThanOrEqual(4.5)
   })
+
+  it('clears 4.5:1 for slate title on the project card background', () => {
+    expect(contrastRatio('#39434F', '#FFE4DC')).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('clears 4.5:1 for slate-2 stamp/description on the project card background', () => {
+    expect(contrastRatio('#4B5563', '#FFE4DC')).toBeGreaterThanOrEqual(4.5)
+  })
 })
