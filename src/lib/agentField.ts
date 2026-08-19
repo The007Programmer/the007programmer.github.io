@@ -13,7 +13,9 @@ export interface Field {
 
 export const STANDOFF = 24 // px of clear air around glyphs
 
-const BAND_SEL = "main > section, body > footer"
+// The footer is not a child of <body> — the whole app mounts inside #root — so
+// this must not be anchored the way the old static page's selector was.
+const BAND_SEL = "main > section, footer"
 const TEXT_SEL = [
   ".topbar", ".hero-name", ".hero-thesis", ".hero-meta", ".eyebrow",
   ".section-title", ".card-title", ".card-desc",
