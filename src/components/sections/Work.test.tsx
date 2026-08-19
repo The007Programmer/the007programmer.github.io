@@ -12,6 +12,13 @@ describe('Work', () => {
     }
   })
 
+  it('lays the project cards out in a responsive grid', () => {
+    const { container } = render(<Work />)
+    const cards = container.querySelector('.cards')
+    expect(cards).toHaveClass('grid', 'sm:grid-cols-2', 'lg:grid-cols-3')
+    expect(cards).not.toHaveClass('flex-col')
+  })
+
   it('renders every OSS item', () => {
     render(<Work />)
     expect(screen.getByText('MAGI')).toBeInTheDocument()

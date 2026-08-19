@@ -1,8 +1,19 @@
 import { useRef, useState } from "react"
-import { Reorder, motion, useDragControls, frame } from "motion/react"
+import { motion, useDragControls, useMotionValue, useTransform, frame } from "motion/react"
 import { ProjectCard } from "@/components/kit/ProjectCard"
 import { ELECTRA, PROJECT_CARDS, OSS_ITEMS, type ProjectCardData } from "@/data/work"
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
+
+interface Offset {
+  x: number
+  y: number
+}
+
+interface CardCenter {
+  id: string
+  cx: number
+  cy: number
+}
 
 interface WorkCardProps {
   project: ProjectCardData
@@ -10,18 +21,39 @@ interface WorkCardProps {
   expanded: boolean
   onExpand: () => void
   onToggle: () => void
+  registerRef: (id: string, el: HTMLDivElement | null) => void
+  onReorderStart: () => void
+  onReorderEnd: (id: string, offset: Offset) => void
 }
 
-function WorkCard({ project, reduced, expanded, onExpand, onToggle }: WorkCardProps) {
+function WorkCard({
+  project,
+  reduced,
+  expanded,
+  onExpand,
+  onToggle,
+  registerRef,
+  onReorderStart,
+  onReorderEnd,
+}: WorkCardProps) {
   const controls = useDragControls()
   const didDragRef = useRef(false)
+  const x = useMotionValue(0)
+  const y = useMotionValue(0)
+  const zIndex = useTransform<number, number | string>([x, y], ([latestX, latestY]) =>
+    latestX || latestY ? 1 : "unset"
+  )
 
   return (
-    <Reorder.Item
-      value={project}
-      as="div"
+    <motion.div
+      ref={(el) => registerRef(project.id, el)}
+      drag={!reduced}
       dragListener={false}
       dragControls={controls}
+      dragSnapToOrigin
+      onDragStart={onReorderStart}
+      onDragEnd={(_, info) => onReorderEnd(project.id, info.offset)}
+      style={{ x, y, zIndex }}
       layout={reduced ? undefined : true}
       className="relative"
     >
@@ -62,7 +94,7 @@ function WorkCard({ project, reduced, expanded, onExpand, onToggle }: WorkCardPr
           link={project.link}
         />
       </motion.div>
-    </Reorder.Item>
+    </motion.div>
   )
 }
 
@@ -70,6 +102,52 @@ export function Work() {
   const reduced = useReducedMotionGate()
   const [order, setOrder] = useState<ProjectCardData[]>(PROJECT_CARDS)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const itemRefs = useRef(new Map<string, HTMLDivElement>())
+  const centersRef = useRef<CardCenter[]>([])
+
+  const registerRef = (id: string, el: HTMLDivElement | null) => {
+    if (el) itemRefs.current.set(id, el)
+    else itemRefs.current.delete(id)
+  }
+
+  // Snapshot every card's untransformed centre in document space. Taken at drag
+  // start because by drag end the dragged card's own rect carries the drag
+  // transform (and dragSnapToOrigin has begun unwinding it).
+  const measureCenters = () => {
+    centersRef.current = order.flatMap((p) => {
+      const el = itemRefs.current.get(p.id)
+      if (!el) return []
+      const r = el.getBoundingClientRect()
+      return [
+        {
+          id: p.id,
+          cx: r.left + r.width / 2 + window.scrollX,
+          cy: r.top + r.height / 2 + window.scrollY,
+        },
+      ]
+    })
+  }
+
+  const dropNearest = (id: string, offset: Offset) => {
+    const centers = centersRef.current
+    const dragged = centers.find((c) => c.id === id)
+    if (!dragged) return
+
+    const cx = dragged.cx + offset.x
+    const cy = dragged.cy + offset.y
+    const distance = (c: CardCenter) => (c.cx - cx) ** 2 + (c.cy - cy) ** 2
+    const target = centers.reduce((best, c) => (distance(c) < distance(best) ? c : best))
+    if (target.id === id) return
+
+    setOrder((prev) => {
+      const from = prev.findIndex((p) => p.id === id)
+      const to = prev.findIndex((p) => p.id === target.id)
+      const next = [...prev]
+      const [moved] = next.splice(from, 1)
+      next.splice(to, 0, moved)
+      return next
+    })
+  }
 
   return (
     <section id="work" className="work py-24 px-[var(--edge,1.5rem)]">
@@ -95,13 +173,7 @@ export function Work() {
         </dl>
       </article>
 
-      <Reorder.Group
-        as="div"
-        axis="y"
-        values={order}
-        onReorder={setOrder}
-        className="cards flex flex-col gap-6"
-      >
+      <div className="cards grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {order.map((p) => (
           <WorkCard
             key={p.id}
@@ -110,9 +182,12 @@ export function Work() {
             expanded={expandedId === p.id}
             onExpand={() => setExpandedId(p.id)}
             onToggle={() => setExpandedId(expandedId === p.id ? null : p.id)}
+            registerRef={registerRef}
+            onReorderStart={measureCenters}
+            onReorderEnd={dropNearest}
           />
         ))}
-      </Reorder.Group>
+      </div>
 
       <div className="oss mt-20">
         <h3 className="oss-head font-display font-extrabold text-2xl text-slate mb-8">On my own time</h3>
