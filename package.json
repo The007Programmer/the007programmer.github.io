@@ -10,20 +10,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@number-flow/react": "^0.6.2",
-    "@visx/curve": "^4.0.1-alpha.0",
-    "@visx/event": "^4.0.1-alpha.0",
-    "@visx/grid": "^4.0.1-alpha.0",
-    "@visx/responsive": "^4.0.1-alpha.0",
-    "@visx/scale": "^4.0.1-alpha.0",
-    "@visx/shape": "^4.0.1-alpha.0",
-    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "d3-array": "^3.2.4",
-    "d3-shape": "^3.2.0",
-    "lucide-react": "^1.32.0",
     "motion": "^11.11.13",
-    "radix-ui": "^1.6.7",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "tailwind-merge": "^2.5.4"

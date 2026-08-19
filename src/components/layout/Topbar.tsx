@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { motion, useScroll, useSpring } from "motion/react"
 import { cn } from "@/lib/utils"
+import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
 
 export interface TopbarSection { id: string; label: string }
 export interface TopbarProps { sections: TopbarSection[] }
@@ -9,8 +10,10 @@ export function Topbar({ sections }: TopbarProps) {
   const [stuck, setStuck] = useState(false)
   const [active, setActive] = useState<string | null>(null)
   const navRef = useRef<HTMLElement | null>(null)
+  const reduced = useReducedMotionGate()
   const { scrollYProgress } = useScroll()
-  const progressScaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 30 })
+  const smoothed = useSpring(scrollYProgress, { stiffness: 200, damping: 30 })
+  const progressScaleX = reduced ? scrollYProgress : smoothed
 
   useEffect(() => {
     const onScroll = () => setStuck(window.scrollY > 24)

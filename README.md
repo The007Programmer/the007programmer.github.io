@@ -8,11 +8,11 @@ Live at **https://the007programmer.github.io**
 ## How it's built
 
 Vite + React + TypeScript, styled with Tailwind CSS v4 and animated with
-Motion. UI primitives come from KokonutUI and Bklit UI (via `radix-ui` and
-`class-variance-authority`), with `@visx/*` and `d3-shape`/`d3-array` driving
-the charts. This is a GitHub Pages site: a GitHub Actions workflow
-(`.github/workflows/deploy.yml`) builds the site on every push to `main` and
-publishes the output.
+Motion. Every component is hand-written against plain Tailwind — there is no
+component library in the tree, and the runtime dependencies are exactly React,
+Motion, and `clsx`/`tailwind-merge` for the `cn` helper. This is a GitHub Pages
+site: a GitHub Actions workflow (`.github/workflows/deploy.yml`) builds the site
+on every push to `main` and publishes the output.
 
 ```
 index.html          the HTML shell Vite mounts into
@@ -22,12 +22,9 @@ src/
   index.css          global styles, Tailwind entry
   components/
     layout/          topbar, footer
-    sections/        hero, path, timeline, toolkit, work, tally, contact
-    charts/          the time-series chart primitives
-    kokonutui/       KokonutUI components (particle button, mouse effect card)
+    sections/        hero, timeline, work, tally, path, toolkit, contact
     kit/             shared building blocks (action button, project card)
     effects/         cursor and agent-field visual effects
-    ui/              base primitives (button, card)
   data/              content for the timeline, toolkit, and path sections
   hooks/             reusable React hooks
   lib/               utilities (contrast checks, agent-field logic, cn helper)
@@ -41,116 +38,113 @@ public/
 Run it locally with `npm install` then `npm run dev`. `npm run build` type-checks
 and produces the static `dist/` output; `npm run test` runs the Vitest suite.
 
-## The graph
+## The timeline
 
-The hero draws my career as a directed graph, because the edges are real: each
-role was caused by the one before it. Nodes and edges are declared at the top
-of `assets/src/script.js` and hand-placed rather than force-simulated, so the
-layout is identical on every load. Filled nodes are roles; outlined nodes are
-what those roles produced.
+The section under the hero draws my career as a chart, because the relationships
+are real: each role was caused by the one before it. It is a hand-rolled SVG in
+`src/components/sections/Timeline.tsx` over the node and edge lists in
+`src/data/timeline.ts` — a static layout solved from the data on mount, not a
+force simulation. Nothing is draggable and nothing settles, so the figure is
+identical on every load and in every screenshot.
 
-It is drawn on its own paper ground, one section below the hero, and inverted
-to dark-on-light: on the same red field it read as more hero instead of as a
-figure. `--field` on `.figure-section` is the colour the graph is drawn on;
-node boxes and label patches fill with it so edges stop cleanly at the box.
-Move the graph to a different ground and that one variable follows.
+The x axis is time. `monthIndex` turns each node's `YYYY-MM` into a month
+ordinal and the range is mapped linearly across the 960-unit viewBox, so the
+gaps between events are proportional to the real gaps. The y axis is the track:
+`twelvelabs`, `personal`, `school`, each on its own horizontal line.
 
-It is a live force simulation and every node is draggable. Each node hangs from
-an anchor (`ax0`/`ay0`) rather than from its seed: the seed is only where a node
-starts, and dropping a node moves its anchor there, so nothing springs back to
-the layout I wrote. The anchor itself is load-bearing — without it the repulsion
-wins, the graph expands until every box is pinned against the frame, and it
-never cools. It is also what keeps the figure chronological: a force sim has no
-idea that time runs left to right, and unanchored it settles into a radial blob
-around the highest-degree node.
+Because x depends only on the month and the track line depends only on the
+track, two nodes in the same track and month would otherwise land on the same
+point and hide each other. `kind` breaks the tie: `role` and `event` nodes sit
+on the track line, and `artifact` nodes drop into lanes below it — one lane per
+artifact, so a second artifact in the same month drops one lane further. That is
+also what the lanes mean. Roles sit on the track; what those roles produced
+hangs off them. `Timeline.test.tsx` asserts that all nine rendered `(cx, cy)`
+pairs are distinct and that no causal edge has zero length, because jsdom has no
+geometry — every label can be in the DOM while the figure is unreadable.
 
-Every anchor walks a slow lissajous (`DRIFT_A`, `DRIFT_MS`), so the graph is
-always faintly alive and reads as grabbable. Those constants describe the
-*anchor*, not the node: edges and repulsion resist it, so a node travels less
-than its anchor asks for — currently about 13-16px on a 6s cycle. Tune them
-against the real simulation rather than by eye, and check for box overlaps
-afterward; the first values I picked moved a node ~8px over 11 seconds, which
-is indistinguishable from a still image.
+Filled nodes are roles, outlined nodes are artifacts. Edges are drawn coral and
+solid, except `soft: true` edges, which are dashed — the one soft edge is
+"alongside", which is concurrency rather than causation. Hovering an edge
+thickens it and reveals its label at the midpoint.
 
-The wander means the graph never settles, so the loop is gated on an
-IntersectionObserver: it runs while the figure is on screen and stops when it
-isn't. The failsafe that force-starts the build only fires if the observer never
-reports at all — firing it blind started the spawn while the reader was still a
-full screen above the graph.
-Edge rest length is never shorter than the label written on it needs, so the
-layout is obliged to make room for its own annotations.
-
-The constants (`REP`, `K_SPRING`, `K_ANCHOR`, `DAMP`, `GAP`) were solved
-offline against the real node sizes rather than tuned by eye — they reach zero
-energy with no overlapping boxes. If you change them, check convergence rather
-than trusting a screenshot: Chrome's `--virtual-time-budget` does not drive
-`requestAnimationFrame`, so a headless capture of this graph is meaningless.
-`--force-prefers-reduced-motion` solves the layout synchronously and renders it
-once, which is the way to see the settled result.
-
-Below 64rem the SVG is hidden and the vertical trace in `index.html` takes over
-— the same data, readable on a phone. That trace is also what screen readers
-and no-JS visitors get. It is the drawn graph turned on its side and given the
-same vocabulary: boxed nodes filled with `--field`, roles solid, edges ending in
-an arrowhead at the box they cause, and the one soft edge dashed and unarrowed.
-Its spine runs at `--spine` from the left rather than down the middle so edges
-enter and leave the boxes the way the SVG's do; centred, it reads as a flowchart
-instead of as the same figure.
-
-Both forms run oldest to newest. The arrows are causal, so reversing the graph
-would have it claim that each job caused the one that got me there — the project
-cards are newest-first because a reader wants the latest work, but the graph
+The figure runs oldest to newest and the arrows are causal, so reversing it
+would have it claim that each job caused the one that got me there. The project
+cards below are newest-first because a reader wants the latest work, but this
 cannot be, and that is the difference between a list and a figure.
 
-To change the graph, edit `NODES` and `EDGES` in `script.js`, then update the
-`.graph-fallback` list in `index.html` to match.
+To change it, edit `TIMELINE_NODES` and `TIMELINE_EDGES` in
+`src/data/timeline.ts`. `timeline.test.ts` guards chronology and edge direction.
 
 ## Motion
 
-Most of it is in one place: the graph assembles in causal order when it scrolls
-into view. Order comes from the edge list, so adding a role re-times the
-sequence on its own — `STEP` in `script.js` is the only dial.
+Everything animated goes through Motion, and every animated component calls
+`useReducedMotionGate()` (`src/hooks/useReducedMotionGate.tsx`) — the single
+place the site's reduced-motion policy lives. Nothing calls `useReducedMotion()`
+directly, so the policy can change in one edit.
 
-The name decodes from noise on load. Each slot is locked to the width of its
-final letter and only swaps among letters of a similar width, so the name never
-reflows or collides while it resolves. It measures in the real display face, so
-it waits for `document.fonts.ready` — but only for 900ms, after which it skips
-rather than scrambling a name the reader can already see.
+The gate is not "skip the animation," it is "start at the end state." Where a
+component would animate in from `opacity: 0`, the reduced branch passes
+`initial={false}` instead of a start value, so the element renders where the
+animation would have finished rather than sitting invisible forever. `CountUp`
+seeds its motion value at the target. `Hero`'s parallax maps to `[0, 0]`. This
+is the failure mode worth guarding: an element that keys off the animation alone
+disappears the moment the guard says no.
 
-Short monospace labels (the eyebrows) decode left-to-right on reveal. Monospace
-has no width problem, so they need none of the measuring the name does. The
-tally counts up on reveal, with tabular figures so the digits don't jitter as
-they climb.
+The hero parallaxes as ONE block — `useScroll` on `.hero-inner` drives a shared
+`y` and `opacity`. Giving each line its own rate reads as depth for about 200px
+and then the lines converge and overlap, because they share a column and the gap
+between them shrinks by the difference in their rates. The name and the lines
+under it fade up on load, staggered by hand-written delays.
 
-The rest is scroll-triggered and hangs off `[data-reveal]`, which `script.js`
-sets only when it is both able and allowed to animate. Nothing may key off
-`.is-in` alone: the moment that guard says no, anything that did would sit at
-opacity 0 forever. The same goes for `[data-trace]` on the vertical graph, which
-is additionally gated on the viewport being narrow enough to show it — animating
-it wide would strand it invisible for a screen reader walking the page without
-scrolling. Section titles rise out from under their own top edge (the head only
-fades — two moves on one element read as drift); tags and Electra's spec rows
-land after the thing they annotate; each row of the path gets ruled in.
+Scroll-triggered reveals use `useInView(ref, { once: true })` rather than a
+global observer, so each section owns its own trigger and its own threshold: the
+timeline builds its edges and nodes in causal order at `amount: 0.2`, the tally
+counts up at `0.4`, and each row of the path rules itself in with a coral hairline
+at `0.5`. The tally uses tabular figures so the digits don't jitter as they climb.
 
-The narrow-screen graph assembles in causal order like the drawn one, but its
-timing is written out per step rather than computed: `::before` and `::after`
-carry the spine and the arrowheads and can't be reached from script, and one
-step carries an extra branch, so the cadence isn't a formula.
+The work cards carry the only real interaction. Each card is draggable two ways:
+the ⠿ handle starts a free drag that reorders the grid on release, and dragging
+the card body downward past 40px expands it. Reordering is grid-aware —
+`measureCenters` records every card's layout-box centre from `offsetLeft`/
+`offsetTop` at drag start, and `pickNearest` picks the slot closest to where the
+card was released. The measurement is deliberately layout-only: by the time it
+runs, Motion has already flushed the pan-threshold offset onto the dragged card
+and a previous drop's `layout` animation may still be settling on the others, so
+anything transform-aware (`getBoundingClientRect`) measures the wrong thing.
+`pickNearest` and `moveById` are pure module-level functions for exactly this
+reason — the risky logic is unit-tested rather than trapped in a closure.
 
-The hero parallaxes as ONE block (`data-parallax` on `.hero-inner`) and fades
-out. Giving each line its own rate reads as depth for about 200px and then the
-lines converge and overlap — they share a column, so the gap between them
-shrinks by the difference in their rates.
+Distinguishing the expand-drag from a tap needs care: `onTap` fires after
+`onDragEnd`, so a `didDragRef` flag is set on drag end and cleared in
+`frame.postRender` — Motion's own scheduler — rather than on a timeout. A timing
+bet would work until it didn't.
 
-`prefers-reduced-motion` skips the scramble, the parallax, and the graph build.
+The topbar's scroll-progress bar smooths `scrollYProgress` through a spring;
+under reduced motion it reads the raw progress value instead, so the bar tracks
+scroll exactly rather than lagging behind it.
+
+Two ambient layers sit outside `<main>`: `AgentField` renders 90 agents on a
+fixed canvas at `z-[1]`, taking their colour from whichever section band they
+are over, and `CursorEffect` paints a radial signal-red glow at `z-[3]`. Both
+return `null` under reduced motion. The glow composites over text as well as
+background, so its alpha is capped at the value that keeps every shipped colour
+pairing above 4.5:1 at the gradient's centre — `contrast.test.ts` checks the
+composited ratios, not just the flat ones.
 
 ## Design
 
 Red-forward and bright; slate `#39434F` is the darkest tone on the site. The
-field red `#D62B22` is picked so it clears WCAG AA (4.5:1) against the paper
-`#FFF1ED` in both directions — white on red in the hero, red on white for small
-text elsewhere. Type is Bricolage Grotesque (display), Instrument Sans (body),
-and Martian Mono (labels and data).
+signal red `#C4261E` is picked so it clears WCAG AA (4.5:1) against the paper
+`#FFF1ED` in both directions — paper on red in the hero, red on paper for small
+text elsewhere — with enough headroom left over that the cursor glow compositing
+on top of it does not push the pairing under. Type is Archivo (display), Abril
+Fatface with STIX Two Text as its serif fallback (body), and Martian Mono
+(labels and data).
+
+Every pairing that ships is checked numerically rather than by eye.
+`src/lib/contrast.ts` implements the WCAG relative-luminance formula and
+`contrast.test.ts` asserts a ratio for each one, including one pairing that is
+expected to *fail* so the check cannot go tautological.
 
 ## Commits key
 
