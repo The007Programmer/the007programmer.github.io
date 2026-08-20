@@ -3,18 +3,21 @@ import { useInView } from "motion/react"
 import { TIMELINE_NODES, TIMELINE_EDGES, type TimelineTrack } from "@/data/timeline"
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
 
-const TRACK_Y: Record<TimelineTrack, number> = { twelvelabs: 90, personal: 290, school: 445 }
+const TRACK_Y: Record<TimelineTrack, number> = { twelvelabs: 95, personal: 315, school: 500 }
 const TRACK_LABEL: Record<TimelineTrack, string> = { twelvelabs: "TwelveLabs", personal: "Personal / OSS", school: "School" }
 
 const BOX_H = 40
-const ARTIFACT_LANE = 68
+const ARTIFACT_LANE = 76
 const NODE_X_MIN = 150
 const NODE_X_SPAN = 700
-const CHAR_W = 7.1
+// Measured, not guessed: Martian Mono advances 0.682em, so at 12px a glyph is
+// 8.18 user units. The old 7.1 was a generic-monospace figure, which made every
+// box too narrow — the longest label rendered wider than the box drawn for it.
+const CHAR_W = 8.2
 const BOX_PAD = 14
 
 const VIEW_W = 1000
-const VIEW_H = 510
+const VIEW_H = 570
 
 // Every node is sprung to its seed position, so the figure always returns to a
 // layout that reads. Without the anchor, repulsion wins and the graph wanders
@@ -33,8 +36,14 @@ const V_MAX = 5
 const DRIFT_A = 7
 const DRIFT_W = 0.00028
 
-function boxWidth(label: string): number {
-  return Math.max(label.length * CHAR_W + BOX_PAD * 2, 90)
+// A box has to hold both of its lines. Sizing on the title alone let a node
+// whose sub-line was longer than its name render text straight out through the
+// side of its own box.
+const SUB_CHAR_W = 6.6 // 9px Martian Mono plus the 0.025em tracking
+
+function boxWidth(label: string, sub: string): number {
+  const text = Math.max(label.length * CHAR_W, sub.length * SUB_CHAR_W)
+  return Math.max(text + BOX_PAD * 2, 90)
 }
 
 function monthIndex(date: string): number {
@@ -42,7 +51,7 @@ function monthIndex(date: string): number {
   return y * 12 + m
 }
 
-const EDGE_LABEL_CH = 5.9
+const EDGE_LABEL_CH = 6.85 // 0.682em at the 10px edge-label size
 const EDGE_LABEL_H = 12
 
 interface Box { x: number; y: number; w: number; h: number }
@@ -53,30 +62,45 @@ function hits(a: Box, b: Box): boolean {
 
 // A label pinned to the midpoint lands on top of whichever box the edge runs
 // into whenever the edge is short or steeply diagonal. Walk along the edge (and
-// to either side of it) and take the first placement that clears every box.
+// to either side of it) and take the first placement that clears every
+// obstacle. Obstacles include the labels already placed this pass: clearing only
+// the node boxes let three labels around a short edge stack on each other, and
+// with the halo turned on that reads as a label chewing a hole in a box border.
 function placeLabel(
   label: string,
   x1: number, y1: number, x2: number, y2: number,
   obstacles: Box[],
-): { x: number; y: number } {
+): { x: number; y: number; box: Box } {
   const w = label.length * EDGE_LABEL_CH
   const vx = x2 - x1
   const vy = y2 - y1
   const len = Math.hypot(vx, vy) || 1
   const nx = -vy / len
   const ny = vx / len
-  const ts = [0.5, 0.62, 0.38, 0.72, 0.28, 0.82, 0.2]
-  const offs = [13, -13, 22, -22, 32, -32]
+  const ts = [0.5, 0.62, 0.38, 0.72, 0.28, 0.82, 0.2, 0.9, 0.1]
+  // A short edge boxed in on both sides needs to reach past a whole node box —
+  // roughly half the widest box plus half the label — before it finds clear
+  // air, so the ladder runs well past the hugging distances.
+  const offs = [13, -13, 22, -22, 32, -32, 44, -44, 58, -58, 76, -76, 96, -96]
+  const boxAt = (cx: number, cy: number): Box =>
+    ({ x: cx - w / 2 - 3, y: cy - EDGE_LABEL_H / 2 - 2, w: w + 6, h: EDGE_LABEL_H + 4 })
 
-  for (const t of ts) {
-    for (const off of offs) {
+  // Offset-major: slide along the edge at every distance before stepping
+  // further away from it, so a label never drifts off into space when a nearer
+  // spot further along the line was free.
+  for (const off of offs) {
+    for (const t of ts) {
       const cx = x1 + vx * t + nx * off
       const cy = y1 + vy * t + ny * off
-      const box: Box = { x: cx - w / 2, y: cy - EDGE_LABEL_H / 2, w, h: EDGE_LABEL_H }
-      if (!obstacles.some((o) => hits(box, o))) return { x: cx, y: cy }
+      const box = boxAt(cx, cy)
+      if (box.x < 4 || box.x + box.w > VIEW_W - 4) continue
+      if (box.y < 4 || box.y + box.h > VIEW_H - 4) continue
+      if (!obstacles.some((o) => hits(box, o))) return { x: cx, y: cy, box }
     }
   }
-  return { x: x1 + vx * 0.5 + nx * 13, y: y1 + vy * 0.5 + ny * 13 }
+  const fx = x1 + vx * 0.5 + nx * 13
+  const fy = y1 + vy * 0.5 + ny * 13
+  return { x: fx, y: fy, box: boxAt(fx, fy) }
 }
 
 interface Seed { id: string; label: string; sub: string; kind: string; ax0: number; ay0: number; w: number }
@@ -119,7 +143,7 @@ export function Timeline() {
         lane = (laneTaken.get(slot) ?? 0) + 1
         laneTaken.set(slot, lane)
       }
-      const w = boxWidth(n.label)
+      const w = boxWidth(n.label, n.sub)
       const rawX = NODE_X_MIN + ((monthIndex(n.date) - minX) / Math.max(maxX - minX, 1)) * NODE_X_SPAN
       return {
         id: n.id, label: n.label, sub: n.sub, kind: n.kind,
@@ -139,13 +163,19 @@ export function Timeline() {
   // Seed geometry drives the initial render, so the markup is a correct,
   // readable layout before a single frame runs (and in a test environment,
   // where no frame ever runs).
-  const seedEdges = useMemo(() => TIMELINE_EDGES.map((e) => {
-    const f = seeds[indexById.get(e.from)!]
-    const t = seeds[indexById.get(e.to)!]
-    const a = anchorPair(f.ax0, f.ay0, f.w, t.ax0, t.ay0, t.w)
-    const boxes = seeds.map((s) => ({ x: s.ax0 - s.w / 2 - 4, y: s.ay0 - BOX_H / 2 - 4, w: s.w + 8, h: BOX_H + 8 }))
-    return { ...e, ...a, text: e.label, label: placeLabel(e.label, a.x1, a.y1, a.x2, a.y2, boxes) }
-  }), [seeds, indexById])
+  const seedEdges = useMemo(() => {
+    const obstacles: Box[] = seeds.map((s) => ({
+      x: s.ax0 - s.w / 2 - 4, y: s.ay0 - BOX_H / 2 - 4, w: s.w + 8, h: BOX_H + 8,
+    }))
+    return TIMELINE_EDGES.map((e) => {
+      const f = seeds[indexById.get(e.from)!]
+      const t = seeds[indexById.get(e.to)!]
+      const a = anchorPair(f.ax0, f.ay0, f.w, t.ax0, t.ay0, t.w)
+      const placed = placeLabel(e.label, a.x1, a.y1, a.x2, a.y2, obstacles)
+      obstacles.push(placed.box)
+      return { ...e, ...a, text: e.label, label: placed }
+    })
+  }, [seeds, indexById])
 
   const nodeRefs = useRef<(SVGGElement | null)[]>([])
   const edgeRefs = useRef<(SVGLineElement | null)[]>([])
@@ -211,7 +241,7 @@ export function Timeline() {
         if (g) g.setAttribute("transform", `translate(${(sim[i].x - seeds[i].ax0).toFixed(2)},${(sim[i].y - seeds[i].ay0).toFixed(2)})`)
       }
 
-      const boxes: Box[] = sim.map((n, i) => ({
+      const obstacles: Box[] = sim.map((n, i) => ({
         x: n.x - seeds[i].w / 2 - 4, y: n.y - BOX_H / 2 - 4, w: seeds[i].w + 8, h: BOX_H + 8,
       }))
 
@@ -226,7 +256,8 @@ export function Timeline() {
         }
         const lb = edgeLabelRefs.current[i]
         if (lb) {
-          const p = placeLabel(e.label, a.x1, a.y1, a.x2, a.y2, boxes)
+          const p = placeLabel(e.label, a.x1, a.y1, a.x2, a.y2, obstacles)
+          obstacles.push(p.box)
           lb.setAttribute("x", p.x.toFixed(2)); lb.setAttribute("y", (p.y + 3).toFixed(2))
         }
       })

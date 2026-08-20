@@ -1,6 +1,6 @@
 import { motion } from "motion/react"
 import { ActionButton } from "@/components/kit/ActionButton"
-import { Reveal } from "@/components/kit/Reveal"
+import { Reveal, RiseText, Stagger, StaggerItem } from "@/components/kit/Reveal"
 
 const LINKS = [
   { href: "mailto:aahils2019@gmail.com", label: "aahils2019@gmail.com" },
@@ -16,15 +16,22 @@ export function Contact() {
   return (
     <section id="contact" className="contact bg-ember text-paper py-20 px-[var(--edge,1.5rem)]">
       <div className="contact-grid grid md:grid-cols-2 gap-16 max-w-[1100px] mx-auto">
-        <Reveal className="contact-pitch">
-          <p className="eyebrow font-mono text-[0.6875rem] uppercase tracking-wide mb-5">Contact</p>
-          <h2 className="contact-title font-display font-extrabold text-5xl mb-6">Say something<br />interesting.</h2>
-          <p className="contact-copy max-w-[42ch] mb-8">
-            Agents, graph memory, video models, or a problem that doesn&rsquo;t have a name yet — I read everything that comes through here.
-          </p>
-          <ul className="contact-links flex flex-col gap-3 font-mono text-sm">
+        <div className="contact-pitch">
+          <Reveal>
+            <p className="eyebrow font-mono text-[0.6875rem] uppercase tracking-wide mb-5">Contact</p>
+          </Reveal>
+          <h2 className="contact-title font-display font-extrabold text-5xl mb-6">
+            <RiseText delay={0.06}>Say something</RiseText>
+            <RiseText delay={0.16}>interesting.</RiseText>
+          </h2>
+          <Reveal delay={0.24}>
+            <p className="contact-copy max-w-[42ch] mb-8">
+              Agents, graph memory, video models, or a problem that doesn&rsquo;t have a name yet — I read everything that comes through here.
+            </p>
+          </Reveal>
+          <Stagger as="ul" className="contact-links flex flex-col gap-3 font-mono text-sm" gap={0.06} delay={0.3}>
             {LINKS.map((l) => (
-              <li key={l.href}>
+              <StaggerItem as="li" key={l.href} y={10}>
                 <motion.a
                   href={l.href}
                   className="inline-block hover:text-coral transition-colors"
@@ -33,38 +40,41 @@ export function Contact() {
                 >
                   {l.label}
                 </motion.a>
-              </li>
+              </StaggerItem>
             ))}
-          </ul>
-        </Reveal>
+          </Stagger>
+        </div>
 
-        <Reveal
+        <Stagger
           as="form"
+          gap={0.08}
           delay={0.1}
           className="form flex flex-col gap-5"
           action="https://formsubmit.co/aahils2019@gmail.com"
           method="POST"
         >
-          <div className="field flex flex-col gap-1">
+          <StaggerItem className="field flex flex-col gap-1" y={14}>
             <label htmlFor="name">Name</label>
             <input id="name" type="text" name="name" required autoComplete="name" className={FIELD_CLS} />
-          </div>
-          <div className="field flex flex-col gap-1">
+          </StaggerItem>
+          <StaggerItem className="field flex flex-col gap-1" y={14}>
             <label htmlFor="email">Email</label>
             <input id="email" type="email" name="email" required autoComplete="email" className={FIELD_CLS} />
-          </div>
-          <div className="field flex flex-col gap-1">
+          </StaggerItem>
+          <StaggerItem className="field flex flex-col gap-1" y={14}>
             <label htmlFor="message">Message</label>
             <textarea id="message" name="message" rows={5} required className={FIELD_CLS} />
-          </div>
+          </StaggerItem>
           <input type="text" name="_honey" style={{ display: "none" }} tabIndex={-1} aria-hidden="true" />
           <input type="hidden" name="_captcha" value="true" />
           <input type="hidden" name="_subject" value="New Contact Form Submission" />
           <input type="hidden" name="_template" value="table" />
           <input type="hidden" name="_next" value="https://the007programmer.github.io/thanks.html" />
           <input type="hidden" name="_autoresponse" value="Thanks for your message. I'll get back to you soon. — Aahil" />
-          <ActionButton type="submit">Send message</ActionButton>
-        </Reveal>
+          <StaggerItem y={14}>
+            <ActionButton type="submit" variant="invert">Send message</ActionButton>
+          </StaggerItem>
+        </Stagger>
       </div>
     </section>
   )

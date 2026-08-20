@@ -5,6 +5,14 @@ import { TIMELINE_NODES, TIMELINE_EDGES } from '@/data/timeline'
 
 const VIEW_W = 1000
 const BOX_H = 40
+const EDGE_LABEL_CH = 6.85
+const EDGE_LABEL_H = 12
+
+interface Rect { x: number; y: number; w: number; h: number }
+
+function overlaps(a: Rect, b: Rect): boolean {
+  return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h
+}
 
 function boxes(container: HTMLElement) {
   // The three track rules are <line>s; node boxes are the only <rect>s.
@@ -75,6 +83,35 @@ describe('Timeline', () => {
       const from = `${line.getAttribute('x1')},${line.getAttribute('y1')}`
       const to = `${line.getAttribute('x2')},${line.getAttribute('y2')}`
       expect(from).not.toBe(to)
+    }
+  })
+
+  // Labels used to clear only the node boxes, so several crowding one short
+  // edge stacked on top of each other — and with the halo on, a label sitting
+  // over a box border eats a hole in it.
+  it('places every edge label clear of every node box and of every other label', () => {
+    const { container } = render(<Timeline />)
+    const rects = boxes(container)
+    const labels = Array.from(container.querySelectorAll('text'))
+      .filter((t) => TIMELINE_EDGES.some((e) => e.label === t.textContent))
+      .map((t) => {
+        const w = (t.textContent ?? '').length * EDGE_LABEL_CH
+        const cx = Number(t.getAttribute('x'))
+        const cy = Number(t.getAttribute('y')) - 3
+        return { x: cx - w / 2, y: cy - EDGE_LABEL_H / 2, w, h: EDGE_LABEL_H, text: t.textContent }
+      })
+    expect(labels).toHaveLength(TIMELINE_EDGES.length)
+
+    for (const l of labels) {
+      for (const r of rects) {
+        expect(`${l.text} vs box: ${overlaps(l, r)}`).toBe(`${l.text} vs box: false`)
+      }
+    }
+    for (let i = 0; i < labels.length; i++) {
+      for (let j = i + 1; j < labels.length; j++) {
+        expect(`${labels[i].text} vs ${labels[j].text}: ${overlaps(labels[i], labels[j])}`)
+          .toBe(`${labels[i].text} vs ${labels[j].text}: false`)
+      }
     }
   })
 

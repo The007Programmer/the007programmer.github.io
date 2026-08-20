@@ -8,7 +8,8 @@ export interface FieldOpts { w: number; h: number; n: number; seed?: number }
 export interface Field {
   agents: Agent[]
   step: (dt: number) => void
-  setRepulsors: (rects: Rect[]) => void
+  setRepulsors: (rects: Rect[], hard?: boolean) => void
+  setBounds: (w: number, h: number, n: number) => void
 }
 
 export const STANDOFF = 10 // px of clear air around glyphs
@@ -18,8 +19,9 @@ export const STANDOFF = 10 // px of clear air around glyphs
 const BAND_SEL = "main > section, footer"
 const TEXT_SEL = [
   ".topbar", ".hero-name", ".hero-thesis", ".hero-meta", ".eyebrow",
-  ".section-title", ".card-title", ".card-desc",
-  ".feature h3", ".feature p",
+  ".section-title", ".project-card",
+  ".feature h3", ".feature p", ".spec-row",
+  ".oss-head", ".oss-item",
   ".tally-num", ".tally-label", ".tally-note",
   ".ledger-when", ".ledger-what",
   ".kit-group", ".contact-title", ".contact-copy", ".contact-links",
@@ -27,12 +29,22 @@ const TEXT_SEL = [
   ".foot-name", ".foot-meta",
 ].join(",")
 
+// Everything the field knows about lives in DOCUMENT space, not viewport space.
+// getBoundingClientRect is viewport-relative, so it gets the scroll offset added
+// back on. A field measured in viewport coordinates is pinned to the glass: it
+// looks identical at every scroll position, which reads as a static overlay
+// rather than a layer belonging to the page.
+function scrollTop(): number {
+  return window.scrollY || document.documentElement.scrollTop || 0
+}
+
 export function readBands(): Band[] {
   const out: Band[] = []
+  const sy = scrollTop()
   document.querySelectorAll(BAND_SEL).forEach((el) => {
     const r = el.getBoundingClientRect()
     if (r.height <= 0) return
-    out.push({ top: r.top, bottom: r.bottom, colour: window.getComputedStyle(el).color })
+    out.push({ top: r.top + sy, bottom: r.bottom + sy, colour: window.getComputedStyle(el).color })
   })
   return out
 }
@@ -46,10 +58,16 @@ export function colourAt(bands: Band[], y: number): string {
 
 export function readRepulsors(): Rect[] {
   const out: Rect[] = []
+  const sy = scrollTop()
   document.querySelectorAll(TEXT_SEL).forEach((el) => {
     const r = el.getBoundingClientRect()
     if (r.width <= 0 || r.height <= 0) return
-    out.push({ left: r.left - STANDOFF, top: r.top - STANDOFF, right: r.right + STANDOFF, bottom: r.bottom + STANDOFF })
+    out.push({
+      left: r.left - STANDOFF,
+      top: r.top + sy - STANDOFF,
+      right: r.right + STANDOFF,
+      bottom: r.bottom + sy + STANDOFF,
+    })
   })
   return out
 }
@@ -60,11 +78,25 @@ export function readRepulsors(): Rect[] {
 const FRAME_MS = 1000 / 60
 
 const SEP = 300, SEP_R = 46, ALIGN = 0.04, COH = 0.0004, NEAR = 150
-const WANDER = 0.035, REP = 1.1, DAMP = 0.92, V_MAX = 0.42
+const WANDER = 0.035, REP = 2.6, DAMP = 0.92, V_MAX = 0.5
+// An agent that has drifted onto a glyph is allowed to sprint until it is off
+// again. At the ambient speed cap crossing a line of type takes about a second,
+// which is long enough to read as a speck sitting on the word.
+const ESCAPE_MULT = 3
 // A hard basin at the rim is what piles agents into the corners: two axes push
 // at once wherever the margins overlap. Keep it gentle and start it further in.
 const EDGE = 110, EDGE_K = 0.0016
 const TRUST_DECAY = 0.02, TRUST_RECOVER = 0.012, TRUST_FLOOR = 0.06
+
+// The neighbour search is the whole cost of the sim, and a document-space field
+// carries several times the population a one-viewport field did. Bucketing by
+// the interaction radius turns the pair loop from O(n^2) into a walk over the
+// nine cells that can actually be within NEAR.
+const CELL = NEAR
+const GRID_SPAN = 1 << 14
+function cellKey(x: number, y: number): number {
+  return (Math.floor(x / CELL) + 4096) * GRID_SPAN + (Math.floor(y / CELL) + 4096)
+}
 
 function mulberry32(a: number) {
   return function () {
@@ -76,22 +108,38 @@ function mulberry32(a: number) {
 }
 
 export function createField(opts: FieldOpts): Field {
-  const { w, h } = opts
+  let w = opts.w
+  let h = opts.h
   const rnd = mulberry32(opts.seed ?? 1)
   const agents: Agent[] = []
   let rects: Rect[] = []
   let clock = 0
+  let nextId = 0
 
-  for (let i = 0; i < opts.n; i++) {
-    agents.push({
-      x: EDGE + rnd() * (w - 2 * EDGE),
-      y: EDGE + rnd() * (h - 2 * EDGE),
+  const grid = new Map<number, Agent[]>()
+
+  function spawn(): Agent {
+    return {
+      x: rnd() * w,
+      y: rnd() * h,
       vx: (rnd() - 0.5) * 0.6,
       vy: (rnd() - 0.5) * 0.6,
-      id: i,
+      id: nextId++,
       phase: rnd() * Math.PI * 2,
       trust: rnd(),
-    })
+    }
+  }
+  for (let i = 0; i < opts.n; i++) agents.push(spawn())
+
+  function setBounds(nw: number, nh: number, n: number) {
+    w = nw
+    h = nh
+    while (agents.length < n) agents.push(spawn())
+    if (agents.length > n) agents.length = n
+    for (const a of agents) {
+      if (a.x > w) a.x = rnd() * w
+      if (a.y > h) a.y = rnd() * h
+    }
   }
 
   function escapeTarget(pos: number, other: number, axisIsY: boolean, dir: number): number {
@@ -139,9 +187,23 @@ export function createField(opts: FieldOpts): Field {
     }
   }
 
-  function setRepulsors(next: Rect[]) {
+  // `hard` snaps anything already sitting inside a glyph straight out, which is
+  // what the initial seed needs. Re-running it on every refresh teleports agents
+  // mid-flight — a visible pop several times a second — so routine refreshes
+  // just swap the rects and let the soft push do the work.
+  function setRepulsors(next: Rect[], hard = true) {
     rects = next || []
-    ejectFromRects()
+    if (hard) ejectFromRects()
+  }
+
+  function rebuildGrid() {
+    grid.clear()
+    for (const a of agents) {
+      const k = cellKey(a.x, a.y)
+      const bucket = grid.get(k)
+      if (bucket) bucket.push(a)
+      else grid.set(k, [a])
+    }
   }
 
   function step(dt: number) {
@@ -149,17 +211,27 @@ export function createField(opts: FieldOpts): Field {
     // Frames, not milliseconds — every constant above is per-frame.
     const f = Math.min(dt / FRAME_MS, 3)
     const damp = Math.pow(DAMP, f)
+    rebuildGrid()
+
     for (const a of agents) {
       let ax = 0, ay = 0, cx = 0, cy = 0, hx = 0, hy = 0, n = 0
 
-      for (const b of agents) {
-        if (a === b) continue
-        const dx = a.x - b.x, dy = a.y - b.y
-        const d2 = dx * dx + dy * dy
-        if (d2 > NEAR * NEAR || d2 === 0) continue
-        const d = Math.sqrt(d2)
-        if (d < SEP_R) { ax += (dx / d) * (SEP / d2); ay += (dy / d) * (SEP / d2) }
-        cx += b.x; cy += b.y; hx += b.vx; hy += b.vy; n++
+      const gx = Math.floor(a.x / CELL)
+      const gy = Math.floor(a.y / CELL)
+      for (let ox = -1; ox <= 1; ox++) {
+        for (let oy = -1; oy <= 1; oy++) {
+          const bucket = grid.get((gx + ox + 4096) * GRID_SPAN + (gy + oy + 4096))
+          if (!bucket) continue
+          for (const b of bucket) {
+            if (a === b) continue
+            const dx = a.x - b.x, dy = a.y - b.y
+            const d2 = dx * dx + dy * dy
+            if (d2 > NEAR * NEAR || d2 === 0) continue
+            const d = Math.sqrt(d2)
+            if (d < SEP_R) { ax += (dx / d) * (SEP / d2); ay += (dy / d) * (SEP / d2) }
+            cx += b.x; cy += b.y; hx += b.vx; hy += b.vy; n++
+          }
+        }
       }
 
       if (n > 0) {
@@ -177,8 +249,11 @@ export function createField(opts: FieldOpts): Field {
       ax += Math.sin(clock * 0.0016 + a.phase) * WANDER
       ay += Math.cos(clock * 0.0013 + a.phase * 1.7) * WANDER
 
+      let trapped = false
       for (const r of rects) {
-        if (a.x <= r.left || a.x >= r.right || a.y <= r.top || a.y >= r.bottom) continue
+        if (a.y <= r.top || a.y >= r.bottom) continue
+        if (a.x <= r.left || a.x >= r.right) continue
+        trapped = true
         const dl = a.x - r.left, dr = r.right - a.x, dtp = a.y - r.top, db = r.bottom - a.y
         const m = Math.min(dl, dr, dtp, db)
         if (m === dl) ax -= REP
@@ -194,8 +269,9 @@ export function createField(opts: FieldOpts): Field {
 
       a.vx = (a.vx + ax * f) * damp
       a.vy = (a.vy + ay * f) * damp
+      const cap = trapped ? V_MAX * ESCAPE_MULT : V_MAX
       const sp = Math.sqrt(a.vx * a.vx + a.vy * a.vy)
-      if (sp > V_MAX) { a.vx = (a.vx / sp) * V_MAX; a.vy = (a.vy / sp) * V_MAX }
+      if (sp > cap) { a.vx = (a.vx / sp) * cap; a.vy = (a.vy / sp) * cap }
       a.x += a.vx * f
       a.y += a.vy * f
 
@@ -211,5 +287,5 @@ export function createField(opts: FieldOpts): Field {
     // is the same ink the glyph is, not a contrast loss.
   }
 
-  return { agents, step, setRepulsors }
+  return { agents, step, setRepulsors, setBounds }
 }

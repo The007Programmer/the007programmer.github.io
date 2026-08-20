@@ -2,7 +2,7 @@ import { useRef, useState } from "react"
 import { motion, useDragControls, useMotionValue, useTransform, frame } from "motion/react"
 import { ProjectCard } from "@/components/kit/ProjectCard"
 import { ELECTRA, PROJECT_CARDS, OSS_ITEMS, type ProjectCardData } from "@/data/work"
-import { Reveal } from "@/components/kit/Reveal"
+import { Reveal, RiseText, Stagger, StaggerItem } from "@/components/kit/Reveal"
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
 
 export interface Offset {
@@ -163,49 +163,67 @@ export function Work() {
 
   return (
     <section id="work" className="work py-20 px-[var(--edge,1.5rem)]">
-      <Reveal className="section-head mb-10">
-        <p className="eyebrow eyebrow-dark font-mono text-[0.6875rem] uppercase tracking-wide text-ember mb-5">Work</p>
-        <h2 className="section-title font-display font-extrabold text-[clamp(2.5rem,7vw,5rem)] tracking-[-0.035em] text-slate">What I shipped</h2>
-      </Reveal>
+      <div className="section-head mb-10">
+        <Reveal>
+          <p className="eyebrow eyebrow-dark font-mono text-[0.6875rem] uppercase tracking-wide text-ember mb-5">Work</p>
+        </Reveal>
+        <RiseText
+          as="h2"
+          delay={0.08}
+          className="section-title font-display font-extrabold text-[clamp(2.5rem,7vw,5rem)] tracking-[-0.035em] text-slate"
+        >
+          What I shipped
+        </RiseText>
+      </div>
 
-      <article className="feature grid md:grid-cols-2 gap-10 mb-12">
-        <div>
+      <Stagger as="article" className="feature grid md:grid-cols-2 gap-10 mb-12" gap={0.09}>
+        <StaggerItem>
           <p className="stamp font-mono text-[0.6875rem] uppercase text-slate-2 mb-2">{ELECTRA.stamp}</p>
           <h3 className="font-display font-extrabold text-3xl text-slate mb-3">{ELECTRA.title}</h3>
           <p className="text-slate-2 mb-3">{ELECTRA.lede}</p>
           <p className="note text-mute text-sm">{ELECTRA.note}</p>
-        </div>
-        <dl className="spec grid gap-6">
+        </StaggerItem>
+        <StaggerItem as="dl" className="spec grid gap-6">
           {ELECTRA.rows.map((row) => (
             <div key={row.label} className="spec-row">
               <dt className="font-mono text-xs uppercase text-ember mb-1">{row.label}</dt>
               <dd className="text-slate-2">{row.body}</dd>
             </div>
           ))}
-        </dl>
-      </article>
+        </StaggerItem>
+      </Stagger>
 
-      <div className="cards grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <Stagger className="cards grid gap-6 sm:grid-cols-2 lg:grid-cols-3" gap={0.06}>
         {order.map((p) => (
-          <WorkCard
-            key={p.id}
-            project={p}
-            reduced={reduced}
-            expanded={expandedId === p.id}
-            onExpand={() => setExpandedId(p.id)}
-            onToggle={() => setExpandedId(expandedId === p.id ? null : p.id)}
-            registerRef={registerRef}
-            onReorderStart={measureCenters}
-            onReorderEnd={dropNearest}
-          />
+          // The entrance lives on a wrapper, not on the card: the card owns a
+          // drag `y` motion value and a layout animation for reordering, and a
+          // variant animating the same `y` would fight both.
+          <StaggerItem key={p.id}>
+            <WorkCard
+              project={p}
+              reduced={reduced}
+              expanded={expandedId === p.id}
+              onExpand={() => setExpandedId(p.id)}
+              onToggle={() => setExpandedId(expandedId === p.id ? null : p.id)}
+              registerRef={registerRef}
+              onReorderStart={measureCenters}
+              onReorderEnd={dropNearest}
+            />
+          </StaggerItem>
         ))}
-      </div>
+      </Stagger>
 
       <div className="oss mt-20">
-        <h3 className="oss-head font-display font-extrabold text-2xl text-slate mb-8">On my own time</h3>
-        <ul className="oss-list grid gap-6">
+        <RiseText as="h3" className="oss-head font-display font-extrabold text-2xl text-slate mb-8">
+          On my own time
+        </RiseText>
+        <Stagger as="ul" className="oss-list grid gap-6" gap={0.07}>
           {OSS_ITEMS.map((item) => (
-            <li key={item.id} className="oss-item flex justify-between gap-6 border-b border-slate/10 pb-6">
+            <StaggerItem
+              as="li"
+              key={item.id}
+              className="oss-item flex justify-between gap-6 border-b border-slate/10 pb-6"
+            >
               <div>
                 <h4 className="font-display font-bold text-xl text-slate">{item.title}</h4>
                 <p className="text-slate-2 mt-1">{item.desc}</p>
@@ -220,9 +238,9 @@ export function Work() {
                   </a>
                 )}
               </div>
-            </li>
+            </StaggerItem>
           ))}
-        </ul>
+        </Stagger>
       </div>
     </section>
   )

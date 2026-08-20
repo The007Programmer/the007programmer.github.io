@@ -17,7 +17,7 @@ export function ProjectCard({ title, stamp, desc, tags, link, className }: Proje
   return (
     <motion.article
       className={cn(
-        "rounded-sm border border-slate/10 bg-paper-2 p-6 flex flex-col gap-3",
+        "project-card rounded-sm border border-slate/10 bg-paper-2 p-6 flex flex-col gap-3",
         className
       )}
       whileHover={reduced ? undefined : { y: -4, boxShadow: "0 12px 24px -12px rgba(57,67,79,0.35)" }}

@@ -1,6 +1,7 @@
 import { motion, useScroll, useTransform } from "motion/react"
 import { useRef } from "react"
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
+import { RiseText } from "@/components/kit/Reveal"
 
 export function Hero() {
   const ref = useRef<HTMLDivElement | null>(null)
@@ -21,22 +22,8 @@ export function Hero() {
           Applied AI &amp; systems
         </motion.p>
         <h1 className="hero-name font-display font-extrabold text-[clamp(4rem,15vw,12rem)] tracking-[-0.055em] leading-[0.95] mb-8">
-          <motion.span
-            initial={reduced ? false : { opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut", delay: 0.1 }}
-            className="line block"
-          >
-            Aahil
-          </motion.span>
-          <motion.span
-            initial={reduced ? false : { opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut", delay: 0.22 }}
-            className="line block"
-          >
-            Shaikh
-          </motion.span>
+          <RiseText className="line block" delay={0.08}>Aahil</RiseText>
+          <RiseText className="line block" delay={0.2}>Shaikh</RiseText>
         </h1>
         <motion.p
           initial={reduced ? false : { opacity: 0, y: 14 }}
