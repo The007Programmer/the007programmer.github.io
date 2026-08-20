@@ -9,23 +9,36 @@ const LINKS = [
   { href: "/assets/aahil-shaikh-resume.pdf", label: "Résumé (PDF)" },
 ]
 
+// A control needs a boundary you can actually see. `border-transparent` on a
+// fill matching the section left these fields literally invisible on the dark
+// ground; --color-edge is the token that clears WCAG 1.4.11's 3:1 for
+// non-text UI, and the fill is lifted off the section so the box reads as a box.
 const FIELD_CLS =
-  "bg-paper text-slate rounded-sm px-3 py-2 outline-none border border-transparent focus:border-coral transition-colors"
+  "bg-ink-2 text-chalk rounded-sm px-3 py-2 outline-none border border-edge " +
+  "focus:border-signal focus:ring-1 focus:ring-signal transition-colors"
 
 export function Contact() {
   return (
-    <section id="contact" className="contact bg-ember text-paper py-20 px-[var(--edge,1.5rem)]">
+    <section id="contact" className="contact relative isolate bg-void text-chalk py-24 px-[var(--edge,1.5rem)] overflow-hidden">
+      {/* A flat red band would force every ink on this section to be pure chalk
+          — coral, chalk-2 and mute all fail AA on ember. A glow keeps the red
+          present as light rather than as a surface, so the full palette works. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10"
+        style={{ background: "radial-gradient(ellipse 70% 80% at 50% 115%, rgba(255,91,79,0.28), transparent 70%)" }}
+      />
       <div className="contact-grid grid md:grid-cols-2 gap-16 max-w-[1100px] mx-auto">
         <div className="contact-pitch">
           <Reveal>
-            <p className="eyebrow font-mono text-[0.6875rem] uppercase tracking-wide mb-5">Contact</p>
+            <p className="eyebrow font-mono text-[0.6875rem] uppercase tracking-wide text-signal mb-5">Contact</p>
           </Reveal>
           <h2 className="contact-title font-display font-extrabold text-5xl mb-6">
             <RiseText delay={0.06}>Say something</RiseText>
             <RiseText delay={0.16}>interesting.</RiseText>
           </h2>
           <Reveal delay={0.24}>
-            <p className="contact-copy max-w-[42ch] mb-8">
+            <p className="contact-copy max-w-[42ch] text-chalk-2 mb-8">
               Agents, graph memory, video models, or a problem that doesn&rsquo;t have a name yet — I read everything that comes through here.
             </p>
           </Reveal>
@@ -72,7 +85,7 @@ export function Contact() {
           <input type="hidden" name="_next" value="https://the007programmer.github.io/thanks.html" />
           <input type="hidden" name="_autoresponse" value="Thanks for your message. I'll get back to you soon. — Aahil" />
           <StaggerItem y={14}>
-            <ActionButton type="submit" variant="invert">Send message</ActionButton>
+            <ActionButton type="submit">Send message</ActionButton>
           </StaggerItem>
         </Stagger>
       </div>

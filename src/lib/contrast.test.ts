@@ -1,98 +1,114 @@
 import { describe, it, expect } from 'vitest'
 import { contrastRatio } from './contrast'
 
+// The palette from src/index.css @theme, kept in one place so these assertions
+// describe the colours the site actually ships rather than a remembered set.
+const GROUND = {
+  void: '#0A0D13',
+  ink: '#111722',
+  'ink-2': '#18202D',
+} as const
+
+const INK = {
+  chalk: '#EDF2F8',
+  'chalk-2': '#AFBBCB',
+  mute: '#8593A6',
+  signal: '#FF5B4F',
+  coral: '#FF8F79',
+} as const
+
+const LINE = '#2E3A54'
+const EDGE = '#617599'
+const EMBER = '#C4261E'
+
 describe('contrastRatio', () => {
-  it('computes white on black as 21:1', () => {
+  it('returns 21 for black on white', () => {
     expect(contrastRatio('#FFFFFF', '#000000')).toBeCloseTo(21, 1)
   })
 
-  it('computes identical colors as 1:1', () => {
-    expect(contrastRatio('#C4261E', '#C4261E')).toBeCloseTo(1, 5)
-  })
-
-  it('clears 4.5:1 for signal red on paper, both directions', () => {
-    expect(contrastRatio('#C4261E', '#FFF1ED')).toBeGreaterThanOrEqual(4.5)
-  })
-
-  it('clears 4.5:1 for ember on paper', () => {
-    expect(contrastRatio('#B5241B', '#FFF1ED')).toBeGreaterThanOrEqual(4.5)
-  })
-
-  it('clears 3.0:1 for coral on slate (large text only)', () => {
-    expect(contrastRatio('#FFA795', '#39434F')).toBeGreaterThanOrEqual(3.0)
-  })
-
-  it('clears 4.5:1 for mute on paper', () => {
-    expect(contrastRatio('#5A6675', '#FFF1ED')).toBeGreaterThanOrEqual(4.5)
-  })
-
-  it('rejects a pairing that does not clear AA, proving the check is not tautological', () => {
-    expect(contrastRatio('#FFA795', '#FFF1ED')).toBeLessThan(4.5)
-  })
-
-  it('clears 4.5:1 for paper text on signal button background', () => {
-    expect(contrastRatio('#FFF1ED', '#C4261E')).toBeGreaterThanOrEqual(4.5)
-  })
-
-  it('clears 4.5:1 for paper text on the button hover background', () => {
-    expect(contrastRatio('#FFF1ED', '#B5241B')).toBeGreaterThanOrEqual(4.5)
-  })
-
-  it('clears 4.5:1 for slate title on the project card background', () => {
-    expect(contrastRatio('#39434F', '#FFE4DC')).toBeGreaterThanOrEqual(4.5)
-  })
-
-  it('clears 4.5:1 for slate-2 stamp/description on the project card background', () => {
-    expect(contrastRatio('#4B5563', '#FFE4DC')).toBeGreaterThanOrEqual(4.5)
-  })
-
-  it('clears 4.5:1 for paper/70 opacity text (Path ledger org) on slate background', () => {
-    // paper (#FFF1ED) at 70% opacity alpha-blended over slate (#39434F)
-    // Result: RGB(196, 189, 190) = #C4BDBE
-    expect(contrastRatio('#C4BDBE', '#39434F')).toBeGreaterThanOrEqual(4.5)
-  })
-
-  it('clears 4.5:1 for paper/85 opacity text (Path ledger body) on slate background', () => {
-    // paper (#FFF1ED) at 85% opacity alpha-blended over slate (#39434F)
-    // Result: RGB(225, 215, 213) = #E1D7D5
-    expect(contrastRatio('#E1D7D5', '#39434F')).toBeGreaterThanOrEqual(4.5)
-  })
-
-  it('clears 4.5:1 for coral timeline track labels on slate', () => {
-    expect(contrastRatio('#FFA795', '#39434F')).toBeGreaterThanOrEqual(4.5)
-  })
-
-  it('clears 4.5:1 for paper on slate (timeline text, stuck topbar, Path headings)', () => {
-    expect(contrastRatio('#FFF1ED', '#39434F')).toBeGreaterThanOrEqual(4.5)
-  })
-
-  it('clears 4.5:1 for mute on paper-2 (Tally labels)', () => {
-    expect(contrastRatio('#5A6675', '#FFE4DC')).toBeGreaterThanOrEqual(4.5)
-  })
-
-  it('clears 3.0:1 for signal on paper-2 (Tally numerals, text-5xl)', () => {
-    expect(contrastRatio('#C4261E', '#FFE4DC')).toBeGreaterThanOrEqual(3.0)
-  })
-
-  it('clears 4.5:1 for slate-2 on paper (Toolkit and Work body text)', () => {
-    expect(contrastRatio('#4B5563', '#FFF1ED')).toBeGreaterThanOrEqual(4.5)
-  })
-
-  it('clears 4.5:1 for slate on paper (section titles, footer name)', () => {
-    expect(contrastRatio('#39434F', '#FFF1ED')).toBeGreaterThanOrEqual(4.5)
-  })
-
-  it('clears 4.5:1 for ember on paper-2 (ProjectCard and Work links)', () => {
-    expect(contrastRatio('#B5241B', '#FFE4DC')).toBeGreaterThanOrEqual(4.5)
+  it('returns 1 for a colour against itself', () => {
+    expect(contrastRatio(INK.signal, INK.signal)).toBeCloseTo(1, 5)
   })
 })
 
-// CursorEffect paints rgba(196,38,30,0.06) over the whole viewport at z-[3],
-// above <main>. At the gradient's centre it tints foreground and background
-// alike, so the pairings it can cover are re-checked in their composited form.
+// The dark pivot's central claim: any ink may be set on any ground. If that
+// stops being true the palette has to change, not the markup — so it is
+// asserted exhaustively rather than for the pairings that happen to be used.
+describe('every ink on every ground', () => {
+  for (const [inkName, ink] of Object.entries(INK)) {
+    for (const [groundName, ground] of Object.entries(GROUND)) {
+      it(`${inkName} on ${groundName} clears AA 4.5:1`, () => {
+        expect(contrastRatio(ink, ground)).toBeGreaterThanOrEqual(4.5)
+      })
+    }
+  }
+})
+
+describe('filled surfaces take dark type', () => {
+  // This is the rule ActionButton and the timeline's role nodes both follow.
+  it('void on signal clears AA, so a red fill is legible', () => {
+    expect(contrastRatio(GROUND.void, INK.signal)).toBeGreaterThanOrEqual(4.5)
+  })
+
+  // A regression guard, not a curiosity: white-on-red is the obvious thing to
+  // write and it fails. If this ever starts passing the rule can be relaxed;
+  // until then, anything filled with signal must use void for its label.
+  it('chalk on signal FAILS AA — which is why nothing does it', () => {
+    expect(contrastRatio(INK.chalk, INK.signal)).toBeLessThan(4.5)
+  })
+
+  it('void on chalk clears AA for the inverted button', () => {
+    expect(contrastRatio(GROUND.void, INK.chalk)).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('chalk on ember clears AA for the heavier red fill', () => {
+    expect(contrastRatio(INK.chalk, EMBER)).toBeGreaterThanOrEqual(4.5)
+  })
+})
+
+describe('the trajectory figure', () => {
+  // The figure sits on ink. Its strokes are graphics, not text, so the bar is
+  // the 3:1 non-text minimum.
+  it('edge strokes clear 3:1 on the figure ground', () => {
+    expect(contrastRatio(INK.signal, GROUND.ink)).toBeGreaterThanOrEqual(3)
+    expect(contrastRatio(INK.coral, GROUND.ink)).toBeGreaterThanOrEqual(3)
+  })
+
+  it('node labels clear AA against the artifact-node fill', () => {
+    expect(contrastRatio(INK.chalk, GROUND['ink-2'])).toBeGreaterThanOrEqual(4.5)
+  })
+})
+
+describe('control boundaries', () => {
+  // WCAG 1.4.11: the edge of an input is a non-text element that carries
+  // meaning, so it needs 3:1 against what surrounds it. The contact fields sat
+  // at 1.7:1 on void and were genuinely invisible in a screenshot.
+  it('edge clears 3:1 on every ground', () => {
+    for (const [name, ground] of Object.entries(GROUND)) {
+      expect(`${name}: ${contrastRatio(EDGE, ground) >= 3}`).toBe(`${name}: true`)
+    }
+  })
+
+  it('line does NOT clear 3:1 — which is why controls do not use it', () => {
+    expect(contrastRatio(LINE, GROUND.void)).toBeLessThan(3)
+  })
+})
+
+describe('hairlines', () => {
+  // Non-text and deliberately quiet, but it still has to be a visible edge.
+  it('line is distinguishable from every ground', () => {
+    for (const ground of Object.values(GROUND)) {
+      expect(contrastRatio(LINE, ground)).toBeGreaterThan(1.15)
+    }
+  })
+})
+
+// CursorEffect paints rgba(255,91,79,0.10) over the viewport above <main>. At
+// the gradient's centre it tints ink and ground alike, so the pairings it can
+// cover are re-checked in their composited form.
 describe('contrast under the cursor glow', () => {
-  const GLOW = [196, 38, 30]
-  const GLOW_ALPHA = 0.06
+  const GLOW = [255, 91, 79]
+  const GLOW_ALPHA = 0.1
 
   function composite(hex: string): string {
     const n = hex.replace('#', '')
@@ -105,15 +121,11 @@ describe('contrast under the cursor glow', () => {
     )
   }
 
-  it('keeps hero paper-on-signal above 4.5:1', () => {
-    expect(contrastRatio(composite('#FFF1ED'), composite('#C4261E'))).toBeGreaterThanOrEqual(4.5)
-  })
-
-  it('keeps Tally mute-on-paper-2 above 4.5:1', () => {
-    expect(contrastRatio(composite('#5A6675'), composite('#FFE4DC'))).toBeGreaterThanOrEqual(4.5)
-  })
-
-  it('keeps timeline coral-on-slate above 4.5:1', () => {
-    expect(contrastRatio(composite('#FFA795'), composite('#39434F'))).toBeGreaterThanOrEqual(4.5)
-  })
+  for (const [inkName, ink] of Object.entries(INK)) {
+    for (const [groundName, ground] of Object.entries(GROUND)) {
+      it(`${inkName} on ${groundName} still clears AA under the glow`, () => {
+        expect(contrastRatio(composite(ink), composite(ground))).toBeGreaterThanOrEqual(4.5)
+      })
+    }
+  }
 })

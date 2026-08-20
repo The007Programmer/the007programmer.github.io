@@ -3,19 +3,31 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --color-signal: #C4261E;
-  --color-ember: #B5241B;
-  --color-coral: #FFA795;
-  --color-rust: #8E1A13;
-  --color-paper: #FFF1ED;
-  --color-paper-2: #FFE4DC;
-  --color-slate: #39434F;
-  --color-slate-2: #4B5563;
-  --color-mute: #5A6675;
+  /* Dark pivot. The grounds invert; red stays as the accent rather than the
+     field, so the identity survives as a signal colour instead of a surface.
+     Every ink below clears WCAG AA 4.5:1 on all three grounds — checked
+     numerically, see contrast.test.ts. */
+  --color-void: #0A0D13;    /* deepest ground: body, hero, alternating bands */
+  --color-ink: #111722;     /* second band */
+  --color-ink-2: #18202D;   /* raised surfaces: cards, panels */
+  --color-line: #2E3A54;    /* quiet hairlines: card and divider edges */
+  /* Control boundaries are not decoration — WCAG 1.4.11 asks for 3:1 on the
+     surrounding ground, and `line` is 1.7:1. Inputs get their own edge. */
+  --color-edge: #617599;
 
-  /* Abril Fatface is a fat-face display type — it was set as the body face,
-     so every paragraph on the site rendered in a headline face (or fell
-     through to a serif). This is the pairing the site actually shipped with. */
+  --color-chalk: #EDF2F8;   /* primary text */
+  --color-chalk-2: #AFBBCB; /* secondary text */
+  --color-mute: #8593A6;    /* tertiary text — still AA on every ground */
+
+  /* Red survives the pivot as the accent. `signal` is lifted from the old
+     #C4261E because a deep red on a dark ground reads as brown; `ember` stays
+     at the old value for fills that need a heavier red. Note white-on-signal is
+     only 2.96:1 — anything filled with signal takes `void` text, not chalk. */
+  --color-signal: #FF5B4F;
+  --color-coral: #FF8F79;
+  --color-ember: #C4261E;
+  --color-rust: #8E1A13;
+
   --font-display: 'Bricolage Grotesque', 'Arial Black', sans-serif;
   --font-body: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Martian Mono', ui-monospace, monospace;
@@ -27,14 +39,15 @@ html {
 
 body {
   margin: 0;
-  background: var(--color-paper);
-  color: var(--color-slate);
+  background: var(--color-void);
+  color: var(--color-chalk);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
 
 :root {
+  color-scheme: dark;
   --chart-1: oklch(0.32 0 none);
   --chart-2: oklch(0.41 0 none);
   --chart-3: oklch(0.54 0 none);

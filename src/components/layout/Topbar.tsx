@@ -47,17 +47,17 @@ export function Topbar({ sections }: TopbarProps) {
 
   return (
     <>
-      <a className="skip-link sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-slate focus:text-paper focus:px-4 focus:py-2 font-mono text-xs" href="#main">
+      <a className="skip-link sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-ink focus:text-chalk focus:px-4 focus:py-2 font-mono text-xs" href="#main">
         Skip to content
       </a>
       <header
         className={cn(
           "topbar fixed top-0 inset-x-0 z-50 flex items-center justify-between gap-4 px-[clamp(1.25rem,5vw,5.5rem)] py-[1.1rem] transition-colors duration-300",
-          stuck && "bg-slate py-[0.85rem]"
+          stuck && "bg-ink py-[0.85rem]"
         )}
       >
         <motion.a
-          className="font-display font-extrabold text-lg text-paper no-underline"
+          className="font-display font-extrabold text-lg text-chalk no-underline"
           href="#top"
           whileHover={reduced ? undefined : { scale: 1.08 }}
           whileTap={reduced ? undefined : { scale: 0.94 }}
@@ -71,9 +71,9 @@ export function Topbar({ sections }: TopbarProps) {
               key={s.id}
               href={`#${s.id}`}
               className={cn(
-                "font-mono text-[0.6875rem] uppercase tracking-wide text-paper no-underline pb-0.5 border-b border-transparent transition-opacity",
+                "font-mono text-[0.6875rem] uppercase tracking-wide text-chalk no-underline pb-0.5 border-b border-transparent transition-opacity",
                 active && active !== s.id && "opacity-55",
-                active === s.id && "opacity-100 border-paper"
+                active === s.id && "opacity-100 border-chalk"
               )}
               whileHover={reduced ? undefined : { y: -2 }}
               whileTap={reduced ? undefined : { y: 0, scale: 0.96 }}
@@ -85,7 +85,7 @@ export function Topbar({ sections }: TopbarProps) {
         </nav>
         <motion.span
           aria-hidden="true"
-          className="absolute left-0 bottom-0 h-0.5 w-full bg-paper origin-left"
+          className="absolute left-0 bottom-0 h-0.5 w-full bg-void origin-left"
           style={{ scaleX: progressScaleX, opacity: stuck ? 1 : 0 }}
         />
       </header>

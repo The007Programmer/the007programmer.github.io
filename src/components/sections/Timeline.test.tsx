@@ -2,6 +2,10 @@ import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { Timeline } from './Timeline'
 import { TIMELINE_NODES, TIMELINE_EDGES } from '@/data/timeline'
+import { contrastRatio } from '@/lib/contrast'
+
+// --color-ink, the band the figure sits on.
+const FIGURE_GROUND = '#111722'
 
 const VIEW_W = 1000
 const BOX_H = 40
@@ -115,13 +119,16 @@ describe('Timeline', () => {
     }
   })
 
-  // The "alongside" edge was drawn in #5A6675 on the slate ground — 1.7:1,
-  // effectively invisible. No edge may use a stroke that dim again.
-  it('draws no edge in a colour that vanishes against the slate ground', () => {
+  // An "alongside" edge was once drawn in #5A6675 on the old slate ground —
+  // 1.7:1, effectively invisible. Soft edges must say "soft" through dashes and
+  // weight, never through a stroke too dim to see against the figure's ground.
+  it('draws every edge in a stroke that clears 3:1 against the figure ground', () => {
     const { container } = render(<Timeline />)
     const edges = Array.from(container.querySelectorAll('line')).slice(3)
     for (const line of edges) {
-      expect(line.getAttribute('stroke')?.toUpperCase()).not.toBe('#5A6675')
+      const stroke = line.getAttribute('stroke')
+      expect(stroke).toBeTruthy()
+      expect(contrastRatio(stroke as string, FIGURE_GROUND)).toBeGreaterThanOrEqual(3)
     }
   })
 })

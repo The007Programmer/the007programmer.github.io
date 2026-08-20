@@ -10,12 +10,12 @@ export function Toolkit() {
     <section id="toolkit" className="toolkit py-20 px-[var(--edge,1.5rem)]">
       <div className="section-head mb-10">
         <Reveal>
-          <p className="eyebrow eyebrow-dark font-mono text-[0.6875rem] uppercase tracking-wide text-ember mb-5">Toolkit</p>
+          <p className="eyebrow eyebrow-dark font-mono text-[0.6875rem] uppercase tracking-wide text-signal mb-5">Toolkit</p>
         </Reveal>
         <RiseText
           as="h2"
           delay={0.08}
-          className="section-title font-display font-extrabold text-[clamp(2.5rem,7vw,5rem)] tracking-[-0.035em] text-slate"
+          className="section-title font-display font-extrabold text-[clamp(2.5rem,7vw,5rem)] tracking-[-0.035em] text-chalk"
         >
           What I reach for
         </RiseText>
@@ -26,12 +26,12 @@ export function Toolkit() {
             key={group.id}
             className={cn(
               "kit-group border rounded-sm p-6",
-              group.accent ? "border-signal/40 bg-paper-2" : "border-slate/10"
+              group.accent ? "border-signal/50 bg-ink-2" : "border-line"
             )}
-            whileHover={reduced ? undefined : { y: -4, borderColor: "#C4261E" }}
+            whileHover={reduced ? undefined : { y: -4, borderColor: "#FF5B4F" }}
           >
-            <h3 className="kit-title font-display font-bold text-lg text-slate mb-2">{group.title}</h3>
-            <p className="kit-items text-slate-2">{group.items}</p>
+            <h3 className="kit-title font-display font-bold text-lg text-chalk mb-2">{group.title}</h3>
+            <p className="kit-items text-chalk-2">{group.items}</p>
           </StaggerItem>
         ))}
       </Stagger>

@@ -13,7 +13,7 @@ function LedgerRowItem({ row, index }: { row: (typeof LEDGER_ROWS)[number]; inde
   const lead = reduced ? 0 : index * 0.05
 
   return (
-    <li ref={ref} className="ledger-row relative py-6 border-t border-paper/15">
+    <li ref={ref} className="ledger-row relative py-6 border-t border-line">
       <motion.span
         aria-hidden="true"
         className="absolute top-0 left-0 h-px bg-coral origin-left"
@@ -29,9 +29,9 @@ function LedgerRowItem({ row, index }: { row: (typeof LEDGER_ROWS)[number]; inde
       >
         <p className="ledger-when font-mono text-xs uppercase text-coral mb-1">{row.when}</p>
         <div className="ledger-what">
-          <h3 className="font-display font-bold text-xl text-paper">{row.title}</h3>
-          <p className="ledger-org text-paper/70 text-sm mt-1">{row.org}</p>
-          {row.body && <p className="text-paper/85 mt-2">{row.body}</p>}
+          <h3 className="font-display font-bold text-xl text-chalk">{row.title}</h3>
+          <p className="ledger-org text-chalk-2 text-sm mt-1">{row.org}</p>
+          {row.body && <p className="text-chalk-2 mt-2">{row.body}</p>}
         </div>
       </motion.div>
     </li>
@@ -40,18 +40,18 @@ function LedgerRowItem({ row, index }: { row: (typeof LEDGER_ROWS)[number]; inde
 
 export function Path() {
   return (
-    <section id="path" className="path bg-slate text-paper py-20 px-[var(--edge,1.5rem)]">
+    <section id="path" className="path bg-ink text-chalk py-20 px-[var(--edge,1.5rem)]">
       {/* Heading and ledger share one container: centring the list under a
           full-bleed heading left a dead column down the whole section. */}
       <div className="max-w-[1100px] mx-auto">
         <div className="section-head mb-10">
           <Reveal>
-            <p className="eyebrow font-mono text-[0.6875rem] uppercase tracking-wide text-paper mb-5">Path</p>
+            <p className="eyebrow font-mono text-[0.6875rem] uppercase tracking-wide text-chalk mb-5">Path</p>
           </Reveal>
           <RiseText
             as="h2"
             delay={0.08}
-            className="section-title section-title-light font-display font-extrabold text-[clamp(2.5rem,7vw,5rem)] tracking-[-0.035em] text-paper"
+            className="section-title section-title-light font-display font-extrabold text-[clamp(2.5rem,7vw,5rem)] tracking-[-0.035em] text-chalk"
           >
             How it went
           </RiseText>

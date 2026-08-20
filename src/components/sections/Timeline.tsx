@@ -316,12 +316,12 @@ export function Timeline() {
   }, [reduced, inView, seeds, indexById])
 
   return (
-    <section className="figure-section bg-slate text-paper py-20 px-[var(--edge,1.5rem)]" ref={sectionRef as React.RefObject<HTMLElement>}>
+    <section className="figure-section bg-ink text-chalk py-20 px-[var(--edge,1.5rem)]" ref={sectionRef as React.RefObject<HTMLElement>}>
       <figure className="timeline max-w-[1100px] mx-auto">
         <figcaption className="timeline-caption mb-8">
           <span className="font-mono text-[0.6875rem] uppercase tracking-wide text-coral block mb-2">Trajectory</span>
           Every job I've had was caused by the one before it. Drawn as the thing it actually is.
-          <span className="block mt-2 font-mono text-[0.625rem] uppercase tracking-wide text-coral/70">Drag any node</span>
+          <span className="block mt-2 font-mono text-[0.625rem] uppercase tracking-wide text-coral/80">Drag any node</span>
         </figcaption>
 
         {/* Below ~900px the diagram would scale down far enough to make its
@@ -339,7 +339,7 @@ export function Timeline() {
               <g key={track}>
                 <line
                   x1={20} y1={TRACK_Y[track]} x2={VIEW_W - 10} y2={TRACK_Y[track]}
-                  stroke="#FFA795" strokeOpacity={0.18} strokeWidth={1}
+                  stroke="#FF8F79" strokeOpacity={0.18} strokeWidth={1}
                 />
                 <text x={20} y={TRACK_Y[track] - BOX_H / 2 - 12} className="fill-coral font-mono text-[11px] uppercase tracking-wider">
                   {TRACK_LABEL[track]}
@@ -352,7 +352,7 @@ export function Timeline() {
               // Soft edges read as "alongside, not caused by" through dashes and
               // weight — never through a dimmer colour, which is what made this
               // edge invisible against the slate ground.
-              const stroke = edge.soft ? "#FFA795" : "#FF7A63"
+              const stroke = edge.soft ? "#FF8F79" : "#FF5B4F"
               return (
                 <g
                   key={`${edge.from}-${edge.to}`}
@@ -375,11 +375,11 @@ export function Timeline() {
                     x={edge.label.x} y={edge.label.y + 3}
                     textAnchor="middle"
                     className="font-mono text-[10px] uppercase tracking-wide"
-                    fill={lit ? "#FFF1ED" : "#FFA795"}
+                    fill={lit ? "#EDF2F8" : "#FF8F79"}
                     fillOpacity={lit ? 1 : 0.85}
                     // Punches the ground colour out from under the glyphs so an
                     // edge passing behind the label never strikes through it.
-                    stroke="#39434F"
+                    stroke="#18202D"
                     strokeWidth={4}
                     strokeLinejoin="round"
                     paintOrder="stroke"
@@ -413,19 +413,19 @@ export function Timeline() {
                     width={node.w}
                     height={BOX_H}
                     rx={3}
-                    fill={isRole ? "#C4261E" : "#39434F"}
-                    stroke={isRole ? "#FF7A63" : "#FFA795"}
+                    fill={isRole ? "#FF5B4F" : "#18202D"}
+                    stroke={isRole ? "#FF5B4F" : "#FF8F79"}
                     strokeWidth={active ? 2 : 1}
                     strokeOpacity={isRole ? 1 : active ? 1 : 0.65}
                     style={{ transition: "stroke-width .18s ease, stroke-opacity .18s ease" }}
                   />
-                  <text x={node.ax0} y={node.ay0 - 3} textAnchor="middle" className="fill-paper font-mono text-[12px]">
+                  <text x={node.ax0} y={node.ay0 - 3} textAnchor="middle" className="font-mono text-[12px]" fill={isRole ? "#0A0D13" : "#EDF2F8"}>
                     {node.label}
                   </text>
                   <text
                     x={node.ax0} y={node.ay0 + 12} textAnchor="middle"
                     className="font-mono text-[9px] uppercase tracking-wide"
-                    fill={isRole ? "#FFD9D0" : "#FFA795"}
+                    fill={isRole ? "#3D0A06" : "#FF8F79"}
                   >
                     {node.sub}
                   </text>

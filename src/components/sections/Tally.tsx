@@ -35,7 +35,7 @@ export function Tally() {
   ]
 
   return (
-    <section className="tally py-20 px-[var(--edge,1.5rem)] bg-paper-2" aria-label="By the numbers">
+    <section className="tally py-20 px-[var(--edge,1.5rem)] bg-ink-2" aria-label="By the numbers">
       <div ref={ref} className="tally-inner grid gap-10 sm:grid-cols-3 max-w-[1000px] mx-auto text-center">
         {/* Each item observes itself and carries its own delay. An orchestrating
             wrapper would have to be display:contents to stay out of the grid,

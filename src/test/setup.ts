@@ -23,3 +23,11 @@ if (typeof window !== 'undefined' && !window.IntersectionObserver) {
   }
   window.IntersectionObserver = IntersectionObserverStub as unknown as typeof IntersectionObserver
 }
+
+// jsdom has no 2D canvas. Components that paint one guard on a null context and
+// degrade correctly, but jsdom's stub *throws* rather than returning null, which
+// buries real failures under a wall of not-implemented traces. Returning null is
+// what a browser without canvas support would do, and what the guards expect.
+if (typeof window !== 'undefined') {
+  HTMLCanvasElement.prototype.getContext = (() => null) as unknown as HTMLCanvasElement['getContext']
+}

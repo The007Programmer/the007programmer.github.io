@@ -1,6 +1,5 @@
 import { Topbar } from "@/components/layout/Topbar"
 import { Footer } from "@/components/layout/Footer"
-import AgentField from "@/components/effects/AgentField"
 import CursorEffect from "@/components/effects/CursorEffect"
 import { Hero } from "@/components/sections/Hero"
 import { Timeline } from "@/components/sections/Timeline"
@@ -20,7 +19,6 @@ const SECTIONS = [
 export default function App() {
   return (
     <>
-      <AgentField />
       <CursorEffect />
       <Topbar sections={SECTIONS} />
       <main id="main" className="relative z-[2]">

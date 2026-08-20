@@ -8,16 +8,16 @@ export interface ActionButtonProps {
   type?: "button" | "submit"
   onClick?: MouseEventHandler<HTMLButtonElement>
   className?: string
-  /** "invert" is for buttons sitting on a red ground. The solid red button on
-      the ember contact panel was 1.13:1 against it — no visible edge at all —
-      and its hover colour was that panel's exact background, so pointing at it
-      erased it. */
+  /** "invert" is for a button sitting on a red ground, where a red fill would
+      have no visible edge. */
   variant?: "solid" | "invert"
 }
 
+// Label colour is not a style choice here. Chalk on signal is 2.96:1 — it fails
+// AA — while void on signal is 5.83:1, so a red fill takes dark type.
 const SURFACE = {
-  solid: { className: "bg-signal text-paper", hover: "#B5241B" },
-  invert: { className: "bg-paper text-ember", hover: "#FFE4DC" },
+  solid: { className: "bg-signal text-void font-semibold", hover: "#FF6B5F" },
+  invert: { className: "bg-chalk text-void font-semibold", hover: "#FFFFFF" },
 } as const
 
 export function ActionButton({ children, type = "button", onClick, className, variant = "solid" }: ActionButtonProps) {

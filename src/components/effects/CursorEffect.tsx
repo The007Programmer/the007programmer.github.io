@@ -11,7 +11,7 @@ export default function CursorEffect() {
   // The layer composites over text as well as background, so its alpha is
   // capped at what keeps every shipped pairing above 4.5:1 at the gradient's
   // centre — see the "under the cursor glow" cases in contrast.test.ts.
-  const background = useMotionTemplate`radial-gradient(320px circle at ${springX}px ${springY}px, rgba(196,38,30,0.06), transparent 70%)`
+  const background = useMotionTemplate`radial-gradient(320px circle at ${springX}px ${springY}px, rgba(255,91,79,0.10), transparent 70%)`
 
   useEffect(() => {
     if (reduced) return

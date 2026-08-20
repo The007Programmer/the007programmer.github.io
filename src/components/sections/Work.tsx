@@ -85,7 +85,7 @@ function WorkCard({
       {!reduced && (
         <button
           type="button"
-          className="drag-handle absolute right-3 top-3 z-10 cursor-grab touch-none rounded-sm px-2 py-1 font-mono text-xs text-slate-2 hover:text-ember active:cursor-grabbing"
+          className="drag-handle absolute right-3 top-3 z-10 cursor-grab touch-none rounded-sm px-2 py-1 font-mono text-xs text-chalk-2 hover:text-signal active:cursor-grabbing"
           onPointerDown={(e) => controls.start(e)}
           aria-label={`Reorder ${project.title}`}
         >
@@ -165,12 +165,12 @@ export function Work() {
     <section id="work" className="work py-20 px-[var(--edge,1.5rem)]">
       <div className="section-head mb-10">
         <Reveal>
-          <p className="eyebrow eyebrow-dark font-mono text-[0.6875rem] uppercase tracking-wide text-ember mb-5">Work</p>
+          <p className="eyebrow eyebrow-dark font-mono text-[0.6875rem] uppercase tracking-wide text-signal mb-5">Work</p>
         </Reveal>
         <RiseText
           as="h2"
           delay={0.08}
-          className="section-title font-display font-extrabold text-[clamp(2.5rem,7vw,5rem)] tracking-[-0.035em] text-slate"
+          className="section-title font-display font-extrabold text-[clamp(2.5rem,7vw,5rem)] tracking-[-0.035em] text-chalk"
         >
           What I shipped
         </RiseText>
@@ -178,16 +178,16 @@ export function Work() {
 
       <Stagger as="article" className="feature grid md:grid-cols-2 gap-10 mb-12" gap={0.09}>
         <StaggerItem>
-          <p className="stamp font-mono text-[0.6875rem] uppercase text-slate-2 mb-2">{ELECTRA.stamp}</p>
-          <h3 className="font-display font-extrabold text-3xl text-slate mb-3">{ELECTRA.title}</h3>
-          <p className="text-slate-2 mb-3">{ELECTRA.lede}</p>
+          <p className="stamp font-mono text-[0.6875rem] uppercase text-chalk-2 mb-2">{ELECTRA.stamp}</p>
+          <h3 className="font-display font-extrabold text-3xl text-chalk mb-3">{ELECTRA.title}</h3>
+          <p className="text-chalk-2 mb-3">{ELECTRA.lede}</p>
           <p className="note text-mute text-sm">{ELECTRA.note}</p>
         </StaggerItem>
         <StaggerItem as="dl" className="spec grid gap-6">
           {ELECTRA.rows.map((row) => (
             <div key={row.label} className="spec-row">
-              <dt className="font-mono text-xs uppercase text-ember mb-1">{row.label}</dt>
-              <dd className="text-slate-2">{row.body}</dd>
+              <dt className="font-mono text-xs uppercase text-signal mb-1">{row.label}</dt>
+              <dd className="text-chalk-2">{row.body}</dd>
             </div>
           ))}
         </StaggerItem>
@@ -214,7 +214,7 @@ export function Work() {
       </Stagger>
 
       <div className="oss mt-20">
-        <RiseText as="h3" className="oss-head font-display font-extrabold text-2xl text-slate mb-8">
+        <RiseText as="h3" className="oss-head font-display font-extrabold text-2xl text-chalk mb-8">
           On my own time
         </RiseText>
         <Stagger as="ul" className="oss-list grid gap-6" gap={0.07}>
@@ -222,18 +222,18 @@ export function Work() {
             <StaggerItem
               as="li"
               key={item.id}
-              className="oss-item flex justify-between gap-6 border-b border-slate/10 pb-6"
+              className="oss-item flex justify-between gap-6 border-b border-line pb-6"
             >
               <div>
-                <h4 className="font-display font-bold text-xl text-slate">{item.title}</h4>
-                <p className="text-slate-2 mt-1">{item.desc}</p>
+                <h4 className="font-display font-bold text-xl text-chalk">{item.title}</h4>
+                <p className="text-chalk-2 mt-1">{item.desc}</p>
               </div>
               <div className="flex flex-col items-end gap-2 shrink-0">
-                <span className="font-mono text-[0.6875rem] uppercase px-2 py-1 rounded-sm bg-paper-2 text-ember">
+                <span className="font-mono text-[0.6875rem] uppercase px-2 py-1 rounded-sm bg-ink-2 text-signal">
                   {item.status === "published" ? "Published" : item.status === "in-progress" ? "In progress" : "Private"}
                 </span>
                 {item.link && (
-                  <a href={item.link.href} className="font-mono text-[0.6875rem] uppercase text-ember">
+                  <a href={item.link.href} className="font-mono text-[0.6875rem] uppercase text-signal">
                     {item.link.label} <span aria-hidden="true">↗</span>
                   </a>
                 )}
