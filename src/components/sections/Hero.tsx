@@ -12,7 +12,12 @@ export function Hero() {
   const opacity = useTransform(scrollYProgress, [0, 1], reduced ? [1, 1] : [1, 0])
 
   return (
-    <section id="top" className="hero relative">
+    // select-none: the hero is a click surface now — every click sends a
+    // shockwave through the field — and a click surface that also selects text
+    // means a stray double-click leaves the headline highlighted behind the
+    // animation. The copy here is a name and a tagline, not something anyone
+    // needs to copy out.
+    <section id="top" className="hero relative select-none">
       {/* The field is the hero's ground, not a layer floating over the page.
           Confining it here is deliberate: continuous glowing trails behind body
           copy is what made the old scattered-dot layer unreadable. It runs where

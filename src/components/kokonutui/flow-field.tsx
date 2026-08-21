@@ -225,9 +225,9 @@ export default function FlowField({
       // every resize compounded the device-pixel-ratio and shrank the field.
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      // Fill dark base on resize
-      ctx.fillStyle = `rgb(${cfg.bg})`;
-      ctx.fillRect(0, 0, width, height);
+      // The canvas carries only the light. Its ground is the wrapper's CSS
+      // background — see the fade below for why it cannot paint its own.
+      ctx.clearRect(0, 0, width, height);
 
       // Re-seed particles spread across the canvas
       particles = Array.from({ length: count }, spawnParticle);
@@ -273,9 +273,23 @@ export default function FlowField({
     const render = () => {
       time++;
 
-      // Fade previous frame — each dot persists ~16 frames, creating soft trails
-      ctx.fillStyle = `rgba(${cfg.bg}, ${cfg.trailAlpha})`;
+      // Fade previous frame by erasing it, not by painting the ground over it.
+      //
+      // Painting rgba(10,13,19, 0.042) each frame looks equivalent and is not.
+      // Source-over moves a channel by `channel * alpha` per frame, and the
+      // ground's red is 10, so red moved by 0.42 — which rounds to zero in an
+      // 8-bit buffer, every frame, forever. Red could never climb off the floor
+      // while green (0.55) and blue (0.80) rounded up and did, so the untouched
+      // ground settled at roughly (0, 17, 22): a dark teal. That was the green
+      // cast over the hero, and it was never a colour-blending problem.
+      //
+      // Erasing has no such floor. The alpha decays multiplicatively and the
+      // real ground is the CSS background behind the canvas, so it is exactly
+      // the colour the token says it is.
+      ctx.globalCompositeOperation = "destination-out";
+      ctx.fillStyle = `rgba(0, 0, 0, ${cfg.trailAlpha})`;
       ctx.fillRect(0, 0, width, height);
+      ctx.globalCompositeOperation = "source-over";
 
       // Chase the pointer rather than tracking it. Done once per frame, before
       // the particle loop, so all 1200 streams agree on where the cursor is.
@@ -348,7 +362,7 @@ export default function FlowField({
         const fadeIn = Math.min(progress * 8, 1);
         const fadeOut = Math.min((1 - progress) * 6, 1);
         const flare = Math.min(push / PULSE.power, 1);
-        const alpha = Math.min(fadeIn * fadeOut * 0.9 * (1 + flare * 1.4), 1);
+        const alpha = Math.min(fadeIn * fadeOut * 0.85 * (1 + flare * 1.4), 1);
 
         // Hue shifts subtly with field direction for color variety
         const hueMod = (p.hue + (angle / (Math.PI * 2)) * cfg.hueShift + 360) % 360;
@@ -413,7 +427,7 @@ export default function FlowField({
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-40"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-64"
         style={{
           background: `linear-gradient(to top, rgb(${bgColor}), transparent)`,
         }}

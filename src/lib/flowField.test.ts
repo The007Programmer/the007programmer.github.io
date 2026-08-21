@@ -147,3 +147,49 @@ describe('pulseForce', () => {
     expect(old).toBeLessThan(young)
   })
 })
+
+describe('fieldAngle direction spread', () => {
+  // The field is meant to read as several coherent groups pointing different
+  // ways. It once read as two enormous streams both going the same direction,
+  // because every octave sat at or below a frequency whose period is wider than
+  // the viewport, so they agreed with each other nearly everywhere. This is that
+  // failure written down: bin the whole viewport by heading and check no single
+  // direction owns the screen and none is missing from it.
+  function sectors(t: number): number[] {
+    const bins = new Array(8).fill(0)
+    let n = 0
+    for (let x = 0; x < 1440; x += 12) {
+      for (let y = 0; y < 900; y += 12) {
+        const a = fieldAngle(x, y, t)
+        const turn = ((a % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)
+        bins[Math.min(7, Math.floor((turn / (Math.PI * 2)) * 8))]++
+        n++
+      }
+    }
+    return bins.map((b) => b / n)
+  }
+
+  it.each([0, 900, 2600, 5200, 9000])('spreads across all eight headings at t=%i', (t) => {
+    const share = sectors(t)
+    // Perfectly uniform would be 0.125 each. The old field peaked at 0.245 and
+    // starved its emptiest heading down to 0.029.
+    expect(Math.max(...share)).toBeLessThan(0.21)
+    expect(Math.min(...share)).toBeGreaterThan(0.05)
+  })
+
+  it('changes heading several times across a single screen width', () => {
+    // Direction diversity summed over the viewport is not enough on its own — a
+    // field could hit every heading and still be two vast blocks. Walking one
+    // line has to cross into a new heading repeatedly.
+    let changes = 0
+    let prev = -1
+    for (let x = 0; x < 1440; x += 8) {
+      const a = fieldAngle(x, 450, 1200)
+      const turn = ((a % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)
+      const k = Math.floor((turn / (Math.PI * 2)) * 8)
+      if (k !== prev) changes++
+      prev = k
+    }
+    expect(changes).toBeGreaterThan(6)
+  })
+})

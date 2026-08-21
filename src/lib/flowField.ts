@@ -65,10 +65,21 @@ export function steer(
 export function fieldAngle(x: number, y: number, t: number): number {
   const s = 0.0025
   return (
-    Math.sin(x * s + t * 0.0007) * Math.PI +
-    Math.cos(y * s + t * 0.0005) * Math.PI +
-    Math.sin((x + y) * s * 0.6 + t * 0.0009) * Math.PI * 0.6 +
-    Math.cos((x - y) * s * 0.4 + t * 0.0006) * Math.PI * 0.4
+    // The first four octaves are all at or below the base frequency, whose
+    // period is about 2500px. Across a laptop viewport that is barely half a
+    // wavelength, so at full amplitude they agreed with each other nearly
+    // everywhere and the field resolved into two enormous streams pointing the
+    // same way. Their weight is pulled back and three higher-frequency terms
+    // added on top, at angles that are not multiples of each other — that gives
+    // several coherent groups per screen instead of one or two, each free to
+    // point somewhere different, without breaking the grouping into noise.
+    Math.sin(x * s + t * 0.0007) * Math.PI * 0.7 +
+    Math.cos(y * s + t * 0.0005) * Math.PI * 0.7 +
+    Math.sin((x + y) * s * 0.6 + t * 0.0009) * Math.PI * 0.5 +
+    Math.cos((x - y) * s * 0.4 + t * 0.0006) * Math.PI * 0.35 +
+    Math.sin((x * 1.7 - y * 2.6) * s + t * 0.0011) * Math.PI * 0.55 +
+    Math.cos((x * 3.1 + y * 1.4) * s + t * 0.0013) * Math.PI * 0.45 +
+    Math.sin((x * 2.2 + y * 3.4) * s + t * 0.0017) * Math.PI * 0.3
   )
 }
 
