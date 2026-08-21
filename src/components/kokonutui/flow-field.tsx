@@ -14,6 +14,7 @@ import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate";
+import { steer } from "@/lib/flowField";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -57,6 +58,38 @@ const PARTICLE_COUNTS: Record<ParticleDensity, number> = {
   medium: 1200,
   dense: 2000,
 } as const;
+
+// ─── Pointer steering ─────────────────────────────────────────────────────────
+// The field answers to the cursor, but slowly. Every constant here is tuned for
+// "the whole surface leans your way over a second or two", not "particles snap
+// to the mouse" — the second thing is a toy, the first is weather.
+
+/** Pointer influence radius, CSS px. At this distance the bend is half-strength. */
+const CURSOR_RADIUS = 420;
+/** Hardest bend applied, directly under the pointer — a nudge, not a capture.
+    At 0.72 this built a genuine vortex: particles spiralled in, piled onto one
+    ring and left the rest of the canvas visibly empty. A third of the gap curls
+    the streams past the cursor and lets them carry on. */
+const CURSOR_PULL = 0.32;
+/** Radians the target is rotated off "straight at the pointer" (~86°). Nearly
+    tangential on purpose: the inward component is what drains the field, and
+    what is wanted here is a curl around the cursor, not a drain into it. */
+const CURSOR_SWIRL = 1.5;
+/** Per-frame easing on the pointer the field actually chases. This is the whole
+    reason the shift reads as slow: the raw pointer teleports, this lags it by
+    roughly half a second and arrives without a visible start. */
+const CURSOR_EASE = 0.022;
+/** How far the noise field slides, per pixel the pointer moves off centre.
+    This is the effect that carries. Adding a flat rotation to every angle was
+    the obvious way to make the whole field lean, and it wrecked the texture:
+    a constant bias on a noise field turns its gentle basins into hard attractors,
+    so the streams collapsed onto a few filaments and left most of the canvas
+    empty. Sliding where the field is *sampled* instead translates the pattern
+    without touching its structure — same weather, moved. */
+const CURSOR_DRIFT = 0.4;
+/** Easing on the fade-in when the pointer arrives and the fade-out when it
+    leaves the window, so neither is a cut. */
+const STRENGTH_EASE = 0.03;
 
 const THEMES: Record<ColorTheme, ThemeConfig> = {
   aurora: {
@@ -147,6 +180,16 @@ export default function FlowField({
     let time = 0;
     let particles: Particle[] = [];
 
+    // Pointer state lives in the closure, not in React state. It changes on
+    // every mousemove and every frame; none of it should re-render anything.
+    let moved = false;
+    let cursorX = 0;
+    let cursorY = 0;
+    let targetX = 0;
+    let targetY = 0;
+    let strength = 0;
+    let targetStrength = 0;
+
     const spawnParticle = (): Particle => {
       const maxLife = 200 + Math.floor(Math.random() * 300);
       return {
@@ -176,6 +219,30 @@ export default function FlowField({
 
       // Re-seed particles spread across the canvas
       particles = Array.from({ length: count }, spawnParticle);
+
+      // Until the pointer shows up the field centres on itself. Only reset while
+      // untouched — clobbering a live cursor on resize would yank the field.
+      if (!moved) {
+        cursorX = targetX = width / 2;
+        cursorY = targetY = height / 2;
+      }
+    };
+
+    const onPointerMove = (e: PointerEvent) => {
+      // Canvas-local, via the live rect: the hero scrolls away under the page,
+      // and once it does this correctly reports the pointer as far outside the
+      // field rather than pinning it to the top edge.
+      const rect = canvas.getBoundingClientRect();
+      targetX = e.clientX - rect.left;
+      targetY = e.clientY - rect.top;
+      targetStrength = 1;
+      moved = true;
+    };
+
+    // Pointer gone from the window entirely — let the field relax back to its
+    // own drift instead of holding the last known position forever.
+    const onPointerLeave = () => {
+      targetStrength = 0;
     };
 
     const render = () => {
@@ -185,8 +252,25 @@ export default function FlowField({
       ctx.fillStyle = `rgba(${cfg.bg}, ${cfg.trailAlpha})`;
       ctx.fillRect(0, 0, width, height);
 
+      // Chase the pointer rather than tracking it. Done once per frame, before
+      // the particle loop, so all 1200 streams agree on where the cursor is.
+      cursorX += (targetX - cursorX) * CURSOR_EASE;
+      cursorY += (targetY - cursorY) * CURSOR_EASE;
+      strength += (targetStrength - strength) * STRENGTH_EASE;
+
+      const driftX = (cursorX - width / 2) * CURSOR_DRIFT * strength;
+      const driftY = (cursorY - height / 2) * CURSOR_DRIFT * strength;
+      const pull = CURSOR_PULL * strength;
+
       for (const p of particles) {
-        const angle = fieldAngle(p.x, p.y, time);
+        const angle = steer(
+          fieldAngle(p.x - driftX, p.y - driftY, time),
+          cursorX - p.x,
+          cursorY - p.y,
+          CURSOR_RADIUS,
+          pull,
+          CURSOR_SWIRL
+        );
 
         p.x += Math.cos(angle) * p.speed;
         p.y += Math.sin(angle) * p.speed;
@@ -227,11 +311,15 @@ export default function FlowField({
 
     resize();
     window.addEventListener("resize", resize);
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    document.addEventListener("pointerleave", onPointerLeave);
     render();
 
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", resize);
+      window.removeEventListener("pointermove", onPointerMove);
+      document.removeEventListener("pointerleave", onPointerLeave);
     };
   }, [theme, density, reduced]);
 
