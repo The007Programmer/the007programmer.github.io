@@ -19,7 +19,7 @@ export function Hero() {
           there is nothing to read, and stops where the page starts talking. */}
       <FlowField
         theme="signal"
-        density="medium"
+        density="dense"
         className="min-h-screen items-center justify-start px-[var(--edge,1.5rem)] py-[clamp(7rem,14vh,9rem)]"
       >
       {/* The field is brightest where the copy sits. The stock vignette dims the

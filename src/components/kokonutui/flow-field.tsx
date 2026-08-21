@@ -14,7 +14,7 @@ import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate";
-import { steer } from "@/lib/flowField";
+import { fieldAngle, pulseForce, steer, type Pulse } from "@/lib/flowField";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -56,7 +56,7 @@ export interface FlowFieldProps {
 const PARTICLE_COUNTS: Record<ParticleDensity, number> = {
   sparse: 600,
   medium: 1200,
-  dense: 2000,
+  dense: 2800,
 } as const;
 
 // ─── Pointer steering ─────────────────────────────────────────────────────────
@@ -124,31 +124,42 @@ const THEMES: Record<ColorTheme, ThemeConfig> = {
   // hue band is narrow (red through orange, no yellow) so the field reads as
   // one colour moving rather than a rainbow.
   signal: {
-    hueShift: 14,
+    // Narrow, and narrower than it looks: hueShift widens the band by ±1.5× at
+    // the extremes. At 14/36 the top of the range reached hue 49, which is
+    // yellow-green, and with the longer trails below it showed as an olive cast
+    // over half the hero. 8/26 caps the drift at hue 30 — orange, and no
+    // further.
+    hueShift: 8,
     hueStart: 352,
-    hueRange: 36,
+    hueRange: 26,
     saturation: 92,
     lightness: 60,
     bg: "10, 13, 19",
-    trailAlpha: 0.055,
+    // Lower than the stock themes: the fade is what sets trail length, and this
+    // field is meant to read as lines rather than as a spray of dots.
+    trailAlpha: 0.042,
   },
 } as const;
 
-// ─── Noise / vector-field ─────────────────────────────────────────────────────
+// ─── Click shockwave ──────────────────────────────────────────────────────────
 
-/**
- * Smooth organic 2D noise via a multi-octave trigonometric series.
- * Returns an angle in radians that evolves continuously with time `t`.
- */
-function fieldAngle(x: number, y: number, t: number): number {
-  const s = 0.0025;
-  return (
-    Math.sin(x * s + t * 0.0007) * Math.PI +
-    Math.cos(y * s + t * 0.0005) * Math.PI +
-    Math.sin((x + y) * s * 0.6 + t * 0.0009) * Math.PI * 0.6 +
-    Math.cos((x - y) * s * 0.4 + t * 0.0006) * Math.PI * 0.4
-  );
-}
+const PULSE = {
+  /** Pixels the ring travels per frame — about a second to cross a laptop. */
+  speed: 11,
+  /** Half-thickness of the moving band. Wide enough that a stream gets several
+      frames inside it and bends, rather than being teleported across it. */
+  width: 150,
+  /** Frames it lives. */
+  life: 95,
+  /** Peak displacement per frame, on the ring itself. Deliberately small: the
+      ask was that a click nudges the field, and a shove big enough to clear a
+      visible hole takes seconds to heal, which reads as breakage. */
+  power: 3.4,
+} as const;
+
+/** Concurrent shockwaves kept alive. Past this the oldest is dropped, so
+    hammering the mouse cannot grow the per-particle cost without bound. */
+const MAX_PULSES = 4;
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
@@ -189,6 +200,7 @@ export default function FlowField({
     let targetY = 0;
     let strength = 0;
     let targetStrength = 0;
+    let pulses: Pulse[] = [];
 
     const spawnParticle = (): Particle => {
       const maxLife = 200 + Math.floor(Math.random() * 300);
@@ -245,6 +257,19 @@ export default function FlowField({
       targetStrength = 0;
     };
 
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      // Clicks land all over the page; only the ones inside the field mean
+      // anything, and a shockwave centred a section away would ripple in from
+      // an edge for no visible reason.
+      if (x < 0 || y < 0 || x > width || y > height) return;
+      if (pulses.length >= MAX_PULSES) pulses.shift();
+      pulses.push({ x, y, age: 0 });
+    };
+
     const render = () => {
       time++;
 
@@ -257,6 +282,13 @@ export default function FlowField({
       cursorX += (targetX - cursorX) * CURSOR_EASE;
       cursorY += (targetY - cursorY) * CURSOR_EASE;
       strength += (targetStrength - strength) * STRENGTH_EASE;
+
+      // Age the wavefronts and retire the dead ones before the particle loop, so
+      // the inner loop never walks a pulse that can only contribute zero.
+      if (pulses.length > 0) {
+        for (const q of pulses) q.age++;
+        pulses = pulses.filter((q) => q.age < PULSE.life);
+      }
 
       const driftX = (cursorX - width / 2) * CURSOR_DRIFT * strength;
       const driftY = (cursorY - height / 2) * CURSOR_DRIFT * strength;
@@ -274,6 +306,26 @@ export default function FlowField({
 
         p.x += Math.cos(angle) * p.speed;
         p.y += Math.sin(angle) * p.speed;
+
+        // Total push this frame, kept so the wavefront can also be lit. A
+        // displacement of a few pixels a frame is a real effect but a subtle
+        // one, and without the brightening the click mostly reads as nothing
+        // happening.
+        let push = 0;
+        for (const q of pulses) {
+          const qx = p.x - q.x;
+          const qy = p.y - q.y;
+          const dist = Math.hypot(qx, qy);
+          const force = pulseForce(dist, q.age, PULSE);
+          // dist can be 0 on a direct hit; the force is 0 there anyway (the ring
+          // has left the origin by then) but guard the divide regardless.
+          if (force > 0 && dist > 0) {
+            p.x += (qx / dist) * force;
+            p.y += (qy / dist) * force;
+            push += force;
+          }
+        }
+
         p.life++;
 
         // Respawn aged-out particles at a random position
@@ -295,14 +347,15 @@ export default function FlowField({
         const progress = p.life / p.maxLife;
         const fadeIn = Math.min(progress * 8, 1);
         const fadeOut = Math.min((1 - progress) * 6, 1);
-        const alpha = fadeIn * fadeOut * 0.9;
+        const flare = Math.min(push / PULSE.power, 1);
+        const alpha = Math.min(fadeIn * fadeOut * 0.9 * (1 + flare * 1.4), 1);
 
         // Hue shifts subtly with field direction for color variety
         const hueMod = (p.hue + (angle / (Math.PI * 2)) * cfg.hueShift + 360) % 360;
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, 1.3, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${hueMod}, ${cfg.saturation}%, ${cfg.lightness}%, ${alpha})`;
+        ctx.fillStyle = `hsla(${hueMod}, ${cfg.saturation}%, ${cfg.lightness + flare * 22}%, ${alpha})`;
         ctx.fill();
       }
 
@@ -312,6 +365,7 @@ export default function FlowField({
     resize();
     window.addEventListener("resize", resize);
     window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerdown", onPointerDown, { passive: true });
     document.addEventListener("pointerleave", onPointerLeave);
     render();
 
@@ -319,6 +373,7 @@ export default function FlowField({
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("pointerleave", onPointerLeave);
     };
   }, [theme, density, reduced]);

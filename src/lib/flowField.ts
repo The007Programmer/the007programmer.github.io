@@ -52,3 +52,56 @@ export function steer(
   const target = Math.atan2(dy, dx) + swirl
   return angle + shortestArc(angle, target) * proximity(dx, dy, radius) * pull
 }
+
+/**
+ * Smooth organic 2D noise as an angle, via a multi-octave trigonometric series.
+ * Evolves continuously with `t`.
+ *
+ * Lifted out of the FlowField component so the seam strips between sections can
+ * run the same field: the point of the seams is that the hero's weather leaks
+ * through the joins, and it only reads that way if it is literally the same
+ * function, sampled in the same units.
+ */
+export function fieldAngle(x: number, y: number, t: number): number {
+  const s = 0.0025
+  return (
+    Math.sin(x * s + t * 0.0007) * Math.PI +
+    Math.cos(y * s + t * 0.0005) * Math.PI +
+    Math.sin((x + y) * s * 0.6 + t * 0.0009) * Math.PI * 0.6 +
+    Math.cos((x - y) * s * 0.4 + t * 0.0006) * Math.PI * 0.4
+  )
+}
+
+/** A click shockwave: where it started and how many frames ago. */
+export interface Pulse {
+  x: number
+  y: number
+  age: number
+}
+
+export interface PulseShape {
+  /** Pixels the ring expands per frame. */
+  speed: number
+  /** Half-thickness of the ring, in pixels. Only particles inside it are moved. */
+  width: number
+  /** Frames the shockwave lives for. */
+  life: number
+  /** Peak outward displacement, in pixels per frame, on the ring itself. */
+  power: number
+}
+
+/**
+ * Outward push a shockwave applies to a particle at `dist` from its origin.
+ *
+ * A ring, not a disc. Pushing everything inside a growing circle just inflates a
+ * hole and leaves it there; confining the force to a travelling band means the
+ * field closes back up behind the wave, which is what makes it read as a pulse
+ * rather than as damage. Zero outside the band and after the life, so a dead
+ * pulse costs one comparison and can be dropped.
+ */
+export function pulseForce(dist: number, age: number, s: PulseShape): number {
+  if (age >= s.life) return 0
+  const band = 1 - Math.abs(dist - age * s.speed) / s.width
+  if (band <= 0) return 0
+  return s.power * band * (1 - age / s.life)
+}

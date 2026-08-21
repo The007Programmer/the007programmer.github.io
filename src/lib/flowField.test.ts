@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { shortestArc, proximity, steer } from './flowField'
+import { shortestArc, proximity, steer, fieldAngle, pulseForce } from './flowField'
 
 const TAU = Math.PI * 2
 
@@ -77,5 +77,73 @@ describe('steer', () => {
     const near = Math.abs(steer(0, 30, 30, 340, 0.7, 1.15))
     const far = Math.abs(steer(0, 1800, 1800, 340, 0.7, 1.15))
     expect(near).toBeGreaterThan(far * 8)
+  })
+})
+
+describe('fieldAngle', () => {
+  it('is continuous — a small step in space or time is a small step in angle', () => {
+    // The seams sample this field at the same scale as the hero. A discontinuity
+    // would show up there as a visible tear across the strip.
+    for (const [x, y, t] of [[0, 0, 0], [640, 300, 900], [-120, 880, 4200]]) {
+      const a = fieldAngle(x, y, t)
+      expect(Math.abs(a - fieldAngle(x + 1, y, t))).toBeLessThan(0.05)
+      expect(Math.abs(a - fieldAngle(x, y + 1, t))).toBeLessThan(0.05)
+      expect(Math.abs(a - fieldAngle(x, y, t + 1))).toBeLessThan(0.05)
+    }
+  })
+
+  it('actually varies across the canvas rather than pointing one way', () => {
+    const seen = new Set<number>()
+    for (let x = 0; x < 1400; x += 70) {
+      for (let y = 0; y < 800; y += 80) {
+        seen.add(Math.round(Math.cos(fieldAngle(x, y, 500)) * 4))
+      }
+    }
+    expect(seen.size).toBeGreaterThan(5)
+  })
+})
+
+describe('pulseForce', () => {
+  const S = { speed: 9, width: 90, life: 90, power: 3.2 }
+
+  it('is zero once the pulse has lived out its life', () => {
+    expect(pulseForce(400, 90, S)).toBe(0)
+    expect(pulseForce(400, 200, S)).toBe(0)
+  })
+
+  it('only moves particles inside the travelling band, not everything within it', () => {
+    // The distinction that matters: a disc inflates a hole and leaves it. A ring
+    // lets the field close up behind the wave.
+    const age = 40
+    const radius = age * S.speed // 360
+    expect(pulseForce(radius, age, S)).toBeGreaterThan(0)
+    expect(pulseForce(radius - 89, age, S)).toBeGreaterThan(0)
+    expect(pulseForce(radius - 91, age, S)).toBe(0)
+    expect(pulseForce(0, age, S)).toBe(0)
+    expect(pulseForce(radius + 200, age, S)).toBe(0)
+  })
+
+  it('peaks on the ring and falls off either side of it', () => {
+    const age = 30
+    const r = age * S.speed
+    const on = pulseForce(r, age, S)
+    expect(on).toBeGreaterThan(pulseForce(r - 45, age, S))
+    expect(on).toBeGreaterThan(pulseForce(r + 45, age, S))
+  })
+
+  it('never pulls inward and never exceeds its stated power', () => {
+    for (let age = 0; age < 120; age += 3) {
+      for (let d = 0; d < 1600; d += 17) {
+        const f = pulseForce(d, age, S)
+        expect(f).toBeGreaterThanOrEqual(0)
+        expect(f).toBeLessThanOrEqual(S.power)
+      }
+    }
+  })
+
+  it('weakens as it ages even right on the ring', () => {
+    const young = pulseForce(10 * S.speed, 10, S)
+    const old = pulseForce(80 * S.speed, 80, S)
+    expect(old).toBeLessThan(young)
   })
 })
