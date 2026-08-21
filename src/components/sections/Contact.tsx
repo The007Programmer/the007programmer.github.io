@@ -29,7 +29,7 @@ export function Contact() {
         className="pointer-events-none absolute inset-0 -z-10"
         style={{ background: "radial-gradient(ellipse 70% 80% at 50% 115%, rgba(255,91,79,0.28), transparent 70%)" }}
       />
-      <div className="contact-grid grid md:grid-cols-2 gap-16 max-w-[1100px] mx-auto">
+      <div className="contact-grid grid md:grid-cols-2 gap-16 max-w-[1340px] mx-auto">
         <div className="contact-pitch">
           <Reveal>
             <p className="eyebrow font-mono text-[0.6875rem] uppercase tracking-wide text-signal mb-5">Contact</p>

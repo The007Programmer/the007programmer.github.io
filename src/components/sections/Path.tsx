@@ -44,7 +44,7 @@ export function Path() {
     <section id="path" className="path bg-ink text-chalk py-20 px-[var(--edge,1.5rem)]">
       {/* Heading and ledger share one container: centring the list under a
           full-bleed heading left a dead column down the whole section. */}
-      <div className="max-w-[1100px] mx-auto">
+      <div className="max-w-[1340px] mx-auto">
         <div className="section-head mb-10">
           <Reveal>
             <p className="eyebrow font-mono text-[0.6875rem] uppercase tracking-wide text-chalk mb-5">Path</p>

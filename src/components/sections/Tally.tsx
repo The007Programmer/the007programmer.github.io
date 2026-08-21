@@ -3,6 +3,7 @@ import { motion, useInView, useMotionValue, useTransform, animate } from "motion
 import { useLiveRepoCount } from "@/hooks/useLiveRepoCount"
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
 import { Reveal } from "@/components/kit/Reveal"
+import { ShippingChart } from "./ShippingChart"
 
 function CountUp({ to, decimals = 0, inView, reduced }: { to: number; decimals?: number; inView: boolean; reduced: boolean }) {
   const value = useMotionValue(reduced ? to : 0)
@@ -35,8 +36,8 @@ export function Tally() {
   ]
 
   return (
-    <section className="tally py-20 px-[var(--edge,1.5rem)] bg-ink-2" aria-label="By the numbers">
-      <div ref={ref} className="tally-inner grid gap-10 sm:grid-cols-3 max-w-[1000px] mx-auto text-center">
+    <section className="tally py-24 px-[var(--edge,1.5rem)] bg-ink-2" aria-label="By the numbers">
+      <div ref={ref} className="tally-inner grid gap-10 sm:grid-cols-3 max-w-[900px] mx-auto text-center">
         {/* Each item observes itself and carries its own delay. An orchestrating
             wrapper would have to be display:contents to stay out of the grid,
             and an element with no box never intersects — IntersectionObserver
@@ -51,6 +52,19 @@ export function Tally() {
           </Reveal>
         ))}
       </div>
+
+      {/* Three counters say how much. The chart says when, off the same facts
+          the trajectory figure is drawn from — one dataset, two views, no
+          second list to forget to update. */}
+      <Reveal className="block mt-20 max-w-[1340px] mx-auto" delay={0.1} y={26}>
+        <p className="font-mono text-[0.6875rem] uppercase tracking-wide text-coral mb-1">
+          Cumulative, by month
+        </p>
+        <p className="text-chalk-2 mb-6 max-w-[52ch]">
+          Everything above came out of a job or a weekend. This is the running total.
+        </p>
+        <ShippingChart />
+      </Reveal>
     </section>
   )
 }

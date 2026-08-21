@@ -172,8 +172,11 @@ export function Work() {
     target: gridRef,
     offset: ["start end", "end start"],
   })
-  const driftUp = useTransform(scrollYProgress, [0, 1], reduced ? [0, 0] : [PARALLAX, -PARALLAX])
-  const driftDown = useTransform(scrollYProgress, [0, 1], reduced ? [0, 0] : [-PARALLAX, PARALLAX])
+  // One drift for the whole grid, not alternating per card. Alternating gave the
+  // block depth and cost it its rows: these are bordered boxes sitting on a
+  // grid, and a card an inch above its neighbour does not read as parallax, it
+  // reads as a gap somebody forgot to close.
+  const drift = useTransform(scrollYProgress, [0, 1], reduced ? [0, 0] : [PARALLAX, -PARALLAX])
 
   const dropNearest = (id: string, offset: Offset) => {
     const target = pickNearest(centersRef.current, id, offset)
@@ -186,7 +189,7 @@ export function Work() {
       {/* Every other section on the page centres its content in a 1100px
           column. This one had none, so its heading and its list ran flush to
           the viewport edge and no two sections shared a left margin. */}
-      <div className="max-w-[1100px] mx-auto">
+      <div className="max-w-[1340px] mx-auto">
       <div className="section-head mb-14">
         <Reveal>
           <p className="eyebrow eyebrow-dark font-mono text-[0.6875rem] uppercase tracking-wide text-signal mb-5">Work</p>
@@ -220,17 +223,13 @@ export function Work() {
       {/* The ref sits on a wrapper rather than on <Stagger>: Stagger is a
           function component that keeps its own ref, so a ref prop would never
           reach an element. */}
-      <div ref={gridRef}>
+      <motion.div ref={gridRef} style={{ y: drift }}>
       <Stagger className="cards grid gap-8 sm:grid-cols-2 lg:grid-cols-3" gap={0.06}>
-        {order.map((p, i) => (
-          // A motion.div, not a plain one: the stagger variants have to keep
-          // propagating down to the StaggerItem inside, and propagation only
-          // travels through motion components.
-          <motion.div key={p.id} style={{ y: i % 2 === 0 ? driftUp : driftDown }} className="h-full">
-            {/* The entrance lives on a wrapper, not on the card: the card owns a
-                drag `y` motion value and a layout animation for reordering, and
-                a variant animating the same `y` would fight both. */}
-            <StaggerItem className="h-full">
+        {order.map((p) => (
+          // The entrance lives on a wrapper, not on the card: the card owns a
+          // drag `y` motion value and a layout animation for reordering, and a
+          // variant animating the same `y` would fight both.
+          <StaggerItem key={p.id} className="h-full">
             <WorkCard
               project={p}
               reduced={reduced}
@@ -242,12 +241,11 @@ export function Work() {
               onReorderEnd={dropNearest}
             />
           </StaggerItem>
-          </motion.div>
         ))}
       </Stagger>
-      </div>
+      </motion.div>
 
-      <div className="oss mt-28">
+      <div className="oss mt-28 lg:pl-[16%]">
         <SplitReveal as="h3" className="oss-head font-display font-extrabold text-2xl text-chalk mb-8">
           On my own time
         </SplitReveal>

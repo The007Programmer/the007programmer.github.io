@@ -373,7 +373,7 @@ export function Timeline() {
 
   return (
     <section className="figure-section bg-ink text-chalk py-20 px-[var(--edge,1.5rem)]" ref={sectionRef as React.RefObject<HTMLElement>}>
-      <figure className="timeline max-w-[1100px] mx-auto">
+      <figure className="timeline max-w-[1340px] mx-auto">
         <figcaption className="timeline-caption mb-8">
           <span className="font-mono text-[0.6875rem] uppercase tracking-wide text-coral block mb-2">Trajectory</span>
           <span className="block max-w-[62ch]">
