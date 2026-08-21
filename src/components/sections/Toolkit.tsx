@@ -18,6 +18,7 @@ export function Toolkit() {
 
   return (
     <section id="toolkit" className="toolkit py-28 px-[var(--edge,1.5rem)]">
+      <div className="max-w-[1100px] mx-auto">
       <div className="section-head mb-14">
         <Reveal>
           <p className="eyebrow eyebrow-dark font-mono text-[0.6875rem] uppercase tracking-wide text-signal mb-5">Toolkit</p>
@@ -61,6 +62,7 @@ export function Toolkit() {
           </StaggerItem>
         ))}
       </Stagger>
+      </div>
     </section>
   )
 }

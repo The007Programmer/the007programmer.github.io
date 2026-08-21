@@ -183,6 +183,10 @@ export function Work() {
 
   return (
     <section id="work" className="work py-28 px-[var(--edge,1.5rem)]">
+      {/* Every other section on the page centres its content in a 1100px
+          column. This one had none, so its heading and its list ran flush to
+          the viewport edge and no two sections shared a left margin. */}
+      <div className="max-w-[1100px] mx-auto">
       <div className="section-head mb-14">
         <Reveal>
           <p className="eyebrow eyebrow-dark font-mono text-[0.6875rem] uppercase tracking-wide text-signal mb-5">Work</p>
@@ -271,6 +275,7 @@ export function Work() {
             </StaggerItem>
           ))}
         </Stagger>
+      </div>
       </div>
     </section>
   )

@@ -1,8 +1,12 @@
 import { motion, useScroll, useTransform } from "motion/react"
 import { useRef } from "react"
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
-import { RiseText } from "@/components/kit/Reveal"
+import { ScrambleName } from "@/components/kit/ScrambleName"
 import FlowField from "@/components/kokonutui/flow-field"
+
+// Hoisted so the array identity is stable: ScrambleName takes it as an effect
+// dependency, and a fresh array every render would restart the decode forever.
+const HERO_NAME = ["Aahil", "Shaikh"]
 
 export function Hero() {
   const ref = useRef<HTMLDivElement | null>(null)
@@ -45,9 +49,8 @@ export function Hero() {
         >
           Applied AI &amp; systems
         </motion.p>
-        <h1 className="hero-name font-display font-extrabold text-[clamp(4rem,15vw,12rem)] tracking-[-0.055em] leading-[0.95] mb-8">
-          <RiseText className="line block" delay={0.08}>Aahil</RiseText>
-          <RiseText className="line block" delay={0.2}>Shaikh</RiseText>
+        <h1 className="font-display font-extrabold text-[clamp(4rem,15vw,12rem)] tracking-[-0.055em] leading-[0.95] mb-8">
+          <ScrambleName lines={HERO_NAME} />
         </h1>
         <motion.p
           initial={reduced ? false : { opacity: 0, y: 14 }}

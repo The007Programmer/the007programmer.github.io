@@ -41,7 +41,6 @@ function useDocumentEnd(): boolean {
   return ended
 }
 const SPRING = { type: "spring", stiffness: 120, damping: 20 } as const
-const EASE_OUT = [0.16, 1, 0.3, 1] as const
 
 interface RevealProps {
   children: ReactNode
@@ -143,42 +142,5 @@ export function StaggerItem({ children, y = 22, as = "div", className, ...rest }
     <MotionTag className={className} variants={variants} {...rest}>
       {children}
     </MotionTag>
-  )
-}
-
-interface RiseTextProps {
-  children: ReactNode
-  as?: ElementType
-  className?: string
-  delay?: number
-}
-
-/**
- * A line of type that rises out of its own baseline behind a mask. Fading a
- * headline in is a slide with the volume off — the clip is what makes it read
- * as type being set. The mask needs bottom padding or it shears descenders,
- * and the matching negative margin keeps the extra space out of the layout.
- */
-export function RiseText({ children, as = "span", className, delay = 0 }: RiseTextProps) {
-  const ref = useRef<HTMLElement | null>(null)
-  const observed = useInView(ref, IN_VIEW)
-  const ended = useDocumentEnd()
-  const inView = observed || ended
-  const reduced = useReducedMotionGate()
-  const Tag = as as ElementType
-
-  return (
-    <Tag ref={ref} className={className}>
-      <span className="block overflow-hidden pb-[0.14em] -mb-[0.14em]">
-        <motion.span
-          className="block"
-          initial={reduced ? false : { y: "115%" }}
-          animate={inView || reduced ? { y: "0%" } : {}}
-          transition={reduced ? { duration: 0 } : { duration: 0.8, ease: EASE_OUT, delay }}
-        >
-          {children}
-        </motion.span>
-      </span>
-    </Tag>
   )
 }

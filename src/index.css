@@ -128,3 +128,21 @@ body {
   --color-chart-scale-05: var(--chart-scale-05);
   --color-chart-scale-pattern-color: var(--chart-scale-pattern-color);
 }
+
+/* ScrambleName splits each line into per-character spans and locks every one to
+   the width of its FINAL letter, so the decode can swap glyphs without the name
+   reflowing underneath itself. */
+.hero-name .ch {
+  display: inline-block;
+  text-align: center;
+  white-space: pre;
+  /* The name is tracked tight. That tracking must apply BETWEEN these spans —
+     which the parent still does — but not inside them, or each measured width
+     carries a copy of it and the letters land on top of each other. */
+  letter-spacing: normal;
+}
+
+/* A character still being decoded reads as noise, not as a letter. */
+.hero-name .ch.is-noise {
+  opacity: 0.55;
+}
