@@ -4,6 +4,7 @@ import { ProjectCard } from "@/components/kit/ProjectCard"
 import { ELECTRA, PROJECT_CARDS, OSS_ITEMS, type ProjectCardData } from "@/data/work"
 import { Reveal, RiseText, Stagger, StaggerItem } from "@/components/kit/Reveal"
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
+import { cn } from "@/lib/utils"
 
 export interface Offset {
   x: number
@@ -80,7 +81,7 @@ function WorkCard({
       onDragEnd={(_, info) => onReorderEnd(project.id, info.offset)}
       style={{ x, y, zIndex }}
       layout={reduced ? undefined : true}
-      className="relative"
+      className="relative h-full"
     >
       {!reduced && (
         <button
@@ -109,9 +110,10 @@ function WorkCard({
           if (didDragRef.current) return
           onToggle()
         }}
-        className={expanded ? "scale-[1.03]" : undefined}
+        className={cn("h-full", expanded && "scale-[1.03]")}
       >
         <ProjectCard
+          className="h-full"
           title={project.title}
           stamp={project.stamp}
           desc={project.desc}
@@ -162,8 +164,8 @@ export function Work() {
   }
 
   return (
-    <section id="work" className="work py-20 px-[var(--edge,1.5rem)]">
-      <div className="section-head mb-10">
+    <section id="work" className="work py-28 px-[var(--edge,1.5rem)]">
+      <div className="section-head mb-14">
         <Reveal>
           <p className="eyebrow eyebrow-dark font-mono text-[0.6875rem] uppercase tracking-wide text-signal mb-5">Work</p>
         </Reveal>
@@ -176,29 +178,29 @@ export function Work() {
         </RiseText>
       </div>
 
-      <Stagger as="article" className="feature grid md:grid-cols-2 gap-10 mb-12" gap={0.09}>
+      <Stagger as="article" className="feature grid md:grid-cols-2 gap-12 lg:gap-20 mb-20" gap={0.09}>
         <StaggerItem>
           <p className="stamp font-mono text-[0.6875rem] uppercase text-chalk-2 mb-2">{ELECTRA.stamp}</p>
           <h3 className="font-display font-extrabold text-3xl text-chalk mb-3">{ELECTRA.title}</h3>
-          <p className="text-chalk-2 mb-3">{ELECTRA.lede}</p>
+          <p className="text-chalk-2 leading-relaxed mb-4 max-w-[52ch]">{ELECTRA.lede}</p>
           <p className="note text-mute text-sm">{ELECTRA.note}</p>
         </StaggerItem>
-        <StaggerItem as="dl" className="spec grid gap-6">
+        <StaggerItem as="dl" className="spec grid gap-8">
           {ELECTRA.rows.map((row) => (
             <div key={row.label} className="spec-row">
               <dt className="font-mono text-xs uppercase text-signal mb-1">{row.label}</dt>
-              <dd className="text-chalk-2">{row.body}</dd>
+              <dd className="text-chalk-2 leading-relaxed max-w-[62ch]">{row.body}</dd>
             </div>
           ))}
         </StaggerItem>
       </Stagger>
 
-      <Stagger className="cards grid gap-6 sm:grid-cols-2 lg:grid-cols-3" gap={0.06}>
+      <Stagger className="cards grid gap-8 sm:grid-cols-2 lg:grid-cols-3" gap={0.06}>
         {order.map((p) => (
           // The entrance lives on a wrapper, not on the card: the card owns a
           // drag `y` motion value and a layout animation for reordering, and a
           // variant animating the same `y` would fight both.
-          <StaggerItem key={p.id}>
+          <StaggerItem key={p.id} className="h-full">
             <WorkCard
               project={p}
               reduced={reduced}
@@ -213,20 +215,20 @@ export function Work() {
         ))}
       </Stagger>
 
-      <div className="oss mt-20">
+      <div className="oss mt-28">
         <RiseText as="h3" className="oss-head font-display font-extrabold text-2xl text-chalk mb-8">
           On my own time
         </RiseText>
-        <Stagger as="ul" className="oss-list grid gap-6" gap={0.07}>
+        <Stagger as="ul" className="oss-list grid gap-8" gap={0.07}>
           {OSS_ITEMS.map((item) => (
             <StaggerItem
               as="li"
               key={item.id}
-              className="oss-item flex justify-between gap-6 border-b border-line pb-6"
+              className="oss-item flex justify-between gap-8 border-b border-line pb-8"
             >
               <div>
                 <h4 className="font-display font-bold text-xl text-chalk">{item.title}</h4>
-                <p className="text-chalk-2 mt-1">{item.desc}</p>
+                <p className="text-chalk-2 leading-relaxed mt-2 max-w-[70ch]">{item.desc}</p>
               </div>
               <div className="flex flex-col items-end gap-2 shrink-0">
                 <span className="font-mono text-[0.6875rem] uppercase px-2 py-1 rounded-sm bg-ink-2 text-signal">

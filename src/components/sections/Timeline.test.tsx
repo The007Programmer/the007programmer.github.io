@@ -38,7 +38,7 @@ describe('Timeline', () => {
 
   it('renders the causal caption', () => {
     render(<Timeline />)
-    expect(screen.getByText(/Every job I've had was caused by the one before it/)).toBeInTheDocument()
+    expect(screen.getByText(/Every job I.ve had was caused by the one before it/)).toBeInTheDocument()
   })
 
   // Every edge label ships in the DOM unconditionally. They used to render
@@ -79,9 +79,7 @@ describe('Timeline', () => {
 
   it('draws every causal edge with non-zero length', () => {
     const { container } = render(<Timeline />)
-    const all = Array.from(container.querySelectorAll('line'))
-    // Three of the lines are the track rules, one per track.
-    const edges = all.slice(3)
+    const edges = Array.from(container.querySelectorAll('line[data-causal-edge]'))
     expect(edges).toHaveLength(TIMELINE_EDGES.length)
     for (const line of edges) {
       const from = `${line.getAttribute('x1')},${line.getAttribute('y1')}`
@@ -119,12 +117,62 @@ describe('Timeline', () => {
     }
   })
 
+  // The figure reads left-to-right as time, and now says so out loud. Which
+  // means the axis and the node positions have to be the same mapping: an axis
+  // that disagrees with the thing it is labelling is worse than no axis, because
+  // it is confidently wrong and nothing about it looks broken.
+  it('places every node at the date its own axis claims', () => {
+    const { container } = render(<Timeline />)
+
+    const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+    const ticks = Array.from(container.querySelectorAll('text'))
+      .map((t) => ({ text: (t.textContent ?? '').trim(), x: Number(t.getAttribute('x')) }))
+      .map((t) => {
+        const m = t.text.match(/^([A-Za-z]{3})\s*[’']?(\d{2})$/)
+        if (!m) return null
+        return { x: t.x, idx: (2000 + Number(m[2])) * 12 + MONTHS.indexOf(m[1].toLowerCase()) + 1 }
+      })
+      .filter((t): t is { x: number; idx: number } => t !== null)
+      .sort((a, b) => a.idx - b.idx)
+
+    expect(ticks.length).toBeGreaterThanOrEqual(4)
+
+    // Ticks must march in one direction, or "left to right is time" is a lie.
+    for (let i = 1; i < ticks.length; i++) {
+      expect(ticks[i].x).toBeGreaterThan(ticks[i - 1].x)
+    }
+
+    // Fit the axis from its own two ends, then check every node against it.
+    const a = ticks[0]
+    const b = ticks[ticks.length - 1]
+    const pxPerMonth = (b.x - a.x) / (b.idx - a.idx)
+    const axisX = (idx: number) => a.x + (idx - a.idx) * pxPerMonth
+
+    // The axis has to span the data, not a slice of it.
+    const nodeIdx = TIMELINE_NODES.map((n) => {
+      const [y, m] = n.date.split('-').map(Number)
+      return y * 12 + m
+    })
+    expect(a.idx).toBe(Math.min(...nodeIdx))
+    expect(b.idx).toBe(Math.max(...nodeIdx))
+
+    const rects = boxes(container)
+    TIMELINE_NODES.forEach((node, i) => {
+      const [y, m] = node.date.split('-').map(Number)
+      const centre = rects[i].x + rects[i].w / 2
+      // Half a pixel of rounding, no more. A node nudged right to keep its box
+      // inside the frame would land on the wrong month and read as a lie.
+      expect(Math.abs(centre - axisX(y * 12 + m))).toBeLessThan(0.5)
+    })
+  })
+
   // An "alongside" edge was once drawn in #5A6675 on the old slate ground —
   // 1.7:1, effectively invisible. Soft edges must say "soft" through dashes and
   // weight, never through a stroke too dim to see against the figure's ground.
   it('draws every edge in a stroke that clears 3:1 against the figure ground', () => {
     const { container } = render(<Timeline />)
-    const edges = Array.from(container.querySelectorAll('line')).slice(3)
+    const edges = Array.from(container.querySelectorAll('line[data-causal-edge]'))
+    expect(edges).toHaveLength(TIMELINE_EDGES.length)
     for (const line of edges) {
       const stroke = line.getAttribute('stroke')
       expect(stroke).toBeTruthy()
