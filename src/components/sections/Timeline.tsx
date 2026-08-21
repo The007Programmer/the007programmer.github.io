@@ -3,11 +3,17 @@ import { useInView } from "motion/react"
 import { TIMELINE_NODES, TIMELINE_EDGES, type TimelineTrack } from "@/data/timeline"
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
 
-const TRACK_Y: Record<TimelineTrack, number> = { twelvelabs: 95, personal: 315, school: 500 }
+// Spread wide. Most of what happened here happened between March and August
+// 2025, so the left third of a truthful time axis carries four nodes and eight
+// edge labels while the right two thirds carry three. Vertical room is the only
+// lever that decompresses that without lying about a date: the tracks and the
+// artifact lanes below them are pushed apart so the label solver has somewhere
+// to put things other than on top of the cluster.
+const TRACK_Y: Record<TimelineTrack, number> = { twelvelabs: 90, personal: 430, school: 650 }
 const TRACK_LABEL: Record<TimelineTrack, string> = { twelvelabs: "TwelveLabs", personal: "Personal / OSS", school: "School" }
 
 const BOX_H = 40
-const ARTIFACT_LANE = 76
+const ARTIFACT_LANE = 118
 const NODE_X_MIN = 120
 // Bounded by the widest box on the latest date: at 780 the Agent Security node
 // ran past the right edge and got clamped back, which silently put it at a date
@@ -23,9 +29,9 @@ const BOX_PAD = 14
 const VIEW_W = 1000
 // The axis lives in the bottom strip. Everything the simulation is allowed to
 // touch stops above FIELD_H, or a drifting node parks itself on top of a date.
-const AXIS_Y = 578
+const AXIS_Y = 740
 const FIELD_H = AXIS_Y - 34
-const VIEW_H = 640
+const VIEW_H = 800
 
 // Every node is sprung to its seed position, so the figure always returns to a
 // layout that reads. Without the anchor, repulsion wins and the graph wanders
@@ -424,7 +430,7 @@ export function Timeline() {
               {TICKS.map((t) => (
                 <line
                   key={`grid-${t.m}`}
-                  x1={t.x} y1={40} x2={t.x} y2={AXIS_Y - 8}
+                  x1={t.x} y1={36} x2={t.x} y2={AXIS_Y - 8}
                   stroke="#FF8F79" strokeOpacity={0.1} strokeWidth={1}
                 />
               ))}

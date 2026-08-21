@@ -1,6 +1,7 @@
 import { motion } from "motion/react"
 import { ActionButton } from "@/components/kit/ActionButton"
-import { Reveal, RiseText, Stagger, StaggerItem } from "@/components/kit/Reveal"
+import { Reveal, Stagger, StaggerItem } from "@/components/kit/Reveal"
+import { SplitReveal } from "@/components/kit/SplitReveal"
 
 const LINKS = [
   { href: "mailto:aahils2019@gmail.com", label: "aahils2019@gmail.com" },
@@ -34,8 +35,8 @@ export function Contact() {
             <p className="eyebrow font-mono text-[0.6875rem] uppercase tracking-wide text-signal mb-5">Contact</p>
           </Reveal>
           <h2 className="contact-title font-display font-extrabold text-5xl mb-6">
-            <RiseText delay={0.06}>Say something</RiseText>
-            <RiseText delay={0.16}>interesting.</RiseText>
+            <SplitReveal as="span" className="block" delay={0.06}>Say something</SplitReveal>
+            <SplitReveal as="span" className="block" delay={0.28}>interesting.</SplitReveal>
           </h2>
           <Reveal delay={0.24}>
             <p className="contact-copy max-w-[42ch] text-chalk-2 mb-8">

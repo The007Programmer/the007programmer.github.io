@@ -1,7 +1,8 @@
 import { useRef } from "react"
 import { motion, useInView } from "motion/react"
 import { LEDGER_ROWS } from "@/data/path"
-import { Reveal, RiseText } from "@/components/kit/Reveal"
+import { Reveal } from "@/components/kit/Reveal"
+import { SplitReveal } from "@/components/kit/SplitReveal"
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
 
 function LedgerRowItem({ row, index }: { row: (typeof LEDGER_ROWS)[number]; index: number }) {
@@ -48,13 +49,13 @@ export function Path() {
           <Reveal>
             <p className="eyebrow font-mono text-[0.6875rem] uppercase tracking-wide text-chalk mb-5">Path</p>
           </Reveal>
-          <RiseText
+          <SplitReveal
             as="h2"
             delay={0.08}
             className="section-title section-title-light font-display font-extrabold text-[clamp(2.5rem,7vw,5rem)] tracking-[-0.035em] text-chalk"
           >
             How it went
-          </RiseText>
+          </SplitReveal>
         </div>
         <ol className="ledger">
           {LEDGER_ROWS.map((row, i) => (

@@ -1,8 +1,9 @@
 import { useRef, useState } from "react"
-import { motion, useDragControls, useMotionValue, useTransform, frame } from "motion/react"
+import { motion, useDragControls, useMotionValue, useScroll, useTransform, frame } from "motion/react"
 import { ProjectCard } from "@/components/kit/ProjectCard"
 import { ELECTRA, PROJECT_CARDS, OSS_ITEMS, type ProjectCardData } from "@/data/work"
-import { Reveal, RiseText, Stagger, StaggerItem } from "@/components/kit/Reveal"
+import { Reveal, Stagger, StaggerItem } from "@/components/kit/Reveal"
+import { SplitReveal } from "@/components/kit/SplitReveal"
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
 import { cn } from "@/lib/utils"
 
@@ -125,6 +126,11 @@ function WorkCard({
   )
 }
 
+/** Vertical drift, in px, applied across the grid's whole pass through the
+    viewport. Small on purpose: parallax that outruns the scroll stops reading as
+    depth and starts reading as a bug. */
+const PARALLAX = 26
+
 export function Work() {
   const reduced = useReducedMotionGate()
   const [order, setOrder] = useState<ProjectCardData[]>(PROJECT_CARDS)
@@ -157,6 +163,18 @@ export function Work() {
     })
   }
 
+  const gridRef = useRef<HTMLDivElement | null>(null)
+  // Cards drift at slightly different rates as the grid crosses the viewport, so
+  // the block has depth instead of arriving as one flat slab. Keyed off the
+  // card's index rather than its column: the grid is 1, 2 or 3 wide depending on
+  // the viewport, so there is no column number that is right at every size.
+  const { scrollYProgress } = useScroll({
+    target: gridRef,
+    offset: ["start end", "end start"],
+  })
+  const driftUp = useTransform(scrollYProgress, [0, 1], reduced ? [0, 0] : [PARALLAX, -PARALLAX])
+  const driftDown = useTransform(scrollYProgress, [0, 1], reduced ? [0, 0] : [-PARALLAX, PARALLAX])
+
   const dropNearest = (id: string, offset: Offset) => {
     const target = pickNearest(centersRef.current, id, offset)
     if (target === null || target === id) return
@@ -169,13 +187,13 @@ export function Work() {
         <Reveal>
           <p className="eyebrow eyebrow-dark font-mono text-[0.6875rem] uppercase tracking-wide text-signal mb-5">Work</p>
         </Reveal>
-        <RiseText
+        <SplitReveal
           as="h2"
           delay={0.08}
           className="section-title font-display font-extrabold text-[clamp(2.5rem,7vw,5rem)] tracking-[-0.035em] text-chalk"
         >
           What I shipped
-        </RiseText>
+        </SplitReveal>
       </div>
 
       <Stagger as="article" className="feature grid md:grid-cols-2 gap-12 lg:gap-20 mb-20" gap={0.09}>
@@ -195,12 +213,20 @@ export function Work() {
         </StaggerItem>
       </Stagger>
 
+      {/* The ref sits on a wrapper rather than on <Stagger>: Stagger is a
+          function component that keeps its own ref, so a ref prop would never
+          reach an element. */}
+      <div ref={gridRef}>
       <Stagger className="cards grid gap-8 sm:grid-cols-2 lg:grid-cols-3" gap={0.06}>
-        {order.map((p) => (
-          // The entrance lives on a wrapper, not on the card: the card owns a
-          // drag `y` motion value and a layout animation for reordering, and a
-          // variant animating the same `y` would fight both.
-          <StaggerItem key={p.id} className="h-full">
+        {order.map((p, i) => (
+          // A motion.div, not a plain one: the stagger variants have to keep
+          // propagating down to the StaggerItem inside, and propagation only
+          // travels through motion components.
+          <motion.div key={p.id} style={{ y: i % 2 === 0 ? driftUp : driftDown }} className="h-full">
+            {/* The entrance lives on a wrapper, not on the card: the card owns a
+                drag `y` motion value and a layout animation for reordering, and
+                a variant animating the same `y` would fight both. */}
+            <StaggerItem className="h-full">
             <WorkCard
               project={p}
               reduced={reduced}
@@ -212,13 +238,15 @@ export function Work() {
               onReorderEnd={dropNearest}
             />
           </StaggerItem>
+          </motion.div>
         ))}
       </Stagger>
+      </div>
 
       <div className="oss mt-28">
-        <RiseText as="h3" className="oss-head font-display font-extrabold text-2xl text-chalk mb-8">
+        <SplitReveal as="h3" className="oss-head font-display font-extrabold text-2xl text-chalk mb-8">
           On my own time
-        </RiseText>
+        </SplitReveal>
         <Stagger as="ul" className="oss-list grid gap-8" gap={0.07}>
           {OSS_ITEMS.map((item) => (
             <StaggerItem

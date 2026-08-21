@@ -1,20 +1,17 @@
-import { useRef } from "react"
-import { motion, useScroll, useTransform } from "motion/react"
-import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
 
 /**
  * The join between two bands.
  *
  * Sections here are flat colour blocks stacked directly on each other, which put
  * a hard 1px step between every one of them — the page changed ground mid scroll
- * with no warning and nothing marked the change. A seam ramps one ground into
- * the next and sweeps a light across the join as you pass it.
+ * with no warning. This ramps one ground into the next, and that is all it does.
  *
- * It ran the hero's flow field through the gap first. That was wrong twice over:
- * it made the hero stop being the one place the field lives, and immediately
- * below the hero it looked broken — the field faded out at the foot of the hero
- * and then abruptly started again a hundred pixels lower, with a hard edge
- * between. The field is the hero's. Everything below it gets light instead.
+ * It used to carry the section transition too: first a rule, then a strip of the
+ * hero's flow field, then a light sweeping across. Every one of them looked
+ * wrong, and they were all the same mistake — putting the transition in the gap
+ * between sections, which is the one part of the page with nothing in it. A
+ * glowing smudge in dead space is not an arrival. The transition lives in the
+ * heading you are arriving at now; see SplitReveal. This just removes the step.
  */
 
 // Kept as channel triples rather than reading the CSS custom properties: these
@@ -60,47 +57,14 @@ export interface SeamProps {
   to: Ground
 }
 
-const HEIGHT = "clamp(6rem, 13vh, 10rem)"
+const HEIGHT = "clamp(2.5rem, 5vh, 4rem)"
 
 export function Seam({ from, to }: SeamProps) {
-  const ref = useRef<HTMLDivElement | null>(null)
-  const reduced = useReducedMotionGate()
-
-  // Scroll-linked rather than triggered: an entrance fires once and is over, but
-  // a join wants to arrive as you reach it and leave as you pass it, so the
-  // effect is tied to where the seam sits in the viewport.
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] })
-
-  // Driven as background-position rather than a translated element, because the
-  // sweep has to travel the seam's full width and nothing here knows what that
-  // width is — a percentage offset resolves against the box at paint time.
-  const sweep = useTransform(scrollYProgress, [0, 1], ["-25%", "125%"])
-  const glow = useTransform(
-    scrollYProgress,
-    [0, 0.28, 0.5, 0.72, 1],
-    reduced ? [0.55, 0.55, 0.55, 0.55, 0.55] : [0, 0.85, 1, 0.85, 0]
-  )
-
   return (
     <div
-      ref={ref}
       aria-hidden="true"
-      className="relative w-full overflow-hidden"
+      className="w-full"
       style={{ height: HEIGHT, background: ramp(from, to) }}
-    >
-      <motion.div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          opacity: glow,
-          backgroundImage:
-            "radial-gradient(ellipse 50% 50% at 50% 50%, rgba(255,91,79,0.34), rgba(255,143,121,0.10) 45%, transparent 72%)",
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "62% 210%",
-          backgroundPositionY: "center",
-          backgroundPositionX: reduced ? "50%" : sweep,
-          filter: "blur(14px)",
-        }}
-      />
-    </div>
+    />
   )
 }
