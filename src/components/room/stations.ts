@@ -9,7 +9,7 @@ export const SEAT: V3 = [0, 1.3, 1.35]
 export const STATIONS: Station[] = [
   { id: "monitor", num: "01", label: "Agents & Systems", pos: [0, 1.28, 0.21], look: [0, 1.28, -0.64], label3: [0, 1.78, -0.6] },
   { id: "desk", num: "02", label: "Desk", pos: [0.05, 1.8, 0.75], look: [0.05, 0.8, 0.1], label3: [-0.1, 0.95, 0.5] },
-  { id: "shelf", num: "03", label: "Writeups", pos: [0.65, 1.8, 0.3], look: [0.25, 1.85, -1.4], label3: [0, 2.25, -1.4] },
+  { id: "shelf", num: "03", label: "Writeups", pos: [1.1, 1.75, 0.35], look: [0.72, 1.85, -1.4], label3: [0, 2.25, -1.4] },
   { id: "board", num: "04", label: "Path", pos: [2.55, 1.55, 0.1], look: [2.55, 1.55, -1.6], label3: [1.85, 2.2, -1.55] },
   { id: "drawer", num: "05", label: "Side quests", pos: [0.4, 1.3, 1.55], look: [0.4, 0.6, 0.65], label3: [0, 0.52, 0.62] },
   { id: "notes", num: "06", label: "Contact", pos: [1.4, 1.55, 0.75], look: [1.4, 0.8, 0.3], label3: [1.1, 0.95, 0.45] },

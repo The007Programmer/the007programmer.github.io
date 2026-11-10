@@ -10,7 +10,7 @@ import { PAL, TOK } from "./theme"
 import { corkTex, noiseTex, woodTex } from "./proc"
 import { C, DESK_Y, ambient, hovFor, setCursor, shadow, type Ctx, type InputRef } from "./shared"
 import { Eyes, Figurine, Glow } from "./Critters"
-import { Camera, Keyboard } from "./Props"
+import { Camera, Keyboard, Plant, Puddle, Steam } from "./Props"
 
 export type { Ctx, Input } from "./shared"
 const MONITOR_SCALE = 0.038 // drei CSS3D maps CSS px to world at a fixed ratio; tuned by measuring so 1280px fills the 1.22m screen
@@ -283,8 +283,7 @@ function Shelf({ ctx }: { ctx: Ctx }) {
       ))}
       <Book title="SAGE" x={0.1} y={1.915} />
       <Book title="Recurser" x={0.14} y={2.005} w={0.5} />
-      <mesh position={[0.9, 1.93, -1.4]} castShadow><cylinderGeometry args={[0.07, 0.055, 0.13, 48]} /><meshStandardMaterial color="#8A3A1F" roughness={0.7} /></mesh>
-      <mesh position={[0.9, 2.05, -1.4]} castShadow><icosahedronGeometry args={[0.1, 3]} /><meshStandardMaterial color="#515A47" flatShading roughness={0.9} /></mesh>
+      <group position={[0.9, 1.86, -1.4]}><Plant /></group>
     </Hot>
   )
 }
@@ -393,11 +392,19 @@ function Drawer({ ctx }: { ctx: Ctx }) {
     g.fillStyle = "#CF5C36"; g.fillRect(28, 70, 100, 6)
   }, "drawer")
   useEffect(() => { shadow.dirty = true; invalidate() }, [ctx.focus, invalidate])
+  // a timed ease in and out (not an exponential chase), with a beat before it starts, so it slides open and shuts instead of snapping
+  const tw = useRef({ from: 0.03, to: 0.03, t: 1, last: 0.03 })
   useFrame((_, dt) => {
-    const goal = ctx.focus === "drawer" ? 0.42 : 0.03
-    o.current += (goal - o.current) * (ctx.reduced ? 1 : 1 - Math.exp(-dt * 5))
-    d.current.position.z = o.current
-    if (Math.abs(goal - o.current) > 0.002) { shadow.dirty = true; invalidate() }
+    const goal = ctx.focus === "drawer" ? 0.42 : 0.03, w = tw.current
+    if (goal !== w.last) { const dur = goal > 0.1 ? 0.75 : 0.9; w.from = o.current; w.to = goal; w.last = goal; w.t = ctx.reduced ? 1 : goal > 0.1 ? -0.1 / dur : -0.18 / dur }
+    if (w.t < 1 || Math.abs(o.current - w.to) > 1e-4) {
+      const dur = w.to > 0.1 ? 0.75 : 0.9
+      w.t = Math.min(1, w.t + dt / dur)
+      const q = Math.max(0, w.t), e = q < 0.5 ? 4 * q * q * q : 1 - Math.pow(-2 * q + 2, 3) / 2
+      o.current = w.from + (w.to - w.from) * e
+      d.current.position.z = o.current
+      shadow.dirty = true; invalidate()
+    }
   })
   // a centre drawer set into a front apron rail: flush with the desk edge, open just a crack until you ask for it
   const wood = useMemo(() => woodTex("#3a2a1c", 2, 1), [])
@@ -426,11 +433,23 @@ function Notepad({ ctx }: { ctx: Ctx }) {
     ;[150, 190, 230, 270, 310].forEach((y) => { g.fillStyle = "#9A8B7A"; g.fillRect(24, y, 250, 2) })
     g.fillStyle = "#B73A27"; g.font = f(MONO, 20); g.fillText("email", 24, 144); g.fillText("github", 24, 184); g.fillText("linkedin", 24, 224); g.fillText("resume", 24, 264)
   }, "notes")
+  const lift = useRef<THREE.Group>(null!), h = useRef(0), want = useRef(0)
+  const invalidate = useThree((st) => st.invalidate)
+  useFrame((_, dt) => {
+    const goal = ctx.focus === "notes" ? 1.2 : want.current
+    h.current += (goal - h.current) * (ctx.reduced ? 1 : 1 - Math.exp(-dt * 11))
+    // up, towards the viewer, and tipped so its face turns to you (same idea as the cards)
+    lift.current.position.set(0, h.current * 0.035, h.current * 0.06)
+    lift.current.rotation.x = h.current * 0.3
+    if (Math.abs(goal - h.current) > 0.003) { shadow.dirty = true; invalidate() }
+  })
   return (
     <Hot id="notes" ctx={ctx} position={[1.1, DESK_Y, 0.3]} rotation={[0, -0.2, 0]}>
+      <group ref={lift} onPointerOver={() => { want.current = 1; invalidate() }} onPointerOut={() => { want.current = 0; invalidate() }}>
       <RB args={[0.2, 0.02, 0.27]} radius={0.004} smoothness={4} position={[0, 0.01, 0]} castShadow receiveShadow><meshStandardMaterial color="#c9c39a" roughness={0.9} /></RB>
       <mesh position={[0, 0.0215, 0]} rotation={[-Math.PI / 2, 0, 0]}><planeGeometry args={[0.195, 0.26]} /><meshStandardMaterial map={tex} roughness={0.9} /></mesh>
       <mesh position={[0.17, 0.011, 0.04]} rotation={[0, 0.5, Math.PI / 2]} castShadow><cylinderGeometry args={[0.007, 0.007, 0.17, 8]} /><meshStandardMaterial color={C.signal} roughness={0.4} /></mesh>
+      </group>
     </Hot>
   )
 }
@@ -475,40 +494,49 @@ function Lamp({ ctx }: { ctx: Ctx }) {
 }
 
 function Mug({ ctx }: { ctx: Ctx }) {
-  const g = useRef<THREE.Group>(null!), pud = useRef<THREE.Mesh>(null!)
-  const spilled = useRef(false), p = useRef(0)
+  const g = useRef<THREE.Group>(null!)
+  const spilled = useRef(false), p = useRef(0), pv = useRef(0)
+  const hover = useRef(false), steamOn = useRef(false), steamVis = useRef(1), steamAt = useRef<[number, number, number]>([-0.78, DESK_Y + 0.1, -0.56])
+  const spillAt = useRef(-1e9), mopAt = useRef(-1e9)
   const invalidate = useThree((s) => s.invalidate)
   useFrame((_, dt) => {
-    const goal = spilled.current ? 1 : 0
+    const goal = spilled.current ? 1 : 0, now = performance.now()
     p.current += (goal - p.current) * (ctx.reduced ? 1 : 1 - Math.exp(-dt * (goal ? 4.5 : 8)))
     const v = p.current
     g.current.rotation.z = -Math.min(1, v * 1.15) * 1.5
-    const pv = Math.max(0, (v - 0.25) / 0.75)
-    pud.current.scale.set(0.001 + pv * 1.4, 0.001 + pv * 1, 1)
-    pud.current.visible = pv > 0.01
-    if (Math.abs(goal - v) > 0.003) { shadow.dirty = true; invalidate() }
+    pv.current = Math.max(0, (v - 0.25) / 0.75)
+    // steam: always there, faint and still; it drifts while you hover the mug, for a few seconds after a mop, and off the puddle after a spill
+    const sAge = (now - spillAt.current) / 1000, mAge = (now - mopAt.current) / 1000
+    steamOn.current = !ctx.reduced && (hover.current || (spilled.current ? sAge < 9 : mAge < 4))
+    if (spilled.current) { steamAt.current = [-0.6, DESK_Y + 0.005, -0.55]; steamVis.current = Math.max(0, 1 - sAge / 9) * (v > 0.6 ? 1 : 0) }
+    else { steamAt.current = [-0.78, DESK_Y + 0.1, -0.56]; steamVis.current = v < 0.05 ? 1 : 0 }
+    if (Math.abs(goal - v) > 0.003 || steamOn.current) { shadow.dirty = true; invalidate() }
   })
   const click = (e: ThreeEvent<MouseEvent>) => {
     if (e.delta > 6) return
     e.stopPropagation()
     spilled.current = !spilled.current
+    if (spilled.current) spillAt.current = performance.now(); else mopAt.current = performance.now()
     ctx.toast(spilled.current ? "Well. That happened." : "Mopped. Nobody saw anything.") // SPIKE COPY
     invalidate()
   }
   const R = 0.05, H = 0.1
   return (
     <group>
-      <group ref={g} position={[-0.78 + R, DESK_Y, -0.56]} onClick={click} {...hovFor(ctx, "Mug")}>
+      <group
+        ref={g} position={[-0.78 + R, DESK_Y, -0.56]} onClick={click}
+        onPointerOver={(e) => { e.stopPropagation(); setCursor(true); ctx.hover("Mug"); hover.current = true; invalidate() }}
+        onPointerOut={() => { setCursor(false); ctx.hover(null); hover.current = false; invalidate() }}
+      >
         <mesh position={[-R, H / 2, 0]} castShadow><cylinderGeometry args={[R, R * 0.9, H, 64, 1, true]} /><meshStandardMaterial color="#EEE5E9" roughness={0.3} side={THREE.DoubleSide} /></mesh>
         <mesh position={[-R, 0.003, 0]}><cylinderGeometry args={[R * 0.9, R * 0.9, 0.006, 64]} /><meshStandardMaterial color="#EEE5E9" roughness={0.3} /></mesh>
-        <mesh position={[-R, H - 0.012, 0]} rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[R * 0.97, 64]} /><meshStandardMaterial color="#2a160d" roughness={0.12} /></mesh>
+        <mesh position={[-R, H - 0.012, 0]} rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[R * 0.97, 64]} /><meshPhysicalMaterial color="#2a160d" roughness={0.1} clearcoat={1} /></mesh>
         {/* handle: a half torus in the mug's own plane, both ends sunk into the wall */}
         <mesh position={[-2 * R + 0.003, H / 2, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><torusGeometry args={[0.03, 0.0075, 16, 40, Math.PI]} /><meshStandardMaterial color="#EEE5E9" roughness={0.3} /></mesh>
         <mesh position={[-R, H / 2 + 0.01, R + 0.001]}><planeGeometry args={[0.05, 0.016]} /><meshBasicMaterial color={C.signal} toneMapped={false} /></mesh>
       </group>
-      <mesh ref={pud} visible={false} rotation={[-Math.PI / 2, 0, 0]} position={[-0.63, DESK_Y + 0.003, -0.53]}>
-        <circleGeometry args={[0.1, 32]} /><meshStandardMaterial color="#5a3420" emissive="#2a1208" roughness={0.1} metalness={0.2} polygonOffset polygonOffsetFactor={-2} />
-      </mesh>
+      <group position={[-0.635, DESK_Y + 0.0025, -0.57]}><Puddle pv={pv} /></group>
+      <Steam origin={steamAt} active={steamOn} vis={steamVis} tint={ctx.theme === "light" ? "#8a7a6c" : "#efe6dc"} />
     </group>
   )
 }
