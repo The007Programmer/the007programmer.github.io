@@ -56,15 +56,19 @@ function buildFigurine() {
 }
 
 export function Figurine({ ctx }: { ctx: Ctx }) {
-  const arm = useRef<THREE.Group>(null!), wave = useRef(0)
+  const arm = useRef<THREE.Group>(null!), paw = useRef<THREE.Group>(null!), wave = useRef(0)
   const geo = useMemo(buildFigurine, [])
   const invalidate = useThree((s) => s.invalidate)
   useFrame((_, dt) => {
     if (wave.current > 0) {
       wave.current = Math.max(0, wave.current - dt)
-      arm.current.rotation.z = -0.35 + Math.sin(wave.current * 12) * 0.38 * Math.min(1, wave.current * 1.5)
+      // a real beckoning cat swings the paw forward and back from the shoulder (toward you and away),
+      // with the wrist flexing the other way, not side to side
+      const a = Math.sin(wave.current * 11) * Math.min(1, wave.current * 1.5)
+      arm.current.rotation.x = 0.1 + a * 0.5
+      paw.current.rotation.x = -a * 0.7
       shadow.dirty = true; invalidate()
-    }
+    } else if (arm.current.rotation.x !== 0.1) { arm.current.rotation.x = 0.1; paw.current.rotation.x = 0; shadow.dirty = true; invalidate() }
   })
   const click = (e: { stopPropagation: () => void; delta: number }) => {
     if (e.delta > 6) return
@@ -75,11 +79,13 @@ export function Figurine({ ctx }: { ctx: Ctx }) {
   return (
     <group position={[0.68, DESK_Y, -0.62]} rotation={[0, -0.3, 0]} onClick={click} {...hovFor(ctx, "Lucky cat")}>
       <mesh geometry={geo} castShadow><meshStandardMaterial vertexColors roughness={0.22} metalness={0.02} /></mesh>
-      {/* the beckoning paw: upper arm, rounded paw, pink pad */}
-      <group ref={arm} position={[0.04, 0.066, 0.004]} rotation={[0, 0, -0.35]}>
+      {/* the beckoning paw: a raised forearm hinged at the shoulder, with a paw that flexes at the wrist */}
+      <group ref={arm} position={[0.04, 0.066, 0.004]} rotation={[0.1, 0, -0.3]}>
         <mesh position={[0.004, 0.026, 0]} castShadow><capsuleGeometry args={[0.012, 0.035, 8, 20]} /><meshStandardMaterial color={CREAM} roughness={0.22} /></mesh>
-        <mesh position={[0.004, 0.06, 0]} castShadow><sphereGeometry args={[0.0145, 28, 20]} /><meshStandardMaterial color={CREAM} roughness={0.22} /></mesh>
-        <mesh position={[0.004, 0.06, 0.0125]}><sphereGeometry args={[0.0065, 16, 12]} /><meshStandardMaterial color={PINK} roughness={0.4} /></mesh>
+        <group ref={paw} position={[0.004, 0.047, 0]}>
+          <mesh position={[0, 0.013, 0]} castShadow><sphereGeometry args={[0.0145, 28, 20]} /><meshStandardMaterial color={CREAM} roughness={0.22} /></mesh>
+          <mesh position={[0, 0.013, 0.0125]}><sphereGeometry args={[0.0065, 16, 12]} /><meshStandardMaterial color={PINK} roughness={0.4} /></mesh>
+        </group>
       </group>
     </group>
   )
