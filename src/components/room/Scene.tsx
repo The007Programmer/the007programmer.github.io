@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, type MutableRefObject, type ReactNode } from "react"
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber"
 import { Html, Line } from "@react-three/drei"
+import MonitorOS from "./MonitorOS"
 import * as THREE from "three"
 import { ELECTRA, PROJECT_CARDS } from "@/data/work"
 import { LEDGER_ROWS } from "@/data/path"
-import { DESK_ITEMS, SEAT, STATIONS, stationOf, type DeskItem, type SId } from "./stations"
+import { DESK_ITEMS, SEAT, stationOf, type DeskItem, type SId } from "./stations"
 import { DISPLAY, MONO, cover, f, loadImg, useCanvasTex, wrap } from "./tex"
 
 export interface Input { px: number; py: number; ox: number; oy: number; inv?: () => void }
@@ -17,22 +18,25 @@ export interface Ctx {
   openCard: (id: string) => void
   toggleLamp: () => void
   toast: (m: string) => void
+  hover: (l: string | null) => void
 }
+const shadow = { dirty: true }
 
 const C = { void: "#0A0D13", ink: "#111722", ink2: "#18202D", line: "#2E3A54", edge: "#617599", chalk: "#EDF2F8", signal: "#FF5B4F", ember: "#C4261E" }
 const DESK_Y = 0.8
+const MONITOR_SCALE = 0.038 // drei CSS3D maps CSS px to world at a fixed ratio; tuned by measuring so 1280px fills the 1.22m screen
 
 /* ---------------------------------------------------------------- helpers */
 function setCursor(on: boolean) { document.body.style.cursor = on ? "pointer" : "" }
-const hov = (on: boolean) => ({ onPointerOver: (e: ThreeEvent<PointerEvent>) => { e.stopPropagation(); setCursor(on) }, onPointerOut: () => setCursor(false) })
+const hovFor = (ctx: Ctx, label: string) => ({ onPointerOver: (e: ThreeEvent<PointerEvent>) => { e.stopPropagation(); setCursor(true); ctx.hover(label) }, onPointerOut: () => { setCursor(false); ctx.hover(null) } })
 
 function Hot({ id, ctx, children, ...rest }: { id: SId; ctx: Ctx; children: ReactNode } & Record<string, unknown>) {
   return (
     <group
       {...rest}
       onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); ctx.goto(id) }}
-      onPointerOver={(e) => { e.stopPropagation(); setCursor(true) }}
-      onPointerOut={() => setCursor(false)}
+      onPointerOver={(e) => { e.stopPropagation(); setCursor(true); ctx.hover(stationOf(id).label) }}
+      onPointerOut={() => { setCursor(false); ctx.hover(null) }}
     >
       {children}
     </group>
@@ -82,7 +86,7 @@ function Lights({ ctx }: { ctx: Ctx }) {
     key.current.intensity = 0.1 + 0.55 * l
     spot.current.intensity = 11 * l
     warm.current.intensity = 0.9 * l
-    if (Math.abs(goal - l) > 0.002) invalidate()
+    if (Math.abs(goal - l) > 0.002) { shadow.dirty = true; invalidate() }
   })
   return (
     <>
@@ -94,9 +98,7 @@ function Lights({ ctx }: { ctx: Ctx }) {
       {/* monitor spill, always on */}
       <pointLight position={[0, 1.25, -0.2]} color="#7fa6ff" intensity={0.6} distance={3} decay={2} />
       {/* fill for the stations you lean into */}
-      <pointLight position={[0, 2.4, -0.4]} color="#9db4e8" intensity={0.8} distance={3.5} decay={2} />
-      <pointLight position={[1.7, 1.9, -0.7]} color="#9db4e8" intensity={1.1} distance={3.5} decay={2} />
-      <pointLight position={[-1.75, 1.25, -0.35]} color="#b9c8ee" intensity={2.2} distance={3.5} decay={2} />
+      <pointLight position={[0, 2.2, -0.2]} color="#9db4e8" intensity={2.2} distance={6} decay={2} />
       {/* signal-red strip under the shelf */}
       <pointLight position={[0, 1.9, -1.2]} color={C.signal} intensity={0.9} distance={2.4} decay={2} />
     </>
@@ -162,18 +164,38 @@ function Monitor({ ctx }: { ctx: Ctx }) {
       <mesh position={[0, DESK_Y + 0.25, -0.76]} castShadow><boxGeometry args={[0.09, 0.45, 0.05]} /><meshStandardMaterial color="#10151d" metalness={0.5} roughness={0.4} /></mesh>
       <mesh position={[0, 1.28, -0.68]} castShadow><boxGeometry args={[1.32, 0.78, 0.07]} /><meshStandardMaterial color="#0c1018" roughness={0.4} metalness={0.3} /></mesh>
       <mesh position={[0, 1.28, -0.643]}><planeGeometry args={[1.22, 0.686]} /><meshBasicMaterial map={tex} toneMapped={false} /></mesh>
+      {ctx.focus === "monitor" && (
+        <Html transform position={[0, 1.28, -0.64]} scale={MONITOR_SCALE} zIndexRange={[20, 10]}>
+          <MonitorOS />
+        </Html>
+      )}
       <mesh position={[0.5, 0.905, -0.642]}><boxGeometry args={[0.025, 0.012, 0.004]} /><meshBasicMaterial color={C.signal} toneMapped={false} /></mesh>
     </Hot>
   )
+}
+
+function Keys() {
+  const ref = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    const m = new THREE.Matrix4(), c = new THREE.Color()
+    let i = 0
+    for (let r = 0; r < 4; r++) for (let k = 0; k < 14; k++) {
+      m.setPosition(-0.2 + k * 0.0305, DESK_Y + 0.026, -0.262 + r * 0.03)
+      ref.current.setMatrixAt(i, m)
+      ref.current.setColorAt(i, c.set(r === 0 && k === 13 ? C.signal : "#252f42"))
+      i++
+    }
+    ref.current.instanceMatrix.needsUpdate = true
+    if (ref.current.instanceColor) ref.current.instanceColor.needsUpdate = true
+  }, [])
+  return <instancedMesh ref={ref} args={[undefined, undefined, 56]}><boxGeometry args={[0.026, 0.008, 0.026]} /><meshStandardMaterial /></instancedMesh>
 }
 
 function Peripherals() {
   return (
     <group>
       <mesh position={[0, DESK_Y + 0.012, -0.22]} castShadow receiveShadow><boxGeometry args={[0.46, 0.022, 0.15]} /><meshStandardMaterial color="#1a2230" roughness={0.6} /></mesh>
-      {Array.from({ length: 4 }, (_, r) => Array.from({ length: 14 }, (_, c) => (
-        <mesh key={r + "-" + c} position={[-0.2 + c * 0.0305, DESK_Y + 0.026, -0.262 + r * 0.03]}><boxGeometry args={[0.026, 0.008, 0.026]} /><meshStandardMaterial color={r === 0 && c === 13 ? C.signal : "#252f42"} /></mesh>
-      )))}
+      <Keys />
       <mesh position={[0.46, DESK_Y + 0.012, -0.2]} castShadow><boxGeometry args={[0.06, 0.024, 0.1]} /><meshStandardMaterial color="#1a2230" /></mesh>
     </group>
   )
@@ -220,15 +242,15 @@ function Card({ item, ctx }: { item: DeskItem; ctx: Ctx }) {
     h.current += (goal - h.current) * (ctx.reduced ? 1 : 1 - Math.exp(-dt * 12))
     g.current.position.y = DESK_Y + 0.004 + h.current * 0.05
     g.current.rotation.x = h.current * 0.22
-    if (Math.abs(goal - h.current) > 0.003) invalidate()
+    if (Math.abs(goal - h.current) > 0.003) { shadow.dirty = true; invalidate() }
   })
   return (
     <group
       ref={g}
       position={[item.x, DESK_Y + 0.004, item.z]}
       rotation={[0, item.rot, 0]}
-      onPointerOver={(e) => { e.stopPropagation(); want.current = 1; setCursor(true); invalidate() }}
-      onPointerOut={() => { want.current = 0; setCursor(false); invalidate() }}
+      onPointerOver={(e) => { e.stopPropagation(); want.current = 1; setCursor(true); ctx.hover(item.title); invalidate() }}
+      onPointerOut={() => { want.current = 0; setCursor(false); ctx.hover(null); invalidate() }}
       onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); ctx.openCard(item.id) }}
     >
       <mesh position={[0, 0.002, 0]} castShadow receiveShadow><boxGeometry args={[0.34, 0.004, 0.459]} /><meshStandardMaterial color="#c9d1dd" /></mesh>
@@ -239,7 +261,7 @@ function Card({ item, ctx }: { item: DeskItem; ctx: Ctx }) {
 
 function Ring({ ctx }: { ctx: Ctx }) {
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-0.38, DESK_Y + 0.004, 0.4]} onClick={(e) => { e.stopPropagation(); ctx.toast("That ring is from cold brew. Not a bug.") }} {...hov(true)}>
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-0.38, DESK_Y + 0.004, 0.4]} onClick={(e) => { e.stopPropagation(); ctx.toast("That ring is from cold brew. Not a bug.") }} {...hovFor(ctx, "Coffee ring")}>
       <ringGeometry args={[0.04, 0.052, 32]} /><meshStandardMaterial color="#4a3022" transparent opacity={0.7} />
     </mesh>
   )
@@ -323,7 +345,7 @@ function Cabinet({ ctx }: { ctx: Ctx }) {
     const goal = ctx.focus === "drawer" ? 1 : 0
     o.current += (goal - o.current) * (ctx.reduced ? 1 : 1 - Math.exp(-dt * 5))
     d.current.position.z = o.current * 0.42
-    if (Math.abs(goal - o.current) > 0.002) invalidate()
+    if (Math.abs(goal - o.current) > 0.002) { shadow.dirty = true; invalidate() }
   })
   const folders = ["#8E1A13", "#C4261E", "#44546a", "#617599", "#2E3A54"]
   return (
@@ -378,7 +400,7 @@ function Lamp({ ctx }: { ctx: Ctx }) {
     <group
       position={[0, 0, 0]}
       onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); ctx.toggleLamp() }}
-      {...hov(true)}
+      {...hovFor(ctx, ctx.lamp ? "Lamp: off" : "Lamp: on")}
     >
       <mesh position={[-1.08, DESK_Y + 0.02, -0.4]} castShadow><cylinderGeometry args={[0.12, 0.14, 0.04, 16]} /><meshStandardMaterial color="#1a2230" metalness={0.6} roughness={0.4} /></mesh>
       {arm([-1.08, DESK_Y + 0.04, -0.4], [-1.0, 1.25, -0.36])}
@@ -401,7 +423,7 @@ function Mug({ ctx }: { ctx: Ctx }) {
     const pv = Math.max(0, (v - 0.25) / 0.75)
     pud.current.scale.set(0.001 + pv * 1.4, 0.001 + pv * 1, 1)
     pud.current.visible = pv > 0.01
-    if (Math.abs(goal - v) > 0.003) invalidate()
+    if (Math.abs(goal - v) > 0.003) { shadow.dirty = true; invalidate() }
   })
   const click = (e: ThreeEvent<MouseEvent>) => {
     if (e.delta > 6) return
@@ -413,7 +435,7 @@ function Mug({ ctx }: { ctx: Ctx }) {
   const R = 0.05, H = 0.1
   return (
     <group>
-      <group ref={g} position={[0.95 + R, DESK_Y, -0.18]} onClick={click} {...hov(true)}>
+      <group ref={g} position={[0.95 + R, DESK_Y, -0.18]} onClick={click} {...hovFor(ctx, "Mug")}>
         <mesh position={[-R, H / 2, 0]} castShadow><cylinderGeometry args={[R, R * 0.9, H, 16, 1, true]} /><meshStandardMaterial color="#e6e9ee" roughness={0.35} side={THREE.DoubleSide} /></mesh>
         <mesh position={[-R, 0.003, 0]}><cylinderGeometry args={[R * 0.9, R * 0.9, 0.006, 16]} /><meshStandardMaterial color="#e6e9ee" /></mesh>
         <mesh position={[-R, H - 0.012, 0]} rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[R * 0.97, 16]} /><meshStandardMaterial color="#2a160d" roughness={0.15} /></mesh>
@@ -427,20 +449,9 @@ function Mug({ ctx }: { ctx: Ctx }) {
   )
 }
 
-/* ------------------------------------------------------------------ labels */
-function Labels({ ctx }: { ctx: Ctx }) {
-  if (ctx.focus) return null
-  return (
-    <>
-      {STATIONS.map((s) => (
-        <Html key={s.id} position={s.label3} center zIndexRange={[5, 0]} style={{ pointerEvents: "none" }}>
-          <div className="font-mono text-[10px] tracking-[0.14em] uppercase whitespace-nowrap px-2 py-1 bg-void/70 text-chalk-2 border border-line">
-            <span className="text-signal">{s.num}</span> {s.label}
-          </div>
-        </Html>
-      ))}
-    </>
-  )
+function ShadowGate() {
+  useFrame(({ gl }) => { gl.shadowMap.needsUpdate = shadow.dirty; shadow.dirty = false })
+  return null
 }
 
 /* ------------------------------------------------------------------ canvas */
@@ -448,14 +459,15 @@ export default function Scene({ ctx, input, onReady }: { ctx: Ctx; input: Mutabl
   return (
     <Canvas
       shadows
-      dpr={[1, 1.5]}
+      dpr={[1, 1.25]}
       frameloop="demand"
       camera={{ fov: 58, near: 0.05, far: 30, position: SEAT, rotation: [-0.2, 0, 0] }}
       gl={{ antialias: true, powerPreference: "high-performance" }}
-      onCreated={({ gl, invalidate }) => { input.current.inv = invalidate; gl.toneMapping = THREE.ACESFilmicToneMapping; gl.toneMappingExposure = 1.15; onReady() }}
+      onCreated={({ gl, invalidate }) => { if (location.search.includes("perf")) (window as unknown as { __gl: THREE.WebGLRenderer }).__gl = gl; input.current.inv = invalidate; gl.shadowMap.autoUpdate = false; gl.toneMapping = THREE.ACESFilmicToneMapping; gl.toneMappingExposure = 1.15; onReady() }}
     >
       <color attach="background" args={["#07090e"]} />
       <fog attach="fog" args={["#07090e", 3.2, 9]} />
+      
       <Rig ctx={ctx} input={input} />
       <Lights ctx={ctx} />
       <Shell />
@@ -472,7 +484,7 @@ export default function Scene({ ctx, input, onReady }: { ctx: Ctx; input: Mutabl
       <Notepad ctx={ctx} />
       <Lamp ctx={ctx} />
       <Mug ctx={ctx} />
-      <Labels ctx={ctx} />
+      <ShadowGate />
     </Canvas>
   )
 }

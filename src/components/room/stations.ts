@@ -7,7 +7,7 @@ export interface Station { id: SId; label: string; num: string; pos: V3; look: V
 export const SEAT: V3 = [0, 1.3, 1.35]
 
 export const STATIONS: Station[] = [
-  { id: "monitor", num: "01", label: "Agents & Systems", pos: [0, 1.3, 0.2], look: [0, 1.3, -0.62], label3: [0, 1.78, -0.6] },
+  { id: "monitor", num: "01", label: "Agents & Systems", pos: [0, 1.28, 0.21], look: [0, 1.28, -0.64], label3: [0, 1.78, -0.6] },
   { id: "desk", num: "02", label: "Desk", pos: [0.05, 1.8, 0.75], look: [0.05, 0.8, 0.1], label3: [-0.1, 0.95, 0.5] },
   { id: "shelf", num: "03", label: "Writeups", pos: [0.65, 1.95, 0.3], look: [0.25, 2.0, -1.4], label3: [0, 2.42, -1.4] },
   { id: "board", num: "04", label: "Path", pos: [2.2, 1.55, 0.1], look: [2.2, 1.55, -1.6], label3: [1.85, 2.2, -1.55] },

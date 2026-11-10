@@ -1,7 +1,6 @@
 import { Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from "react"
-import { ELECTRA, OSS_ITEMS, PROJECT_CARDS } from "@/data/work"
+import { OSS_ITEMS, PROJECT_CARDS } from "@/data/work"
 import { LEDGER_ROWS } from "@/data/path"
-import { TOOLKIT_GROUPS } from "@/data/toolkit"
 import Scene, { type Ctx, type Input } from "./Scene"
 import { DESK_ITEMS, STATIONS, type SId } from "./stations"
 
@@ -23,57 +22,6 @@ const H = ({ k, children }: { k?: string; children: ReactNode }) => (
 )
 
 /* ------------------------------------------------------------ panel bodies */
-function MonitorPanel() {
-  const [tab, setTab] = useState<"agents" | "systems" | "toolkit">("agents")
-  const tabs = [["agents", "AGENTS"], ["systems", "SYSTEMS"], ["toolkit", "TOOLKIT"]] as const
-  return (
-    <div className="flex h-full bg-void text-chalk">
-      <nav aria-label="Desktop" className="w-[180px] shrink-0 bg-ink border-r border-line p-4 flex flex-col gap-1">
-        {tabs.map(([id, l]) => (
-          <button key={id} onClick={() => setTab(id)} aria-pressed={tab === id} className={`text-left font-mono text-[13px] tracking-[0.1em] py-2 px-2 focus-visible:outline-2 focus-visible:outline-signal ${tab === id ? "text-signal" : "text-mute hover:text-chalk"}`}>
-            {tab === id ? "> " : "  "}{l}
-          </button>
-        ))}
-      </nav>
-      <div className="flex-1 overflow-y-auto p-7">
-        {tab === "agents" && (
-          <>
-            <div className="font-mono text-[12px] tracking-[0.1em] uppercase text-signal mb-2">{ELECTRA.stamp}</div>
-            <h2 className="font-display font-extrabold uppercase text-[64px] leading-[0.9] tracking-[-0.03em] mb-4">{ELECTRA.title}</h2>
-            <p className="text-[17px] leading-[1.5] text-chalk-2 max-w-[62ch]">{ELECTRA.lede}</p>
-            <dl className="mt-6 grid gap-5 max-w-[66ch]">
-              {ELECTRA.rows.map((r) => (
-                <div key={r.label}><dt className="font-mono text-[12px] tracking-[0.12em] uppercase text-signal">{r.label}</dt><dd className="text-[15px] leading-[1.5] text-chalk-2 mt-1">{r.body}</dd></div>
-              ))}
-            </dl>
-            <p className="font-mono text-[12px] text-mute mt-6">{ELECTRA.note}</p>
-          </>
-        )}
-        {tab === "systems" && (
-          <ul className="grid gap-5 max-w-[70ch]">
-            {PROJECT_CARDS.map((c) => (
-              <li key={c.id} className="border-b border-line pb-5">
-                <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-mute">{c.stamp}</div>
-                <div className="font-display font-extrabold uppercase text-[30px] leading-none tracking-[-0.02em] mt-1">{c.title}</div>
-                <p className="text-[15px] leading-[1.5] text-chalk-2 mt-2">{c.desc}</p>
-                <div className="flex flex-wrap gap-2 mt-2">{c.tags.map((t) => <span key={t} className="font-mono text-[11px] border border-edge text-chalk-2 px-2 py-0.5">{t}</span>)}</div>
-                {c.link && <Ext href={c.link.href}>{c.link.label} ↗</Ext>}
-              </li>
-            ))}
-          </ul>
-        )}
-        {tab === "toolkit" && (
-          <dl className="grid gap-5 max-w-[70ch]">
-            {TOOLKIT_GROUPS.map((g) => (
-              <div key={g.id}><dt className={`font-mono text-[12px] tracking-[0.12em] uppercase ${g.accent ? "text-signal" : "text-chalk"}`}>{g.title}</dt><dd className="text-[15px] leading-[1.5] text-chalk-2 mt-1">{g.items}</dd></div>
-            ))}
-          </dl>
-        )}
-      </div>
-    </div>
-  )
-}
-
 function CardPanel({ id }: { id: string }) {
   const it = DESK_ITEMS.find((d) => d.id === id)!
   return (
@@ -161,18 +109,22 @@ export default function Room() {
   const reduced = useRef(typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches).current
   const input = useRef<Input>({ px: 0, py: 0, ox: 0, oy: 0 })
   const back = useRef<HTMLButtonElement>(null)
+  const tip = useRef<HTMLDivElement>(null)
+  const [hoverLabel, setHoverLabel] = useState<string | null>(null)
 
   const goto = useCallback((id: SId) => { setFocus(id); setCard(null) }, [])
   const openCard = useCallback((id: string) => { setFocus("desk"); setCard(id) }, [])
   const toast = useCallback((m: string) => setMsg(m), [])
-  const ctx: Ctx = { focus, card, lamp, reduced, goto, openCard, toggleLamp: () => { setLamp((l) => !l); setMsg(lamp ? "Lamp off." : "Lamp on.") }, toast }
+  const ctx: Ctx = { focus, card, lamp, reduced, goto, openCard, hover: setHoverLabel, toggleLamp: () => { setLamp((l) => !l); setMsg(lamp ? "Lamp off." : "Lamp on.") }, toast }
 
   useEffect(() => { if (!msg) return; const t = setTimeout(() => setMsg(""), 2400); return () => clearTimeout(t) }, [msg])
 
   // look around: pointer, drag, arrows, Esc
   useEffect(() => {
     const inv = () => input.current.inv?.()
-    const move = (e: PointerEvent) => { input.current.px = (e.clientX / innerWidth) * 2 - 1; input.current.py = (e.clientY / innerHeight) * 2 - 1; inv() }
+    const move = (e: PointerEvent) => {
+      if (tip.current) tip.current.style.transform = `translate(${e.clientX + 14}px, ${e.clientY + 16}px)`
+      input.current.px = (e.clientX / innerWidth) * 2 - 1; input.current.py = (e.clientY / innerHeight) * 2 - 1; inv() }
     const key = (e: KeyboardEvent) => {
       if (e.key === "Escape") { if (card) setCard(null); else if (focus) setFocus(null); return }
       if (focus || (e.target as HTMLElement)?.tagName === "BUTTON") return
@@ -202,7 +154,7 @@ export default function Room() {
 
   useEffect(() => { if (focus) setTimeout(() => back.current?.focus({ preventScroll: true }), 50) }, [focus])
 
-  const showPanel = focus && (focus !== "desk" || card)
+  const showPanel = focus && focus !== "monitor" && (focus !== "desk" || card)
   const delay = reduced ? "0s" : "0.55s"
 
   return (
@@ -239,12 +191,7 @@ export default function Room() {
         <button onClick={ctx.toggleLamp} aria-pressed={lamp} className="font-mono text-[11px] tracking-[0.1em] uppercase px-3 py-2 border border-line bg-ink-2/80 text-chalk-2 hover:border-edge focus-visible:outline-2 focus-visible:outline-signal">Lamp {lamp ? "on" : "off"}</button>
       </nav>
 
-      {showPanel && focus === "monitor" && (
-        <section aria-label="Agents and systems" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(1060px,88vw)] h-[min(620px,70vh)] border-2 border-edge shadow-[0_0_80px_rgba(127,166,255,0.15)] overflow-hidden" style={{ animation: `roomIn .35s ${delay} both` }}>
-          <MonitorPanel />
-        </section>
-      )}
-      {showPanel && focus !== "monitor" && (
+      {showPanel && (
         <section aria-label={focus!} className="absolute right-5 top-20 bottom-[120px] w-[min(460px,92vw)] overflow-y-auto bg-ink-2/95 border border-line p-7 shadow-2xl" style={{ animation: `roomIn .35s ${delay} both` }}>
           {focus === "desk" && card && <CardPanel id={card} />}
           {focus === "shelf" && <ShelfPanel />}
@@ -256,6 +203,8 @@ export default function Room() {
       {focus === "desk" && !card && (
         <div className="absolute right-6 top-20 font-mono text-[12px] text-chalk-2 bg-ink-2/90 border border-line px-4 py-2" style={{ animation: `roomIn .35s ${delay} both` }}>Pick something up. Hover lifts it, click opens it.</div>
       )}
+
+      <div ref={tip} aria-hidden="true" className={`pointer-events-none absolute left-0 top-0 z-40 font-mono text-[11px] tracking-[0.12em] uppercase bg-void/85 border border-line px-2 py-1 text-chalk ${hoverLabel && !focus ? "" : "hidden"}`}>{hoverLabel}</div>
 
       {msg && <div role="status" className="absolute left-1/2 -translate-x-1/2 top-16 z-50 font-mono text-sm bg-ink-2 border border-edge px-4 py-2 pointer-events-none">{msg}</div>}
     </div>
