@@ -1,6 +1,6 @@
 import { OSS_ITEMS } from "@/data/work"
 
-export type SId = "monitor" | "desk" | "shelf" | "board" | "drawer" | "notes"
+export type SId = "monitor" | "desk" | "shelf" | "board" | "drawer" | "notes" | "keyboard"
 type V3 = [number, number, number]
 export interface Station { id: SId; label: string; num: string; pos: V3; look: V3; label3: V3 }
 
@@ -13,6 +13,7 @@ export const STATIONS: Station[] = [
   { id: "board", num: "04", label: "Path", pos: [2.55, 1.55, 0.1], look: [2.55, 1.55, -1.6], label3: [1.85, 2.2, -1.55] },
   { id: "drawer", num: "05", label: "Side quests", pos: [0.4, 1.3, 1.55], look: [0.4, 0.6, 0.65], label3: [0, 0.52, 0.62] },
   { id: "notes", num: "06", label: "Contact", pos: [1.4, 1.55, 0.75], look: [1.4, 0.8, 0.3], label3: [1.1, 0.95, 0.45] },
+  { id: "keyboard", num: "07", label: "Keyboard", pos: [0.18, 1.1, 0.25], look: [0.18, 0.83, -0.2], label3: [0, 0.95, -0.2] },
 ]
 export const stationOf = (id: SId) => STATIONS.find((s) => s.id === id)!
 

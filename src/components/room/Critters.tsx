@@ -14,7 +14,7 @@ const rnd = (a: number, b: number) => a + Math.random() * (b - a)
 type Step = { p: [number, number]; act: "sit" | "loaf" | "bat"; dur: number; card?: string; y?: number }
 const ROUTE: Step[] = [
   { p: [0.82, -0.62], act: "sit", dur: 9 },
-  { p: [0.02, -0.25], act: "loaf", dur: 12, y: 0.035 },            // on the keyboard
+  { p: [0.0, -0.22], act: "loaf", dur: 12, y: 0.05 },            // on the keyboard
   { p: [-0.62, 0.0], act: "bat", dur: 2.6, card: "mailsmith" },
   { p: [-1.0, 0.3], act: "sit", dur: 8 },
   { p: [0.55, 0.38], act: "bat", dur: 2.6, card: "hello" },
@@ -50,20 +50,25 @@ const cone = (p: V, rz: number, rx = 0) => {
   g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(...p), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, 0, rz)), new THREE.Vector3(1, 1, 1)))
   return paint(g, FUR)
 }
-function face(hx: number, hy: number, hz: number, tilt = 0, collar: [number, number, number] = [-0.03, -0.024, 0.3]) {
+// a band around the neck: the ring's axis follows the neck, centred on it, a hair wider than the neck so it reads as worn
+function collar(p: V, rx: number, r: number) {
+  const g = new THREE.TorusGeometry(r, 0.0048, 12, 40)
+  g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(...p), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, 0, 0)), new THREE.Vector3(1, 1, 1)))
+  return paint(g, "#CF5C36")
+}
+function face(hx: number, hy: number, hz: number, tilt = 0) {
   return [
     ell([hx, hy, hz], [0.036, 0.032, 0.034], FUR, tilt),
     cone([hx - 0.021, hy + 0.034, hz - 0.004], 0.28), cone([hx + 0.021, hy + 0.034, hz - 0.004], -0.28),
     ell([hx - 0.014, hy + 0.004, hz + 0.031], [0.005, 0.005, 0.004], "#c8ff7a"), ell([hx + 0.014, hy + 0.004, hz + 0.031], [0.005, 0.005, 0.004], "#c8ff7a"),
     ell([hx, hy - 0.006, hz + 0.034], [0.005, 0.004, 0.004], "#d99a8e"),
-    (() => { const g = new THREE.TorusGeometry(0.031, 0.004, 10, 32); g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(hx, hy + collar[0], hz + collar[1]), new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2 + collar[2], 0, 0)), new THREE.Vector3(1, 1, 1))); return paint(g, "#CF5C36") })(),
   ]
 }
 function buildCat() {
   const m = (parts: THREE.BufferGeometry[]) => mergeGeometries(parts)!
   const sit = m([
     ell([0, 0.05, -0.035], [0.045, 0.05, 0.06]), ell([0, 0.098, 0.018], [0.036, 0.06, 0.04], FUR2, -0.25),
-    ...face(0, 0.165, 0.045, 0, [-0.04, -0.02, 0.45]),
+    ...face(0, 0.165, 0.045), collar([0, 0.1174, 0.013], Math.PI / 2 - 0.25, 0.037),
     limb([-0.016, 0.1, 0.04], [-0.016, 0.012, 0.055], 0.012, 0.009), limb([0.016, 0.1, 0.04], [0.016, 0.012, 0.055], 0.012, 0.009),
     ell([-0.016, 0.008, 0.062], [0.012, 0.008, 0.017], FUR2), ell([0.016, 0.008, 0.062], [0.012, 0.008, 0.017], FUR2),
     ell([-0.036, 0.009, 0.0], [0.011, 0.009, 0.028], FUR2), ell([0.036, 0.009, 0.0], [0.011, 0.009, 0.028], FUR2),
@@ -71,14 +76,14 @@ function buildCat() {
   ])
   const loaf = m([
     ell([0, 0.042, 0], [0.05, 0.042, 0.095]), ell([0, 0.034, 0.05], [0.04, 0.034, 0.05], FUR2),
-    ...face(0, 0.058, 0.105, 0.2, [-0.012, -0.034, 0.9]),
+    ...face(0, 0.058, 0.105, 0.2), collar([0, 0.038, 0.066], 0.3, 0.037),
     ell([-0.02, 0.009, 0.118], [0.012, 0.009, 0.02], FUR2), ell([0.02, 0.009, 0.118], [0.012, 0.009, 0.02], FUR2),
     ...tube([[0, 0.03, -0.09], [0.045, 0.014, -0.125], [0.075, 0.011, -0.075], [0.068, 0.013, -0.01]], 0.009),
   ])
   const walk = (off: number) => m([
     ell([0, 0.085, 0], [0.034, 0.04, 0.085]), ell([0, 0.092, 0.06], [0.034, 0.042, 0.04], FUR2),
     ell([0, 0.103, 0.088], [0.024, 0.03, 0.03]),
-    ...face(0, 0.118, 0.115, 0, [-0.022, -0.03, 0.55]),
+    ...face(0, 0.118, 0.115), collar([0, 0.094, 0.07], -0.45, 0.035),
     limb([-0.02, 0.08, 0.06], [-0.02, 0.008, 0.06 + off], 0.012, 0.008), limb([0.02, 0.08, 0.06], [0.02, 0.008, 0.06 - off], 0.012, 0.008),
     limb([-0.02, 0.08, -0.06], [-0.02, 0.008, -0.06 - off], 0.013, 0.008), limb([0.02, 0.08, -0.06], [0.02, 0.008, -0.06 + off], 0.013, 0.008),
     ell([-0.02, 0.007, 0.065 + off], [0.01, 0.007, 0.015], FUR2), ell([0.02, 0.007, 0.065 - off], [0.01, 0.007, 0.015], FUR2),

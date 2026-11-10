@@ -10,6 +10,7 @@ const CONTACT = [
   { href: "mailto:aahils2019@gmail.com", label: "aahils2019@gmail.com" },
   { href: "https://github.com/The007Programmer", label: "GitHub" },
   { href: "https://www.linkedin.com/in/aahil-shaikh-04b9ba356/", label: "LinkedIn" },
+  { href: "https://www.instagram.com/aahil.cr3/", label: "Instagram (photography)" },
   { href: "/assets/aahil-shaikh-resume.pdf", label: "Résumé (PDF)" },
 ]
 
@@ -99,6 +100,16 @@ function DrawerPanel() {
           </li>
         ))}
       </ul>
+    </>
+  )
+}
+
+function KeyboardPanel() {
+  return (
+    <>
+      <H k="on the desk">TGR 910 GAF</H>
+      <p className="text-[15px] leading-[1.55] text-chalk-2">Black case, GMK Matsu keycaps.</p>
+      <p className="font-mono text-[12px] text-mute mt-4">A model replica: layout and cap colours are approximate.</p>
     </>
   )
 }
@@ -226,6 +237,7 @@ export default function Room() {
           {focus === "board" && <BoardPanel />}
           {focus === "drawer" && <DrawerPanel />}
           {focus === "notes" && <NotesPanel />}
+          {focus === "keyboard" && <KeyboardPanel />}
         </section>
       )}
       {focus === "desk" && !card && (

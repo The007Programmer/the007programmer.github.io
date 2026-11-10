@@ -10,6 +10,7 @@ import { PAL, TOK } from "./theme"
 import { corkTex, noiseTex, woodTex } from "./proc"
 import { C, DESK_Y, ambient, catFx, hovFor, setCursor, shadow, type Ctx, type InputRef } from "./shared"
 import { Cat, Duck, Eyes, Glow } from "./Critters"
+import { Camera, Keyboard } from "./Props"
 
 export type { Ctx, Input } from "./shared"
 const MONITOR_SCALE = 0.038 // drei CSS3D maps CSS px to world at a fixed ratio; tuned by measuring so 1280px fills the 1.22m screen
@@ -103,8 +104,8 @@ function Lights({ ctx }: { ctx: Ctx }) {
       <ambientLight ref={amb} color={light ? "#fff4e6" : "#b99c86"} />
       <directionalLight ref={key} position={[-2, 3.2, 2.5]} color={light ? "#fff1dc" : "#d7b999"} />
       <primitive object={target} position={[-0.15, DESK_Y, 0.05]} />
-      <spotLight ref={spot} position={[-0.84, 1.36, -0.32]} target={target} angle={0.75} penumbra={0.9} color="#ffc990" decay={1.6} distance={7} castShadow shadow-mapSize={[512, 512]} shadow-bias={-0.0004} />
-      <pointLight ref={warm} position={[-0.8, 1.35, 0]} color="#ffb070" distance={4} decay={2} />
+      <spotLight ref={spot} position={[-0.856, 1.402, -0.32]} target={target} angle={0.75} penumbra={0.9} color="#ffc990" decay={1.6} distance={7} castShadow shadow-mapSize={[512, 512]} shadow-bias={-0.0004} />
+      <pointLight ref={warm} position={[-0.856, 1.402, -0.32]} color="#ffb070" distance={4} decay={2} />
       <pointLight ref={mon} position={[0, 1.25, -0.2]} color="#e8cfa6" distance={3} decay={2} />
       <pointLight ref={red} position={[0, 1.75, -1.2]} color={C.signal} distance={2.4} decay={2} />
       <hemisphereLight ref={hemi} args={[light ? "#fff6ea" : "#c9a98a", light ? "#8a7f70" : "#1a1410", 0.3]} />
@@ -179,28 +180,9 @@ function Monitor({ ctx }: { ctx: Ctx }) {
   )
 }
 
-function Keys() {
-  const ref = useRef<THREE.InstancedMesh>(null!)
-  useEffect(() => {
-    const m = new THREE.Matrix4(), c = new THREE.Color()
-    let i = 0
-    for (let r = 0; r < 4; r++) for (let k = 0; k < 14; k++) {
-      m.setPosition(-0.2 + k * 0.0305, DESK_Y + 0.026, -0.262 + r * 0.03)
-      ref.current.setMatrixAt(i, m)
-      ref.current.setColorAt(i, c.set(r === 0 && k === 13 ? C.signal : "#3a2e26"))
-      i++
-    }
-    ref.current.instanceMatrix.needsUpdate = true
-    if (ref.current.instanceColor) ref.current.instanceColor.needsUpdate = true
-  }, [])
-  return <instancedMesh ref={ref} args={[undefined, undefined, 56]}><boxGeometry args={[0.026, 0.008, 0.026]} /><meshStandardMaterial roughness={0.5} /></instancedMesh>
-}
-
 function Peripherals() {
   return (
     <group>
-      <RB args={[0.46, 0.022, 0.15]} radius={0.006} smoothness={4} position={[0, DESK_Y + 0.012, -0.22]} castShadow receiveShadow><meshStandardMaterial color="#241c17" roughness={0.5} metalness={0.2} /></RB>
-      <Keys />
       <RB args={[0.06, 0.024, 0.1]} radius={0.012} smoothness={4} position={[0.46, DESK_Y + 0.012, -0.2]} castShadow><meshStandardMaterial color="#241c17" roughness={0.4} metalness={0.2} /></RB>
     </group>
   )
@@ -374,6 +356,35 @@ function Board({ ctx }: { ctx: Ctx }) {
 }
 
 /* ----------------------------------------------------------------- drawer */
+/* folders, binders and a few books standing shoulder to shoulder, one instanced draw call */
+function DrawerStock() {
+  const ref = useRef<THREE.InstancedMesh>(null!)
+  const COLORS = ["#8A3A1F", "#CF5C36", "#EFC88B", "#81ADC8", "#515A47", "#9E6240", "#DEA47E", "#3b322d", "#CD4631", "#C9BBA6"]
+  const items = useMemo(() => {
+    let sd = 7; const r = () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647 }
+    const out: { x: number; z: number; w: number; h: number; d: number; tilt: number; c: string }[] = []
+    for (const [z0, d, rows] of [[-0.14, 0.2, 1], [-0.37, 0.22, 1]] as const) {
+      let x = -0.44
+      while (x < 0.43 && rows) {
+        const w = 0.012 + r() * 0.022, book = r() > 0.78
+        out.push({ x: x + w / 2, z: z0 - d / 2 - r() * 0.02, w: book ? w + 0.012 : w, h: book ? 0.1 : 0.075 + r() * 0.03, d: book ? d - 0.02 : d, tilt: (r() - 0.5) * 0.05, c: COLORS[Math.floor(r() * COLORS.length)] })
+        x += w + 0.002 + (r() > 0.85 ? 0.01 : 0)
+      }
+    }
+    return out
+  }, [])
+  useEffect(() => {
+    const m = new THREE.Matrix4(), c = new THREE.Color(), q = new THREE.Quaternion(), e = new THREE.Euler()
+    items.forEach((it, i) => {
+      e.set(0, 0, it.tilt); q.setFromEuler(e)
+      m.compose(new THREE.Vector3(it.x, -0.044 + it.h / 2, it.z), q, new THREE.Vector3(it.w, it.h, it.d))
+      ref.current.setMatrixAt(i, m); ref.current.setColorAt(i, c.set(it.c))
+    })
+    ref.current.instanceMatrix.needsUpdate = true; if (ref.current.instanceColor) ref.current.instanceColor.needsUpdate = true
+  }, [items])
+  return <instancedMesh ref={ref} args={[undefined, undefined, items.length]} castShadow><boxGeometry args={[1, 1, 1]} /><meshStandardMaterial roughness={0.8} /></instancedMesh>
+}
+
 function Drawer({ ctx }: { ctx: Ctx }) {
   const d = useRef<THREE.Group>(null!)
   const o = useRef(0.03)
@@ -390,7 +401,6 @@ function Drawer({ ctx }: { ctx: Ctx }) {
     d.current.position.z = o.current
     if (Math.abs(goal - o.current) > 0.002) { shadow.dirty = true; invalidate() }
   })
-  const folders = ["#8A3A1F", "#CF5C36", "#EFC88B", "#81ADC8", "#515A47", "#9E6240", "#DEA47E"]
   // a centre drawer set into a front apron rail: flush with the desk edge, open just a crack until you ask for it
   const wood = useMemo(() => woodTex("#3a2a1c", 2, 1), [])
   return (
@@ -402,10 +412,7 @@ function Drawer({ ctx }: { ctx: Ctx }) {
         <mesh position={[0, 0, 0.0235]}><planeGeometry args={[0.46, 0.086]} /><meshBasicMaterial map={tex} toneMapped={false} /></mesh>
         <RB args={[0.14, 0.014, 0.02]} radius={0.006} smoothness={4} position={[0.36, 0, 0.032]}><meshStandardMaterial color="#C9BBA6" metalness={0.85} roughness={0.25} /></RB>
         <mesh position={[0, -0.05, -0.27]}><boxGeometry args={[0.94, 0.012, 0.52]} /><meshStandardMaterial color="#1d1612" /></mesh>
-        {folders.map((c, i) => (
-          <mesh key={i} position={[-0.36 + i * 0.12, 0.0, -0.2 - (i % 3) * 0.04]} rotation={[0, 0, (i - 3) * 0.04]} castShadow><boxGeometry args={[0.014, 0.1, 0.24]} /><meshStandardMaterial color={c} roughness={0.8} /></mesh>
-        ))}
-        <mesh position={[0.18, 0.045, -0.08]} rotation={[0.12, 0.2, -0.1]}><boxGeometry args={[0.16, 0.001, 0.2]} /><meshStandardMaterial color="#EEE5E9" roughness={0.9} /></mesh>
+        <DrawerStock />
       </group>
     </Hot>
   )
@@ -433,33 +440,38 @@ function Notepad({ ctx }: { ctx: Ctx }) {
 /* ------------------------------------------------------------- lamp + mug */
 function Lamp({ ctx }: { ctx: Ctx }) {
   const bulb = useRef<THREE.MeshStandardMaterial>(null!), inner = useRef<THREE.MeshStandardMaterial>(null!)
-  useEffect(() => { bulb.current.emissiveIntensity = ctx.lamp ? 4 : 0; inner.current.emissiveIntensity = ctx.lamp ? 1.4 : 0 }, [ctx.lamp])
+  useEffect(() => { bulb.current.emissiveIntensity = ctx.lamp ? 5 : 0; inner.current.emissiveIntensity = ctx.lamp ? 0.9 : 0 }, [ctx.lamp])
   // weighted base and a bell shade, both turned on a lathe
   const baseGeo = useMemo(() => new THREE.LatheGeometry([[0.001, 0], [0.14, 0], [0.145, 0.006], [0.14, 0.014], [0.11, 0.026], [0.06, 0.038], [0.022, 0.05], [0.016, 0.07]].map(([x, y]) => new THREE.Vector2(x, y)), 64), [])
   const shadeGeo = useMemo(() => {
     const pts: THREE.Vector2[] = []
-    for (let i = 0; i <= 24; i++) { const t = i / 24; pts.push(new THREE.Vector2(0.018 + Math.pow(t, 0.7) * 0.125 + Math.sin(t * Math.PI) * 0.012, 0.11 - t * 0.11)) }
+    for (let i = 0; i <= 24; i++) { const t = i / 24; pts.push(new THREE.Vector2(0.02 + Math.pow(t, 0.7) * 0.123 + Math.sin(t * Math.PI) * 0.012, 0.11 - t * 0.11)) }
     return new THREE.LatheGeometry(pts, 64)
   }, [])
   const arm = (a: [number, number, number], b: [number, number, number]) => {
     const va = new THREE.Vector3(...a), vb = new THREE.Vector3(...b), mid = va.clone().add(vb).multiplyScalar(0.5)
     const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), vb.clone().sub(va).normalize())
-    return <mesh position={mid} quaternion={q} castShadow><cylinderGeometry args={[0.009, 0.009, va.distanceTo(vb), 20]} /><meshStandardMaterial color="#C9BBA6" metalness={0.9} roughness={0.25} /></mesh>
+    return <mesh position={mid} quaternion={q} castShadow><cylinderGeometry args={[0.009, 0.009, va.distanceTo(vb), 20]} /><meshStandardMaterial color="#aab4c4" metalness={0.9} roughness={0.25} /></mesh>
   }
   const joint = (p: [number, number, number], r = 0.016) => <mesh position={p} castShadow><sphereGeometry args={[r, 24, 16]} /><meshStandardMaterial color="#2a2320" metalness={0.8} roughness={0.3} /></mesh>
+  const J: [number, number, number] = [-0.89, 1.46, -0.32]
   return (
     <group onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); ctx.toggleLamp() }} {...hovFor(ctx, ctx.lamp ? "Lamp: off" : "Lamp: on")}>
       <mesh position={[-1.08, DESK_Y, -0.4]} geometry={baseGeo} castShadow receiveShadow><meshStandardMaterial color="#241c17" metalness={0.8} roughness={0.28} /></mesh>
       {arm([-1.08, DESK_Y + 0.06, -0.4], [-1.0, 1.25, -0.36])}
       {joint([-1.0, 1.25, -0.36], 0.02)}
-      {arm([-1.0, 1.25, -0.36], [-0.89, 1.46, -0.32])}
-      {joint([-0.89, 1.46, -0.32])}
-      <group position={[-0.89, 1.46, -0.32]} rotation={[0, 0, 0.55]}>
+      {arm([-1.0, 1.25, -0.36], J)}
+      {joint(J)}
+      {/* head: neck, socket and bulb are one rigid piece with the shade, so nothing floats */}
+      <group position={J} rotation={[0, 0, 0.55]}>
+        <mesh position={[0, 0.0, 0]} castShadow><cylinderGeometry args={[0.012, 0.012, 0.05, 24]} /><meshStandardMaterial color="#aab4c4" metalness={0.9} roughness={0.25} /></mesh>
         <mesh geometry={shadeGeo} position={[0, -0.09, 0]} castShadow><meshStandardMaterial color={C.ember} side={THREE.DoubleSide} roughness={0.35} metalness={0.5} /></mesh>
-        <mesh geometry={shadeGeo} position={[0, -0.09, 0]} scale={0.96}><meshStandardMaterial ref={inner} color="#ffd9a8" emissive="#ffa860" emissiveIntensity={1.4} side={THREE.BackSide} /></mesh>
-        <mesh position={[0, -0.1, 0]}><sphereGeometry args={[0.032, 24, 16]} /><meshStandardMaterial ref={bulb} color="#ffe2b8" emissive="#ffb070" emissiveIntensity={4} /></mesh>
+        <mesh geometry={shadeGeo} position={[0, -0.09, 0]} scale={0.97}><meshStandardMaterial ref={inner} color="#ffd9a8" emissive="#ffa860" emissiveIntensity={0.9} side={THREE.BackSide} /></mesh>
+        <mesh position={[0, -0.025, 0]}><cylinderGeometry args={[0.014, 0.014, 0.03, 24]} /><meshStandardMaterial color="#2a2320" metalness={0.7} roughness={0.4} /></mesh>
+        {/* the bulb: the actual light source (the spot and point light sit at its centre) */}
+        <mesh position={[0, -0.062, 0]} scale={[1, 1.25, 1]}><sphereGeometry args={[0.022, 32, 24]} /><meshStandardMaterial ref={bulb} color="#fff0d2" emissive="#ffc27a" emissiveIntensity={5} roughness={0.2} /></mesh>
       </group>
-      {ctx.lamp && <Glow position={[-0.82, 1.33, -0.32]} color="#ffb070" size={0.8} opacity={0.5} />}
+      {ctx.lamp && <Glow position={[-0.856, 1.402, -0.32]} color="#ffb070" size={0.55} opacity={0.5} />}
     </group>
   )
 }
@@ -556,6 +568,8 @@ export default function Scene({ ctx, input, onReady }: { ctx: Ctx; input: InputR
       <Shell ctx={ctx} />
       <Monitor ctx={ctx} />
       <Peripherals />
+      <Keyboard ctx={ctx} />
+      <Camera ctx={ctx} />
       <Hot id="desk" ctx={ctx}>
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, DESK_Y + 0.001, 0.2]}><planeGeometry args={[2.6, 0.7]} /><meshBasicMaterial visible={false} /></mesh>
         {DESK_ITEMS.map((it) => <Card key={it.id} item={it} ctx={ctx} />)}
