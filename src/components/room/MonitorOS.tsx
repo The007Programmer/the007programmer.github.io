@@ -18,15 +18,15 @@ const FolderIcon = ({ active }: { active: boolean }) => (
   </svg>
 )
 
-function ItemDetail({ it, back }: { it: Item; back: () => void }) {
+function ItemDetail({ it, back, compact }: { it: Item; back: () => void; compact: boolean }) {
   return (
     <article className="max-w-[72ch]">
       <button onClick={back} className="font-mono text-[14px] text-signal underline underline-offset-4 mb-4 cursor-pointer focus-visible:outline-2 focus-visible:outline-signal">← back</button>
       <div className="font-mono text-[13px] tracking-[0.1em] uppercase text-mute">{it.kicker}</div>
-      <h2 className="font-display font-extrabold uppercase text-[64px] leading-[0.9] tracking-[-0.03em] mt-1">{it.title}</h2>
+      <h2 className={`font-display font-extrabold uppercase ${compact ? "text-[38px]" : "text-[64px]"} leading-[0.9] tracking-[-0.03em] mt-1`}>{it.title}</h2>
       <p className="text-[19px] leading-[1.5] text-chalk-2 mt-4">{it.body}</p>
       {it.rows && (
-        <dl className="mt-5 grid grid-cols-3 gap-6">
+        <dl className={`mt-5 grid ${compact ? "grid-cols-1" : "grid-cols-3"} gap-6`}>
           {it.rows.map((r) => <div key={r.label}><dt className="font-mono text-[13px] tracking-[0.12em] uppercase text-signal mb-1">{r.label}</dt><dd className="text-[14px] leading-[1.45] text-chalk-2">{r.body}</dd></div>)}
         </dl>
       )}
@@ -39,7 +39,7 @@ function ItemDetail({ it, back }: { it: Item; back: () => void }) {
 
 /* The little desktop on the monitor glass. Fixed 1280x720 CSS px.
    Home is a README that says who this is; Electra lives inside Agents. */
-export default function MonitorOS() {
+export default function MonitorOS({ compact = false }: { compact?: boolean }) {
   const [folder, setFolder] = useState<Folder | null>(null)
   const [open, setOpen] = useState<string | null>(null)
   const items = folder ? ITEMS[folder] : undefined
@@ -48,38 +48,38 @@ export default function MonitorOS() {
   const title = !folder ? "README.md" : it ? `${folder}/${it.id}` : folder === "side" ? "side quests" : folder
 
   return (
-    <div className="flex flex-col bg-void text-chalk select-text" style={{ width: 1280, height: 720 }}>
+    <div className="flex flex-col bg-void text-chalk select-text" style={compact ? { width: "100%", height: "100%" } : { width: 1280, height: 720 }}>
       <div className="h-[40px] shrink-0 flex items-center gap-3 px-4 bg-ink border-b border-line font-mono text-[13px] text-chalk-2">
         <span className="font-bold text-signal">&gt;_</span><span>{HOME.name.toLowerCase()}</span><span className="ml-auto text-mute">desktop</span>
       </div>
-      <div className="flex flex-1 min-h-0">
-        <nav aria-label="Desktop" className="w-[200px] shrink-0 border-r border-line p-3 grid content-start gap-1" style={{ background: "linear-gradient(180deg, var(--color-ink), var(--color-void))" }}>
+      <div className={`flex flex-1 min-h-0 ${compact ? "flex-col" : ""}`}>
+        <nav aria-label="Desktop" className={compact ? "shrink-0 border-b border-line p-2 flex gap-1 overflow-x-auto" : "w-[200px] shrink-0 border-r border-line p-3 grid content-start gap-1"} style={{ background: "linear-gradient(180deg, var(--color-ink), var(--color-void))" }}>
           {FOLDERS.map((f) => (
-            <button key={f.id} onClick={() => go(f.id)} aria-pressed={folder === f.id} className={`flex flex-col items-center gap-1 py-2 border cursor-pointer focus-visible:outline-2 focus-visible:outline-signal ${folder === f.id ? "border-signal bg-ink-2" : "border-transparent hover:border-line"}`}>
+            <button key={f.id} onClick={() => go(f.id)} aria-pressed={folder === f.id} className={`flex flex-col items-center gap-1 ${compact ? "px-2 shrink-0" : ""} py-2 border cursor-pointer focus-visible:outline-2 focus-visible:outline-signal ${folder === f.id ? "border-signal bg-ink-2" : "border-transparent hover:border-line"}`}>
               <FolderIcon active={folder === f.id} />
               <span className={`font-mono text-[13px] tracking-[0.06em] ${folder === f.id ? "text-signal" : "text-chalk-2"}`}>{f.label}</span>
             </button>
           ))}
         </nav>
-        <section aria-label={title} className="flex-1 min-w-0 flex flex-col p-6">
+        <section aria-label={title} className={`flex-1 min-w-0 min-h-0 flex flex-col ${compact ? "p-2" : "p-6"}`}>
           <div className="flex-1 min-h-0 flex flex-col border border-edge bg-ink-2">
             <div className="h-[36px] shrink-0 flex items-center gap-2 px-3 bg-ink border-b border-line">
               <span className="size-3 rounded-full bg-signal" /><span className="size-3 rounded-full bg-edge" /><span className="size-3 rounded-full bg-line" />
               <span className="ml-3 font-mono text-[13px] text-chalk-2">{title}</span>
               {folder && <button onClick={() => go(null)} aria-label="Close window" className="ml-auto font-mono text-[14px] text-chalk-2 hover:text-signal cursor-pointer px-2 focus-visible:outline-2 focus-visible:outline-signal">×</button>}
             </div>
-            <div className="flex-1 min-h-0 overflow-y-auto p-8">
+            <div className={`flex-1 min-h-0 overflow-y-auto ${compact ? "p-4" : "p-8"}`}>
               {!folder && (
                 <div className="max-w-[60ch]">
                   <p className="font-mono text-[12px] font-semibold uppercase tracking-[0.14em] text-signal mb-4">{HOME.eyebrow}</p>
-                  <h1 className="font-display font-extrabold text-[84px] leading-[0.92] tracking-[-0.04em] mb-6">{HOME.name}</h1>
-                  <p className="font-display font-semibold text-[27px] leading-[1.18] tracking-[-0.02em]">{HOME.thesis}</p>
+                  <h1 className={`font-display font-extrabold ${compact ? "text-[44px]" : "text-[84px]"} leading-[0.92] tracking-[-0.04em] mb-6`}>{HOME.name}</h1>
+                  <p className={`font-display font-semibold ${compact ? "text-[19px]" : "text-[27px]"} leading-[1.18] tracking-[-0.02em]`}>{HOME.thesis}</p>
                   <p className="font-mono text-[13px] text-chalk-2 mt-6">{HOME.meta}</p>
                   <p className="font-mono text-[12px] text-mute mt-4">open a folder on the left.</p>
                 </div>
               )}
               {folder && folder !== "toolkit" && !it && (
-                <ul className="grid grid-cols-2 gap-4">
+                <ul className={`grid ${compact ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
                   {items!.map((i) => (
                     <li key={i.id}>
                       <button onClick={() => setOpen(i.id)} className="w-full h-full text-left border border-line bg-void p-5 cursor-pointer hover:border-signal focus-visible:outline-2 focus-visible:outline-signal">
@@ -91,9 +91,9 @@ export default function MonitorOS() {
                   ))}
                 </ul>
               )}
-              {it && <ItemDetail it={it} back={() => setOpen(null)} />}
+              {it && <ItemDetail it={it} back={() => setOpen(null)} compact={compact} />}
               {folder === "toolkit" && (
-                <dl className="grid grid-cols-2 gap-x-8 gap-y-6">
+                <dl className={`grid ${compact ? "grid-cols-1" : "grid-cols-2"} gap-x-8 gap-y-6`}>
                   {TOOLKIT_GROUPS.map((g) => <div key={g.id}><dt className={`font-mono text-[13px] tracking-[0.12em] uppercase mb-1 ${g.accent ? "text-signal" : "text-chalk"}`}>{g.title}</dt><dd className="text-[14px] leading-[1.5] text-chalk-2">{g.items}</dd></div>)}
                 </dl>
               )}

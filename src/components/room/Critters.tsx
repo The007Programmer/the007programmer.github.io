@@ -50,20 +50,20 @@ const cone = (p: V, rz: number, rx = 0) => {
   g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(...p), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, 0, rz)), new THREE.Vector3(1, 1, 1)))
   return paint(g, FUR)
 }
-function face(hx: number, hy: number, hz: number, tilt = 0) {
+function face(hx: number, hy: number, hz: number, tilt = 0, collar: [number, number, number] = [-0.03, -0.024, 0.3]) {
   return [
     ell([hx, hy, hz], [0.036, 0.032, 0.034], FUR, tilt),
     cone([hx - 0.021, hy + 0.034, hz - 0.004], 0.28), cone([hx + 0.021, hy + 0.034, hz - 0.004], -0.28),
     ell([hx - 0.014, hy + 0.004, hz + 0.031], [0.005, 0.005, 0.004], "#c8ff7a"), ell([hx + 0.014, hy + 0.004, hz + 0.031], [0.005, 0.005, 0.004], "#c8ff7a"),
     ell([hx, hy - 0.006, hz + 0.034], [0.005, 0.004, 0.004], "#d99a8e"),
-    (() => { const g = new THREE.TorusGeometry(0.031, 0.004, 10, 32); g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(hx, hy - 0.026, hz - 0.008), new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2 + 0.2, 0, 0)), new THREE.Vector3(1, 1, 1))); return paint(g, "#CF5C36") })(),
+    (() => { const g = new THREE.TorusGeometry(0.031, 0.004, 10, 32); g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(hx, hy + collar[0], hz + collar[1]), new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2 + collar[2], 0, 0)), new THREE.Vector3(1, 1, 1))); return paint(g, "#CF5C36") })(),
   ]
 }
 function buildCat() {
   const m = (parts: THREE.BufferGeometry[]) => mergeGeometries(parts)!
   const sit = m([
     ell([0, 0.05, -0.035], [0.045, 0.05, 0.06]), ell([0, 0.098, 0.018], [0.036, 0.06, 0.04], FUR2, -0.25),
-    ...face(0, 0.165, 0.045),
+    ...face(0, 0.165, 0.045, 0, [-0.04, -0.02, 0.45]),
     limb([-0.016, 0.1, 0.04], [-0.016, 0.012, 0.055], 0.012, 0.009), limb([0.016, 0.1, 0.04], [0.016, 0.012, 0.055], 0.012, 0.009),
     ell([-0.016, 0.008, 0.062], [0.012, 0.008, 0.017], FUR2), ell([0.016, 0.008, 0.062], [0.012, 0.008, 0.017], FUR2),
     ell([-0.036, 0.009, 0.0], [0.011, 0.009, 0.028], FUR2), ell([0.036, 0.009, 0.0], [0.011, 0.009, 0.028], FUR2),
@@ -71,21 +71,21 @@ function buildCat() {
   ])
   const loaf = m([
     ell([0, 0.042, 0], [0.05, 0.042, 0.095]), ell([0, 0.034, 0.05], [0.04, 0.034, 0.05], FUR2),
-    ...face(0, 0.058, 0.105, 0.2),
+    ...face(0, 0.058, 0.105, 0.2, [-0.012, -0.034, 0.9]),
     ell([-0.02, 0.009, 0.118], [0.012, 0.009, 0.02], FUR2), ell([0.02, 0.009, 0.118], [0.012, 0.009, 0.02], FUR2),
     ...tube([[0, 0.03, -0.09], [0.045, 0.014, -0.125], [0.075, 0.011, -0.075], [0.068, 0.013, -0.01]], 0.009),
   ])
   const walk = (off: number) => m([
     ell([0, 0.085, 0], [0.034, 0.04, 0.085]), ell([0, 0.092, 0.06], [0.034, 0.042, 0.04], FUR2),
     ell([0, 0.103, 0.088], [0.024, 0.03, 0.03]),
-    ...face(0, 0.118, 0.115),
+    ...face(0, 0.118, 0.115, 0, [-0.022, -0.03, 0.55]),
     limb([-0.02, 0.08, 0.06], [-0.02, 0.008, 0.06 + off], 0.012, 0.008), limb([0.02, 0.08, 0.06], [0.02, 0.008, 0.06 - off], 0.012, 0.008),
     limb([-0.02, 0.08, -0.06], [-0.02, 0.008, -0.06 - off], 0.013, 0.008), limb([0.02, 0.08, -0.06], [0.02, 0.008, -0.06 + off], 0.013, 0.008),
     ell([-0.02, 0.007, 0.065 + off], [0.01, 0.007, 0.015], FUR2), ell([0.02, 0.007, 0.065 - off], [0.01, 0.007, 0.015], FUR2),
     ell([-0.02, 0.007, -0.06 - off], [0.01, 0.007, 0.015], FUR2), ell([0.02, 0.007, -0.06 + off], [0.01, 0.007, 0.015], FUR2),
     ...tube([[0, 0.09, -0.075], [0, 0.115, -0.14], [0, 0.17, -0.155], [0.012, 0.205, -0.125]], 0.009),
   ])
-  return { sit, loaf, walkA: walk(0.03), walkB: walk(-0.03) }
+  return { sit, loaf, walkA: walk(0.03), walkB: walk(-0.03), walkN: walk(0) }
 }
 
 export function Cat({ ctx }: { ctx: Ctx }) {
@@ -103,25 +103,25 @@ export function Cat({ ctx }: { ctx: Ctx }) {
       const dx = step.p[0] - s.x, dz = step.p[1] - s.z, d = Math.hypot(dx, dz)
       if (d < 0.02) { s.walking = false; s.t0 = now } else {
         moving = true
-        const sp = 0.13 * dt
+        const sp = 0.13 * dt * Math.min(1, d / 0.08 + 0.25, (now - s.t0) / 400 + 0.25)
         s.x += (dx / d) * Math.min(sp, d); s.z += (dz / d) * Math.min(sp, d)
         let da = Math.atan2(dx, dz) - s.yaw; da = Math.atan2(Math.sin(da), Math.cos(da)); s.yaw += da * Math.min(1, dt * 6)
-        s.ph += dt * 7
+        s.ph += dt * 8
       }
     } else {
       const t = (now - s.t0) / 1000
       if (step.act === "bat" && step.card) catFx.card = t > 0.6 && t < step.dur - 0.3 ? step.card : null
-      if (t > step.dur) { s.i = (s.i + 1) % ROUTE.length; s.walking = true; catFx.card = null }
+      if (t > step.dur) { s.i = (s.i + 1) % ROUTE.length; s.walking = true; s.t0 = now; catFx.card = null }
     }
-    const pose = moving ? (Math.sin(s.ph) > 0 ? "walkA" : "walkB") : step.act === "loaf" ? "loaf" : "sit"
+    const pose = moving ? (["walkA", "walkN", "walkB", "walkN"] as const)[Math.floor(s.ph / (Math.PI / 2)) % 4] : step.act === "loaf" ? "loaf" : "sit"
     if (pose !== s.pose) { s.pose = pose; mesh.current.geometry = geo[pose as keyof typeof geo] }
     const hopT = s.hop > 0 ? (s.hop -= dt, Math.sin((1 - s.hop / 0.5) * Math.PI) * 0.1) : 0
     const ty = step.y && !s.walking ? step.y : 0
     s.y += (ty - s.y) * Math.min(1, dt * 5)
-    g.position.set(s.x, DESK_Y + s.y + hopT + (moving ? Math.abs(Math.sin(s.ph)) * 0.004 : 0), s.z)
+    g.position.set(s.x, DESK_Y + s.y + hopT + (moving ? Math.abs(Math.sin(s.ph * 2)) * 0.003 : 0), s.z)
     g.rotation.y = s.yaw + (s.hop > 0 ? 0.5 : 0)
     g.rotation.z = step.act === "bat" && !s.walking ? Math.sin(now / 110) * 0.05 : 0
-    if (moving || s.hop > 0 || (step.act === "bat" && !s.walking)) ambient.next = Math.min(ambient.next, 66)
+    if (moving || s.hop > 0 || (step.act === "bat" && !s.walking)) ambient.next = Math.min(ambient.next, 33)
     else if (!s.walking) ambient.next = Math.min(ambient.next, Math.max(60, (step.dur - (now - s.t0) / 1000) * 1000 + 20))
   })
 

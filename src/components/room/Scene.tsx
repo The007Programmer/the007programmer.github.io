@@ -35,11 +35,22 @@ function Rig({ ctx, input }: { ctx: Ctx; input: InputRef }) {
   const invalidate = useThree((s) => s.invalidate)
   useEffect(() => { invalidate() }, [ctx.focus, invalidate])
   useFrame((state, dt) => {
-    const cam = state.camera
+    const cam = state.camera as THREE.PerspectiveCamera
+    // portrait screens: widen the vertical fov a little and stand back so the same things stay in frame
+    const aspect = state.size.width / state.size.height
+    const vf = aspect >= 1.3 ? 58 : THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(41)) / aspect)), 58, 80)
+    if (Math.abs(cam.fov - vf) > 0.01) { cam.fov = vf; cam.updateProjectionMatrix(); invalidate() }
+    const back = aspect >= 1.3 ? 1 : Math.max(1, Math.tan(THREE.MathUtils.degToRad(41)) / (Math.tan(THREE.MathUtils.degToRad(vf / 2)) * aspect))
     if (ctx.focus) {
       const s = stationOf(ctx.focus)
       _p.set(...s.pos)
-      _m.lookAt(_p, _l.set(...s.look), _up); _q.setFromRotationMatrix(_m)
+      _l.set(...s.look)
+      _m.lookAt(_p, _l, _up); _q.setFromRotationMatrix(_m)
+      const pull = ctx.focus === "monitor" || ctx.focus === "board" || ctx.focus === "shelf" ? back : 1 + (back - 1) * 0.55 // the sheet already narrows the view, so only stand back part way
+      _p.sub(_l).multiplyScalar(pull).add(_l)
+      // under a bottom sheet, lift the subject into the upper part of the screen
+      if (aspect < 1 && ctx.focus === "board") _p.x -= 0.4 * pull // desktop keeps the board left of its side panel; centre it here
+      if (aspect < 1) _p.addScaledVector(_up.clone().applyQuaternion(_q), -0.3 * pull)
     } else {
       const { px, py, ox, oy } = input.current
       const yaw = THREE.MathUtils.clamp(-px * 26 + ox, -35, 35)
@@ -157,7 +168,7 @@ function Monitor({ ctx }: { ctx: Ctx }) {
       <RB args={[0.09, 0.45, 0.05]} radius={0.01} smoothness={4} position={[0, DESK_Y + 0.25, -0.76]} castShadow><meshStandardMaterial color="#1a1411" metalness={0.6} roughness={0.35} /></RB>
       <RB args={[1.32, 0.78, 0.07]} radius={0.02} smoothness={4} position={[0, 1.28, -0.68]} castShadow><meshStandardMaterial color="#0e0b09" roughness={0.35} metalness={0.4} /></RB>
       <mesh position={[0, 1.28, -0.643]}><planeGeometry args={[1.22, 0.686]} /><meshBasicMaterial map={tex} toneMapped={false} /></mesh>
-      {ctx.focus === "monitor" && (
+      {ctx.focus === "monitor" && !ctx.narrow && (
         <Html transform position={[0, 1.28, -0.64]} scale={MONITOR_SCALE} zIndexRange={[20, 10]}>
           <MonitorOS />
         </Html>
@@ -341,7 +352,7 @@ function Board({ ctx }: { ctx: Ctx }) {
   }, "band")
   const rot = [[-0.02, 0.015], [0.012, -0.018], [-0.015, 0.02]]
   return (
-    <Hot id="board" ctx={ctx} position={[1.85, 1.55, -1.6]}>
+    <Hot id="board" ctx={ctx} position={[2.2, 1.55, -1.6]}>
       <RB args={[1.68, 1.04, 0.05]} radius={0.015} smoothness={4} position={[0, 0, -0.01]} receiveShadow castShadow><meshStandardMaterial color="#2a1f16" roughness={0.6} /></RB>
       <mesh position={[0, 0, 0.016]} receiveShadow><planeGeometry args={[1.58, 0.94]} /><meshStandardMaterial map={cork} roughness={1} /></mesh>
       {PATH_GROUPS.map((gr, i) => (
@@ -365,7 +376,7 @@ function Board({ ctx }: { ctx: Ctx }) {
 /* ----------------------------------------------------------------- drawer */
 function Drawer({ ctx }: { ctx: Ctx }) {
   const d = useRef<THREE.Group>(null!)
-  const o = useRef(0.1)
+  const o = useRef(0.03)
   const invalidate = useThree((s) => s.invalidate)
   const tex = useCanvasTex(512, 96, (g) => {
     g.fillStyle = "#3a2a20"; g.fillRect(0, 0, 512, 96)
@@ -374,18 +385,20 @@ function Drawer({ ctx }: { ctx: Ctx }) {
   }, "drawer")
   useEffect(() => { shadow.dirty = true; invalidate() }, [ctx.focus, invalidate])
   useFrame((_, dt) => {
-    const goal = ctx.focus === "drawer" ? 0.42 : 0.1
+    const goal = ctx.focus === "drawer" ? 0.42 : 0.03
     o.current += (goal - o.current) * (ctx.reduced ? 1 : 1 - Math.exp(-dt * 5))
     d.current.position.z = o.current
     if (Math.abs(goal - o.current) > 0.002) { shadow.dirty = true; invalidate() }
   })
   const folders = ["#8A3A1F", "#CF5C36", "#EFC88B", "#81ADC8", "#515A47", "#9E6240", "#DEA47E"]
-  // a centre drawer in the desk apron, flush with the front edge, ajar
+  // a centre drawer set into a front apron rail: flush with the desk edge, open just a crack until you ask for it
+  const wood = useMemo(() => woodTex("#3a2a1c", 2, 1), [])
   return (
-    <Hot id="drawer" ctx={ctx} position={[0, 0.66, 0.5]}>
-      <RB args={[1.04, 0.15, 0.5]} radius={0.01} smoothness={4} position={[0, 0, -0.25]} castShadow receiveShadow><meshStandardMaterial color="#1b140e" roughness={0.7} /></RB>
+    <Hot id="drawer" ctx={ctx} position={[0, 0.665, 0.49]}>
+      <RB args={[3.06, 0.14, 0.03]} radius={0.006} smoothness={4} position={[0, 0.0, 0.0]} castShadow receiveShadow><meshStandardMaterial color="#c9b9a6" map={wood} roughness={0.6} /></RB>
+      <RB args={[1.0, 0.13, 0.5]} radius={0.01} smoothness={4} position={[0, 0, -0.25]} receiveShadow><meshStandardMaterial color="#120d09" roughness={0.8} /></RB>
       <group ref={d}>
-        <RB args={[0.98, 0.13, 0.022]} radius={0.007} smoothness={4} position={[0, 0, 0.011]} castShadow><meshStandardMaterial color="#c9b9a6" map={useMemo(() => woodTex("#3a2a1c", 1, 1), [])} roughness={0.55} /></RB>
+        <RB args={[0.98, 0.13, 0.022]} radius={0.007} smoothness={4} position={[0, 0, 0.011]} castShadow><meshStandardMaterial color="#c9b9a6" map={wood} roughness={0.55} /></RB>
         <mesh position={[0, 0, 0.0235]}><planeGeometry args={[0.46, 0.086]} /><meshBasicMaterial map={tex} toneMapped={false} /></mesh>
         <RB args={[0.14, 0.014, 0.02]} radius={0.006} smoothness={4} position={[0.36, 0, 0.032]}><meshStandardMaterial color="#C9BBA6" metalness={0.85} roughness={0.25} /></RB>
         <mesh position={[0, -0.05, -0.27]}><boxGeometry args={[0.94, 0.012, 0.52]} /><meshStandardMaterial color="#1d1612" /></mesh>
@@ -493,11 +506,17 @@ function Mug({ ctx }: { ctx: Ctx }) {
 /* ------------------------------------------------------------ light switch */
 function LightSwitch({ ctx }: { ctx: Ctx }) {
   const rocker = useRef<THREE.Mesh>(null!)
-  useEffect(() => { rocker.current.rotation.x = ctx.theme === "light" ? -0.35 : 0.35 }, [ctx.theme])
+  const dark = ctx.theme === "dark"
+  useEffect(() => { rocker.current.rotation.x = ctx.theme === "light" ? -0.4 : 0.4; shadow.dirty = true }, [ctx.theme])
+  const label = useCanvasTex(256, 64, (g) => {
+    g.fillStyle = dark ? "#EEE5E9" : "#2B1B13"; g.font = f(MONO, 30); g.textAlign = "center"; g.fillText("LIGHTS", 128, 42)
+  }, "sw" + ctx.theme)
+  // in the gap between the monitor and the corkboard (seen from the seat): bigger than a real switch, high contrast on both walls, the far side of the room from the lamp
   return (
-    <group position={[-1.55, 1.3, -1.6]} onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); ctx.toggleTheme() }} {...hovFor(ctx, ctx.theme === "light" ? "Light switch: lights off" : "Light switch: lights on")}>
-      <RB args={[0.1, 0.16, 0.014]} radius={0.004} smoothness={4} castShadow><meshStandardMaterial color="#E3D8C6" roughness={0.5} /></RB>
-      <mesh ref={rocker} position={[0, 0, 0.012]}><boxGeometry args={[0.03, 0.07, 0.016]} /><meshStandardMaterial color="#f3f4f6" roughness={0.4} /></mesh>
+    <group position={[1.15, 1.42, -1.6]} onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); ctx.toggleTheme() }} {...hovFor(ctx, ctx.theme === "light" ? "Light switch: lights off" : "Light switch: lights on")}>
+      <RB args={[0.15, 0.24, 0.016]} radius={0.006} smoothness={4} castShadow><meshStandardMaterial color={dark ? "#EEE5E9" : "#2B1B13"} roughness={0.45} /></RB>
+      <mesh ref={rocker} position={[0, 0.02, 0.014]}><boxGeometry args={[0.05, 0.1, 0.02]} /><meshStandardMaterial color={C.signal} roughness={0.35} emissive={C.signal} emissiveIntensity={dark ? 0.35 : 0} /></mesh>
+      <mesh position={[0, -0.085, 0.0095]}><planeGeometry args={[0.12, 0.03]} /><meshBasicMaterial map={label} transparent toneMapped={false} /></mesh>
     </group>
   )
 }

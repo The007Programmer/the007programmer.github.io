@@ -10,6 +10,7 @@ export interface Ctx {
   lamp: boolean
   theme: Theme
   reduced: boolean
+  narrow: boolean
   goto: (id: SId) => void
   openCard: (id: string) => void
   toggleLamp: () => void

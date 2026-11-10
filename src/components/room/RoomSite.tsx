@@ -15,7 +15,7 @@ function canWebGL() {
 
 export default function RoomSite() {
   if (typeof document !== "undefined") applyTheme(initialTheme())
-  const ok = typeof window !== "undefined" && window.innerWidth >= 768 && canWebGL()
+  const ok = typeof window !== "undefined" && canWebGL()
   if (!ok) return <DeskSite />
   return (
     <Suspense fallback={<div className="fixed inset-0 grid place-items-center bg-void font-mono text-sm text-chalk-2 tracking-[0.14em] uppercase">Turning the lights on</div>}>
