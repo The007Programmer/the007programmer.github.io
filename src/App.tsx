@@ -1,5 +1,5 @@
-import CanvasSite from "@/components/canvas/DeskSite"
+import RoomSite from "@/components/room/RoomSite"
 
 export default function App() {
-  return <CanvasSite />
+  return <RoomSite />
 }
