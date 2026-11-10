@@ -33,6 +33,25 @@
   --font-mono: 'Martian Mono', ui-monospace, monospace;
 }
 
+/* Light palette, switched by the wall light switch in the room. Same roles, so
+   every utility that reads a --color-* token follows. Signal deepens to the old
+   ember red: #FF5B4F on a cream ground is under 3:1, #C4261E clears AA. */
+:root[data-theme="light"] {
+  --color-void: #F2EFE8;
+  --color-ink: #E8E4DA;
+  --color-ink-2: #FAF8F3;
+  --color-line: #CFC8B8;
+  --color-edge: #6E6858;
+  --color-chalk: #161A22;
+  --color-chalk-2: #3A4352;
+  --color-mute: #566070;
+  --color-signal: #C4261E;
+  --color-coral: #A81F17;
+  --color-ember: #C4261E;
+  --color-rust: #8E1A13;
+  color-scheme: light;
+}
+
 html {
   scroll-behavior: smooth;
 }

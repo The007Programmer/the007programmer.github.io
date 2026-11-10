@@ -1,6 +1,7 @@
 import { Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from "react"
-import { OSS_ITEMS, PROJECT_CARDS } from "@/data/work"
-import { LEDGER_ROWS } from "@/data/path"
+import { PROJECT_CARDS } from "@/data/work"
+import { PATH_BAND, PATH_GROUPS, SIDE_ITEMS, splitTitle } from "./content"
+import { applyTheme, initialTheme, type Theme } from "./theme"
 import Scene, { type Ctx, type Input } from "./Scene"
 import { DESK_ITEMS, STATIONS, type SId } from "./stations"
 
@@ -53,17 +54,32 @@ function ShelfPanel() {
 function BoardPanel() {
   return (
     <>
-      <H k="pinned, oldest to newest, read it top to bottom">Path</H>
-      <ol className="relative border-l-2 border-signal/60 ml-1 pl-5 grid gap-5">
-        {[...LEDGER_ROWS].reverse().map((r) => (
-          <li key={r.id}>
-            <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-signal">{r.when}</div>
-            <div className="font-display font-bold text-[18px] leading-tight mt-0.5">{r.title}</div>
-            <div className="font-mono text-[12px] text-mute">{r.org}</div>
-            {r.body && <p className="text-[14px] leading-[1.5] text-chalk-2 mt-1">{r.body}</p>}
-          </li>
+      <H k="three clusters, left to right on the board">Path</H>
+      <div className="grid gap-6">
+        {PATH_GROUPS.map((g) => (
+          <section key={g.id} aria-label={g.label}>
+            <h3 className="font-mono text-[12px] tracking-[0.14em] uppercase text-signal border-b border-line pb-1 mb-3">{g.label}</h3>
+            <ol className="grid gap-4">
+              {g.rows.map((r) => {
+                const t = splitTitle(r.title)
+                return (
+                  <li key={r.id}>
+                    <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-mute">{r.when}</div>
+                    <div className="font-display font-bold text-[18px] leading-tight mt-0.5">{t.focus}{t.role && <span className="font-mono text-[12px] font-normal text-chalk-2"> · {t.role}</span>}</div>
+                    <div className="font-mono text-[12px] text-mute">{r.org}</div>
+                    {r.body && <p className="text-[14px] leading-[1.5] text-chalk-2 mt-1">{r.body}</p>}
+                  </li>
+                )
+              })}
+            </ol>
+          </section>
         ))}
-      </ol>
+        <section aria-label="Texas A&M" className="border-t border-line pt-3">
+          <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-mute">{PATH_BAND.when}, underneath all of it</div>
+          <div className="font-display font-bold text-[18px] leading-tight mt-0.5">{PATH_BAND.title}</div>
+          <div className="font-mono text-[12px] text-mute">{PATH_BAND.org}</div>
+        </section>
+      </div>
     </>
   )
 }
@@ -73,11 +89,11 @@ function DrawerPanel() {
     <>
       <H k="pull the drawer">Side quests</H>
       <ul className="grid gap-5">
-        {OSS_ITEMS.map((o) => (
+        {SIDE_ITEMS.map((o) => (
           <li key={o.id} className="border-b border-line pb-5">
-            <div className="font-mono text-[11px] tracking-[0.12em] uppercase text-signal">{o.status}</div>
+            <div className="font-mono text-[11px] tracking-[0.12em] uppercase text-signal">{o.kicker}</div>
             <div className="font-display font-extrabold uppercase text-[26px] leading-none mt-1">{o.title}</div>
-            <p className="text-[14px] leading-[1.5] text-chalk-2 mt-2">{o.desc}</p>
+            <p className="text-[14px] leading-[1.5] text-chalk-2 mt-2">{o.body}</p>
             {o.link && <Ext href={o.link.href}>{o.link.label} ↗</Ext>}
           </li>
         ))}
@@ -104,6 +120,7 @@ export default function Room() {
   const [focus, setFocus] = useState<SId | null>(null)
   const [card, setCard] = useState<string | null>(null)
   const [lamp, setLamp] = useState(true)
+  const [theme, setTheme] = useState<Theme>(initialTheme)
   const [msg, setMsg] = useState("")
   const [ready, setReady] = useState(false)
   const reduced = useRef(typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches).current
@@ -115,8 +132,10 @@ export default function Room() {
   const goto = useCallback((id: SId) => { setFocus(id); setCard(null) }, [])
   const openCard = useCallback((id: string) => { setFocus("desk"); setCard(id) }, [])
   const toast = useCallback((m: string) => setMsg(m), [])
-  const ctx: Ctx = { focus, card, lamp, reduced, goto, openCard, hover: setHoverLabel, toggleLamp: () => { setLamp((l) => !l); setMsg(lamp ? "Lamp off." : "Lamp on.") }, toast }
+  const toggleTheme = () => { const t: Theme = theme === "dark" ? "light" : "dark"; setTheme(t); applyTheme(t, true); setMsg(t === "light" ? "Click. Lights on." : "Click. Lights off.") } // SPIKE COPY
+  const ctx: Ctx = { focus, card, lamp, theme, toggleTheme, reduced, goto, openCard, hover: setHoverLabel, toggleLamp: () => { setLamp((l) => !l); setMsg(lamp ? "Lamp off." : "Lamp on.") }, toast }
 
+  useEffect(() => { applyTheme(theme) }, [theme])
   useEffect(() => { if (!msg) return; const t = setTimeout(() => setMsg(""), 2400); return () => clearTimeout(t) }, [msg])
 
   // look around: pointer, drag, arrows, Esc
@@ -166,7 +185,7 @@ export default function Room() {
         </Suspense>
       </div>
       {/* vignette + grain-free dark falloff */}
-      <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(4,6,10,0.78) 100%)" }} />
+      <div className="pointer-events-none absolute inset-0" style={{ background: theme === "dark" ? "radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(4,6,10,0.78) 100%)" : "radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(40,34,26,0.28) 100%)" }} />
 
       {!ready && <div className="absolute inset-0 grid place-items-center bg-void font-mono text-sm text-chalk-2 tracking-[0.14em] uppercase">Turning the lights on</div>}
 
@@ -188,6 +207,7 @@ export default function Room() {
             <span className="text-signal">{s.num}</span> {s.label}
           </button>
         ))}
+        <button onClick={ctx.toggleTheme} aria-pressed={theme === "light"} className="font-mono text-[11px] tracking-[0.1em] uppercase px-3 py-2 border border-line bg-ink-2/80 text-chalk-2 hover:border-edge focus-visible:outline-2 focus-visible:outline-signal">Lights {theme === "light" ? "on" : "off"}</button>
         <button onClick={ctx.toggleLamp} aria-pressed={lamp} className="font-mono text-[11px] tracking-[0.1em] uppercase px-3 py-2 border border-line bg-ink-2/80 text-chalk-2 hover:border-edge focus-visible:outline-2 focus-visible:outline-signal">Lamp {lamp ? "on" : "off"}</button>
       </nav>
 

@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react"
 import DeskSite from "@/components/canvas/DeskSite"
+import { applyTheme, initialTheme } from "./theme"
 
 const Room = lazy(() => import("./Room"))
 
@@ -13,6 +14,7 @@ function canWebGL() {
 }
 
 export default function RoomSite() {
+  if (typeof document !== "undefined") applyTheme(initialTheme())
   const ok = typeof window !== "undefined" && window.innerWidth >= 768 && canWebGL()
   if (!ok) return <DeskSite />
   return (
