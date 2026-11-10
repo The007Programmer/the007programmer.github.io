@@ -27,8 +27,6 @@ export const DESK_Y = 0.8
 export const shadow = { dirty: true }
 /* ambient critters ask for a slow frame tick (ms until the next render); the Ticker applies the smallest ask */
 export const ambient = { next: Infinity }
-/* the cat bats cards: Card reads this */
-export const catFx = { card: null as string | null }
 
 export function setCursor(on: boolean) { document.body.style.cursor = on ? "pointer" : "" }
 export const hovFor = (ctx: Ctx, label: string) => ({

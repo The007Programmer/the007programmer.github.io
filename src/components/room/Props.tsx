@@ -110,7 +110,7 @@ export function Camera({ ctx }: { ctx: Ctx }) {
   const metal = <meshStandardMaterial color="#9a9ea3" metalness={0.9} roughness={0.3} />
   // real body is 133 x 88 x 70 mm with the lens; scaled 1.15 so it reads on the desk
   return (
-    <group position={[0.86, DESK_Y, 0.06]} rotation={[0, -0.4, 0]} scale={1.15}>
+    <group position={[0.98, DESK_Y, -0.12]} rotation={[0, -0.35, 0]} scale={1.15}>
       <group
         ref={g}
         onPointerOver={(e) => { e.stopPropagation(); want.current = 1; setCursor(true); ctx.hover("Photography on Instagram ↗"); invalidate() }}

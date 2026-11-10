@@ -8,8 +8,8 @@ import { DESK_ITEMS, SEAT, stationOf, type DeskItem, type SId } from "./stations
 import { DISPLAY, MONO, cover, f, loadImg, useCanvasTex, wrap } from "./tex"
 import { PAL, TOK } from "./theme"
 import { corkTex, noiseTex, woodTex } from "./proc"
-import { C, DESK_Y, ambient, catFx, hovFor, setCursor, shadow, type Ctx, type InputRef } from "./shared"
-import { Cat, Duck, Eyes, Glow } from "./Critters"
+import { C, DESK_Y, ambient, hovFor, setCursor, shadow, type Ctx, type InputRef } from "./shared"
+import { Duck, Eyes, Figurine, Glow } from "./Critters"
 import { Camera, Keyboard } from "./Props"
 
 export type { Ctx, Input } from "./shared"
@@ -225,13 +225,11 @@ function Card({ item, ctx }: { item: DeskItem; ctx: Ctx }) {
   const invalidate = useThree((s) => s.invalidate)
   const sel = ctx.card === item.id
   useFrame((_, dt) => {
-    const bat = catFx.card === item.id
-    const goal = sel ? 1.4 : bat ? 0.8 : want.current
+    const goal = sel ? 1.4 : want.current
     h.current += (goal - h.current) * (ctx.reduced ? 1 : 1 - Math.exp(-dt * 12))
     g.current.position.y = DESK_Y + 0.004 + h.current * 0.05
     g.current.rotation.x = h.current * 0.22
-    g.current.rotation.y = item.rot + (bat ? Math.sin(performance.now() / 90) * 0.04 : 0)
-    if (Math.abs(goal - h.current) > 0.003) { shadow.dirty = true; invalidate() }
+        if (Math.abs(goal - h.current) > 0.003) { shadow.dirty = true; invalidate() }
   })
   return (
     <group
@@ -500,7 +498,7 @@ function Mug({ ctx }: { ctx: Ctx }) {
   const R = 0.05, H = 0.1
   return (
     <group>
-      <group ref={g} position={[0.95 + R, DESK_Y, -0.18]} onClick={click} {...hovFor(ctx, "Mug")}>
+      <group ref={g} position={[-0.78 + R, DESK_Y, -0.56]} onClick={click} {...hovFor(ctx, "Mug")}>
         <mesh position={[-R, H / 2, 0]} castShadow><cylinderGeometry args={[R, R * 0.9, H, 64, 1, true]} /><meshStandardMaterial color="#EEE5E9" roughness={0.3} side={THREE.DoubleSide} /></mesh>
         <mesh position={[-R, 0.003, 0]}><cylinderGeometry args={[R * 0.9, R * 0.9, 0.006, 64]} /><meshStandardMaterial color="#EEE5E9" roughness={0.3} /></mesh>
         <mesh position={[-R, H - 0.012, 0]} rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[R * 0.97, 64]} /><meshStandardMaterial color="#2a160d" roughness={0.12} /></mesh>
@@ -508,7 +506,7 @@ function Mug({ ctx }: { ctx: Ctx }) {
         <mesh position={[-2 * R + 0.003, H / 2, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><torusGeometry args={[0.03, 0.0075, 16, 40, Math.PI]} /><meshStandardMaterial color="#EEE5E9" roughness={0.3} /></mesh>
         <mesh position={[-R, H / 2 + 0.01, R + 0.001]}><planeGeometry args={[0.05, 0.016]} /><meshBasicMaterial color={C.signal} toneMapped={false} /></mesh>
       </group>
-      <mesh ref={pud} visible={false} rotation={[-Math.PI / 2, 0, 0]} position={[1.1, DESK_Y + 0.003, -0.15]}>
+      <mesh ref={pud} visible={false} rotation={[-Math.PI / 2, 0, 0]} position={[-0.63, DESK_Y + 0.003, -0.53]}>
         <circleGeometry args={[0.1, 32]} /><meshStandardMaterial color="#5a3420" emissive="#2a1208" roughness={0.1} metalness={0.2} polygonOffset polygonOffsetFactor={-2} />
       </mesh>
     </group>
@@ -582,7 +580,7 @@ export default function Scene({ ctx, input, onReady }: { ctx: Ctx; input: InputR
       <Lamp ctx={ctx} />
       <Mug ctx={ctx} />
       <LightSwitch ctx={ctx} />
-      <Cat ctx={ctx} />
+      <Figurine ctx={ctx} />
       <Duck ctx={ctx} />
       <Eyes ctx={ctx} input={input} />
       <Shadows />
