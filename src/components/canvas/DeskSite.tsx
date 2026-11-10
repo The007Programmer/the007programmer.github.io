@@ -35,6 +35,7 @@ const Objects = memo(function Objects() {
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
               <div data-glare className="absolute pointer-events-none" style={{ left: "-50%", top: "-50%", width: "200%", height: "200%", opacity: 0, background: "radial-gradient(circle at 50% 50%, rgba(255,255,255,.22), transparent 22%)" }} />
             </div>
+          </div>
         </div>
       ))}
     </>
