@@ -8,7 +8,7 @@ import { DESK_ITEMS, SEAT, stationOf, type DeskItem, type SId } from "./stations
 import { DISPLAY, MONO, cover, f, loadImg, useCanvasTex, wrap } from "./tex"
 import { PAL, TOK } from "./theme"
 import { corkTex, noiseTex, woodTex } from "./proc"
-import { C, DESK_Y, ambient, hovFor, setCursor, shadow, type Ctx, type InputRef } from "./shared"
+import { C, DESK_Y, ambient, cardHover, hovFor, setCursor, shadow, type Ctx, type InputRef } from "./shared"
 import { Eyes, Figurine, Glow } from "./Critters"
 import { Camera, Keyboard, Plant, Puddle, Steam } from "./Props"
 
@@ -31,7 +31,7 @@ function Hot({ id, ctx, children, ...rest }: { id: SId; ctx: Ctx; children: Reac
 const RB = RoundedBox
 
 /* -------------------------------------------------------------- camera rig */
-const _m = new THREE.Matrix4(), _up = new THREE.Vector3(0, 1, 0), _l = new THREE.Vector3(), _q = new THREE.Quaternion(), _e = new THREE.Euler(0, 0, 0, "YXZ"), _p = new THREE.Vector3()
+const _m = new THREE.Matrix4(), _up = new THREE.Vector3(0, 1, 0), _l = new THREE.Vector3(), _q = new THREE.Quaternion(), _e = new THREE.Euler(0, 0, 0, "YXZ"), _p = new THREE.Vector3(), _v = new THREE.Vector3(), _v2 = new THREE.Vector3()
 function Rig({ ctx, input }: { ctx: Ctx; input: InputRef }) {
   const invalidate = useThree((s) => s.invalidate)
   useEffect(() => { invalidate() }, [ctx.focus, invalidate])
@@ -46,6 +46,15 @@ function Rig({ ctx, input }: { ctx: Ctx; input: InputRef }) {
       const s = stationOf(ctx.focus)
       _p.set(...s.pos)
       _l.set(...s.look)
+      // on the desk, the camera leans toward the card you point at, and settles right over it when you open one
+      const cid = ctx.focus === "desk" ? ctx.card ?? cardHover.id : null
+      const ci = cid ? DESK_ITEMS.find((d) => d.id === cid) : null
+      if (ci) {
+        const open = !!ctx.card, sx = open ? 0.17 : 0 // an open card sits left of its side panel
+        const w = open ? 1 : 0.5
+        _p.lerp(_v.set(ci.x + sx, DESK_Y + 0.66, ci.z + 0.4), w)
+        _l.lerp(_v2.set(ci.x + sx, DESK_Y, ci.z), w)
+      }
       _m.lookAt(_p, _l, _up); _q.setFromRotationMatrix(_m)
       const pull = ctx.focus === "monitor" || ctx.focus === "board" || ctx.focus === "shelf" ? back : 1 + (back - 1) * 0.55 // the sheet already narrows the view, so only stand back part way
       _p.sub(_l).multiplyScalar(pull).add(_l)
@@ -236,8 +245,8 @@ function Card({ item, ctx }: { item: DeskItem; ctx: Ctx }) {
       ref={g}
       position={[item.x, DESK_Y + 0.004, item.z]}
       rotation={[0, item.rot, 0]}
-      onPointerOver={(e) => { e.stopPropagation(); want.current = 1; setCursor(true); ctx.hover(item.title); invalidate() }}
-      onPointerOut={() => { want.current = 0; setCursor(false); ctx.hover(null); invalidate() }}
+      onPointerOver={(e) => { e.stopPropagation(); want.current = 1; cardHover.id = item.id; setCursor(true); ctx.hover(item.title); invalidate() }}
+      onPointerOut={() => { want.current = 0; setCursor(false); ctx.hover(null); window.setTimeout(() => { if (cardHover.id === item.id && want.current === 0) { cardHover.id = null; invalidate() } }, 700); invalidate() }}
       onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); ctx.openCard(item.id) }}
     >
       <RB args={[0.34, 0.004, 0.459]} radius={0.0015} smoothness={4} position={[0, 0.002, 0]} castShadow receiveShadow><meshStandardMaterial color="#E3D3C2" roughness={0.9} /></RB>
@@ -434,13 +443,19 @@ function Notepad({ ctx }: { ctx: Ctx }) {
     g.fillStyle = "#B73A27"; g.font = f(MONO, 20); g.fillText("email", 24, 144); g.fillText("github", 24, 184); g.fillText("linkedin", 24, 224); g.fillText("resume", 24, 264)
   }, "notes")
   const lift = useRef<THREE.Group>(null!), h = useRef(0), want = useRef(0)
+  const { UP, nrm, qw, toSeat } = useMemo(() => ({ UP: new THREE.Vector3(0, 1, 0), nrm: new THREE.Vector3(), qw: new THREE.Quaternion(), toSeat: new THREE.Vector3(...SEAT).sub(new THREE.Vector3(1.1, DESK_Y + 0.01, 0.3)).normalize() }), [])
   const invalidate = useThree((st) => st.invalidate)
   useFrame((_, dt) => {
     const goal = ctx.focus === "notes" ? 1.2 : want.current
     h.current += (goal - h.current) * (ctx.reduced ? 1 : 1 - Math.exp(-dt * 11))
-    // up, towards the viewer, and tipped so its face turns to you (same idea as the cards)
-    lift.current.position.set(0, h.current * 0.035, h.current * 0.06)
-    lift.current.rotation.x = h.current * 0.3
+    // lifts, slides toward the viewer, and tips so its face turns to the seat (the note sits to the right,
+    // so "toward you" is inward and back, not just back): blend its up-normal toward the direction of the seat
+    const k = Math.min(1, h.current * 0.24)
+    nrm.copy(UP).lerp(toSeat, k).normalize()
+    qw.setFromUnitVectors(UP, nrm)
+    const parent = lift.current.parent!.quaternion
+    lift.current.quaternion.copy(parent).invert().multiply(qw).multiply(parent)
+    lift.current.position.set(-h.current * 0.025, h.current * 0.05, h.current * 0.05)
     if (Math.abs(goal - h.current) > 0.003) { shadow.dirty = true; invalidate() }
   })
   return (

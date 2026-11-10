@@ -105,7 +105,7 @@ export function Camera({ ctx }: { ctx: Ctx }) {
     g.current.position.y = h.current * 0.025
     g.current.rotation.x = -h.current * 0.18
     // the flash: a dim standing glow so the dark room has some fill, and a bright pop on click
-    const base = ctx.theme === "light" ? 0.1 : 0.7
+    const base = ctx.theme === "light" ? 0.06 : 0.42
     if (pop.current > 0) pop.current = Math.max(0, pop.current - dt * 3.2)
     lamp.current.intensity = base + pop.current * 9
     if (pop.current > 0 || Math.abs(want.current - h.current) > 0.003) { shadow.dirty = true; invalidate() }
@@ -130,7 +130,7 @@ export function Camera({ ctx }: { ctx: Ctx }) {
         <mesh position={[0, 0.116, -0.002]}><boxGeometry args={[0.026, 0.004, 0.02]} />{metal}</mesh>
         <RoundedBox args={[0.034, 0.03, 0.026]} radius={0.004} smoothness={3} position={[0, 0.133, -0.002]} castShadow>{body}</RoundedBox>
         <RoundedBox args={[0.036, 0.022, 0.012]} radius={0.003} smoothness={3} position={[0, 0.151, 0.01]} rotation={[-0.15, 0, 0]}>{body}</RoundedBox>
-        <mesh position={[0, 0.151, 0.0165]} rotation={[-0.15, 0, 0]}><planeGeometry args={[0.03, 0.017]} /><meshStandardMaterial color="#fff4e0" emissive="#ffe2b8" emissiveIntensity={1.4} toneMapped={false} /></mesh>
+        <mesh position={[0, 0.151, 0.0165]} rotation={[-0.15, 0, 0]}><planeGeometry args={[0.03, 0.017]} /><meshStandardMaterial color="#fff4e0" emissive="#ffe2b8" emissiveIntensity={0.84} toneMapped={false} /></mesh>
         <pointLight ref={lamp} position={[0, 0.16, 0.04]} color="#ffe6c4" intensity={0.4} distance={3.2} decay={2} />
         <mesh position={[0.04, 0.0975, -0.004]} castShadow><cylinderGeometry args={[0.0115, 0.0115, 0.009, 32]} />{metal}</mesh>
         <mesh position={[-0.052, 0.0975, 0.008]} castShadow><cylinderGeometry args={[0.0065, 0.0065, 0.006, 20]} />{metal}</mesh>

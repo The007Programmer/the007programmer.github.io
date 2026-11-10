@@ -33,3 +33,6 @@ export const hovFor = (ctx: Ctx, label: string) => ({
   onPointerOver: (e: ThreeEvent<PointerEvent>) => { e.stopPropagation(); setCursor(true); ctx.hover(label) },
   onPointerOut: () => { setCursor(false); ctx.hover(null) },
 })
+
+/* which desk card the pointer is on (kept briefly after it leaves, so the camera does not flap): the rig leans toward it */
+export const cardHover = { id: null as string | null }

@@ -30,7 +30,7 @@ function CardPanel({ id }: { id: string }) {
   return (
     <>
       <H k={it.kind === "HELLO" ? it.org : `${it.kind} · ${it.stamp}`}>{it.title}</H>
-      <img src={it.img} alt="" className={`w-full border border-line mb-4 ${it.kind === "HELLO" ? "max-h-[300px] object-cover" : "object-cover object-top max-h-[220px]"}`} />
+      <img src={it.img} alt="" className={`w-full border border-line mb-4 ${it.kind === "HELLO" ? "max-h-[340px] object-cover object-[50%_32%]" : "object-cover object-top max-h-[220px]"}`} />
       <p className="text-[15px] leading-[1.55] text-chalk-2">{it.desc}</p>
       {it.link && <Ext href={it.link.href}>{it.link.label} ↗</Ext>}
     </>
