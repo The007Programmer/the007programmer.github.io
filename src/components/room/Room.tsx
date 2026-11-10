@@ -1,7 +1,7 @@
 import { Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { PROJECT_CARDS } from "@/data/work"
 import { PATH_BAND, PATH_GROUPS, SIDE_ITEMS, splitTitle } from "./content"
-import { applyTheme, initialTheme, type Theme } from "./theme"
+import { PAL, applyTheme, initialTheme, type Theme } from "./theme"
 import Scene, { type Ctx, type Input } from "./Scene"
 import { DESK_ITEMS, STATIONS, type SId } from "./stations"
 
@@ -121,6 +121,7 @@ export default function Room() {
   const [card, setCard] = useState<string | null>(null)
   const [lamp, setLamp] = useState(true)
   const [theme, setTheme] = useState<Theme>(initialTheme)
+  const [flash, setFlash] = useState<{ c: string; k: number } | null>(null)
   const [msg, setMsg] = useState("")
   const [ready, setReady] = useState(false)
   const reduced = useRef(typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches).current
@@ -132,7 +133,7 @@ export default function Room() {
   const goto = useCallback((id: SId) => { setFocus(id); setCard(null) }, [])
   const openCard = useCallback((id: string) => { setFocus("desk"); setCard(id) }, [])
   const toast = useCallback((m: string) => setMsg(m), [])
-  const toggleTheme = () => { const t: Theme = theme === "dark" ? "light" : "dark"; setTheme(t); applyTheme(t, true); setMsg(t === "light" ? "Click. Lights on." : "Click. Lights off.") } // SPIKE COPY
+  const toggleTheme = () => { const t: Theme = theme === "dark" ? "light" : "dark"; setTheme(t); applyTheme(t, true); if (!reduced) setFlash({ c: PAL[t].bg, k: Date.now() }); setMsg(t === "light" ? "Click. Lights on." : "Click. Lights off.") } // SPIKE COPY
   const ctx: Ctx = { focus, card, lamp, theme, toggleTheme, reduced, goto, openCard, hover: setHoverLabel, toggleLamp: () => { setLamp((l) => !l); setMsg(lamp ? "Lamp off." : "Lamp on.") }, toast }
 
   useEffect(() => { applyTheme(theme) }, [theme])
@@ -178,14 +179,16 @@ export default function Room() {
 
   return (
     <div className="fixed inset-0 bg-void text-chalk overflow-hidden select-none">
-      <style>{`@keyframes roomIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}`}</style>
+      <style>{`@keyframes roomFlash{from{opacity:.85}to{opacity:0}}@keyframes roomIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}`}</style>
       <div className="absolute inset-0" onPointerDown={onDown} onPointerMove={onMove}>
         <Suspense fallback={null}>
           <Scene ctx={ctx} input={input} onReady={() => setReady(true)} />
         </Suspense>
       </div>
       {/* vignette + grain-free dark falloff */}
-      <div className="pointer-events-none absolute inset-0" style={{ background: theme === "dark" ? "radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(4,6,10,0.78) 100%)" : "radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(40,34,26,0.28) 100%)" }} />
+      <div className="pointer-events-none absolute inset-0" style={{ background: theme === "dark" ? "radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(8,5,3,0.78) 100%)" : "radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(60,40,20,0.25) 100%)" }} />
+
+      {flash && <div key={flash.k} aria-hidden="true" className="pointer-events-none absolute inset-0 z-30" style={{ background: flash.c, animation: "roomFlash .55s ease-out forwards" }} />}
 
       {!ready && <div className="absolute inset-0 grid place-items-center bg-void font-mono text-sm text-chalk-2 tracking-[0.14em] uppercase">Turning the lights on</div>}
 

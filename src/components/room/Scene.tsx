@@ -6,7 +6,7 @@ import MonitorOS from "./MonitorOS"
 import { HOME, PATH_BAND, PATH_GROUPS, splitTitle } from "./content"
 import { DESK_ITEMS, SEAT, stationOf, type DeskItem, type SId } from "./stations"
 import { DISPLAY, MONO, cover, f, loadImg, useCanvasTex, wrap } from "./tex"
-import { PAL } from "./theme"
+import { PAL, TOK } from "./theme"
 import { corkTex, noiseTex, woodTex } from "./proc"
 import { C, DESK_Y, ambient, catFx, hovFor, setCursor, shadow, type Ctx, type InputRef } from "./shared"
 import { Cat, Duck, Eyes, Glow } from "./Critters"
@@ -43,8 +43,8 @@ function Rig({ ctx, input }: { ctx: Ctx; input: InputRef }) {
     } else {
       const { px, py, ox, oy } = input.current
       const yaw = THREE.MathUtils.clamp(-px * 26 + ox, -35, 35)
-      const pr = py < 0 ? -9 - py * 34 : -9 - py * 41
-      const pitch = THREE.MathUtils.clamp(pr + oy, -50, 25)
+      // pointer gain stays under ~29 deg per half screen, so what you point at does not slide away from the cursor
+      const pitch = THREE.MathUtils.clamp(-9 - py * 20 + oy, -50, 25)
       _e.set(THREE.MathUtils.degToRad(pitch), THREE.MathUtils.degToRad(yaw), 0)
       _q.setFromEuler(_e)
       _p.set(...SEAT)
@@ -76,7 +76,7 @@ function Lights({ ctx }: { ctx: Ctx }) {
     lvl.current += (goal - lvl.current) * (ctx.reduced ? 1 : 1 - Math.exp(-dt * 7))
     const l = lvl.current
     hemi.current.intensity = light ? 0.9 : 0.25 + 0.15 * l
-    amb.current.intensity = light ? 0.45 : 0.1 + 0.2 * l
+    amb.current.intensity = light ? 0.45 : 0.16 + 0.2 * l
     key.current.intensity = light ? 1.5 : 0.1 + 0.5 * l
     spot.current.intensity = 11 * l * (light ? 0.5 : 1)
     warm.current.intensity = (light ? 0.3 : 0.9) * l
@@ -89,16 +89,14 @@ function Lights({ ctx }: { ctx: Ctx }) {
   })
   return (
     <>
-      <ambientLight ref={amb} color={light ? "#fff4e6" : "#8d9ec4"} />
-      <directionalLight ref={key} position={[-2, 3.2, 2.5]} color={light ? "#fff1dc" : "#a8b8e0"} />
+      <ambientLight ref={amb} color={light ? "#fff4e6" : "#b99c86"} />
+      <directionalLight ref={key} position={[-2, 3.2, 2.5]} color={light ? "#fff1dc" : "#d7b999"} />
       <primitive object={target} position={[-0.15, DESK_Y, 0.05]} />
       <spotLight ref={spot} position={[-0.84, 1.36, -0.32]} target={target} angle={0.75} penumbra={0.9} color="#ffc990" decay={1.6} distance={7} castShadow shadow-mapSize={[512, 512]} shadow-bias={-0.0004} />
       <pointLight ref={warm} position={[-0.8, 1.35, 0]} color="#ffb070" distance={4} decay={2} />
-      <pointLight ref={mon} position={[0, 1.25, -0.2]} color="#7fa6ff" distance={3} decay={2} />
-      <pointLight ref={red} position={[0, 1.9, -1.2]} color={C.signal} distance={2.4} decay={2} />
-      {/* the drawer's own light, spilling out of the gap */}
-      <pointLight position={[0, 0.62, 0.7]} color="#ff9a6a" intensity={0.6} distance={1.3} decay={2} />
-      <hemisphereLight ref={hemi} args={[light ? "#fff6ea" : "#8aa0d8", light ? "#8a7f70" : "#1a1410", 0.3]} />
+      <pointLight ref={mon} position={[0, 1.25, -0.2]} color="#e8cfa6" distance={3} decay={2} />
+      <pointLight ref={red} position={[0, 1.75, -1.2]} color={C.signal} distance={2.4} decay={2} />
+      <hemisphereLight ref={hemi} args={[light ? "#fff6ea" : "#c9a98a", light ? "#8a7f70" : "#1a1410", 0.3]} />
     </>
   )
 }
@@ -126,39 +124,38 @@ function Shell({ ctx }: { ctx: Ctx }) {
       </RB>
       <mesh position={[0, DESK_Y - 0.075, -0.25]}><boxGeometry args={[3.05, 0.03, 1.45]} /><meshStandardMaterial color="#1b140e" /></mesh>
       {[[-1.45, -0.9], [1.45, -0.9], [-1.45, 0.4], [1.45, 0.4]].map(([x, z], i) => (
-        <RB key={i} args={[0.07, DESK_Y - 0.06, 0.07]} radius={0.01} smoothness={4} position={[x, (DESK_Y - 0.06) / 2, z]} castShadow><meshStandardMaterial color="#10151d" metalness={0.5} roughness={0.4} /></RB>
+        <RB key={i} args={[0.07, DESK_Y - 0.06, 0.07]} radius={0.01} smoothness={4} position={[x, (DESK_Y - 0.06) / 2, z]} castShadow><meshStandardMaterial color="#1a1411" metalness={0.5} roughness={0.4} /></RB>
       ))}
       {/* desk mat: felt */}
-      <RB args={[2.2, 0.004, 0.95]} radius={0.002} smoothness={4} position={[0.1, DESK_Y + 0.002, 0.05]} receiveShadow><meshStandardMaterial color="#1a2230" map={rug} roughness={1} /></RB>
+      <RB args={[2.2, 0.004, 0.95]} radius={0.002} smoothness={4} position={[0.1, DESK_Y + 0.002, 0.05]} receiveShadow><meshStandardMaterial color="#241c17" map={rug} roughness={1} /></RB>
     </group>
   )
 }
 
 /* ---------------------------------------------------------------- monitor */
 function Monitor({ ctx }: { ctx: Ctx }) {
-  const light = ctx.theme === "light"
+  const T = TOK[ctx.theme]
   const tex = useCanvasTex(1280, 720, async (g) => {
-    const bg = light ? ["#FAF8F3", "#E8E4DA"] : ["#18202D", "#0A0D13"], ink = light ? "#161A22" : "#EDF2F8", ink2 = light ? "#3A4352" : "#AFBBCB", sig = light ? "#C4261E" : "#FF5B4F", panel = light ? "#E8E4DA" : "#111722"
-    const grd = g.createLinearGradient(0, 0, 1280, 720); grd.addColorStop(0, bg[0]); grd.addColorStop(1, bg[1])
+    const grd = g.createLinearGradient(0, 0, 1280, 720); grd.addColorStop(0, T.ink2); grd.addColorStop(1, T.void)
     g.fillStyle = grd; g.fillRect(0, 0, 1280, 720)
-    g.fillStyle = panel; g.fillRect(0, 0, 1280, 40)
-    g.fillStyle = sig; g.font = f(MONO, 20); g.fillText(">_  aahil shaikh", 18, 28)
-    g.fillStyle = panel; g.fillRect(0, 40, 200, 680)
+    g.fillStyle = T.ink; g.fillRect(0, 0, 1280, 40)
+    g.fillStyle = T.signal; g.font = f(MONO, 20); g.fillText(">_  aahil shaikh", 18, 28)
+    g.fillStyle = T.ink; g.fillRect(0, 40, 200, 680)
     ;["Agents", "Systems", "Side Quests", "Toolkit", "Writing"].forEach((t, i) => {
-      g.fillStyle = light ? "#6E6858" : "#617599"; g.fillRect(70, 70 + i * 118, 60, 44); g.fillStyle = ink2; g.font = f(MONO, 20); g.textAlign = "center"; g.fillText(t, 100, 144 + i * 118); g.textAlign = "left"
+      g.fillStyle = T.edge; g.fillRect(70, 70 + i * 118, 60, 44); g.fillStyle = T.chalk2; g.font = f(MONO, 20); g.textAlign = "center"; g.fillText(t, 100, 144 + i * 118); g.textAlign = "left"
     })
-    g.fillStyle = light ? "#FAF8F3" : "#18202D"; g.fillRect(224, 64, 1032, 632); g.strokeStyle = light ? "#6E6858" : "#617599"; g.lineWidth = 2; g.strokeRect(224, 64, 1032, 632)
-    g.fillStyle = sig; g.font = f(MONO, 20); g.fillText(HOME.eyebrow.toUpperCase(), 264, 150)
-    g.fillStyle = ink; g.font = f(DISPLAY, 112); g.fillText(HOME.name, 258, 270)
-    g.fillStyle = ink; g.font = "600 36px 'Bricolage Grotesque', sans-serif"
+    g.fillStyle = T.ink2; g.fillRect(224, 64, 1032, 632); g.strokeStyle = T.edge; g.lineWidth = 2; g.strokeRect(224, 64, 1032, 632)
+    g.fillStyle = T.signal; g.font = f(MONO, 20); g.fillText(HOME.eyebrow.toUpperCase(), 264, 150)
+    g.fillStyle = T.chalk; g.font = f(DISPLAY, 112); g.fillText(HOME.name, 258, 270)
+    g.font = "600 36px 'Bricolage Grotesque', sans-serif"
     wrap(g, HOME.thesis, 264, 350, 800, 46, 6)
-    g.fillStyle = ink2; g.font = f(MONO, 18); g.fillText(HOME.meta, 264, 650)
+    g.fillStyle = T.chalk2; g.font = f(MONO, 18); g.fillText(HOME.meta, 264, 650)
   }, "monitor" + ctx.theme)
   return (
     <Hot id="monitor" ctx={ctx}>
-      <RB args={[0.5, 0.03, 0.26]} radius={0.01} smoothness={4} position={[0, DESK_Y + 0.015, -0.62]} castShadow><meshStandardMaterial color="#10151d" metalness={0.6} roughness={0.35} /></RB>
-      <RB args={[0.09, 0.45, 0.05]} radius={0.01} smoothness={4} position={[0, DESK_Y + 0.25, -0.76]} castShadow><meshStandardMaterial color="#10151d" metalness={0.6} roughness={0.35} /></RB>
-      <RB args={[1.32, 0.78, 0.07]} radius={0.02} smoothness={4} position={[0, 1.28, -0.68]} castShadow><meshStandardMaterial color="#0c1018" roughness={0.35} metalness={0.4} /></RB>
+      <RB args={[0.5, 0.03, 0.26]} radius={0.01} smoothness={4} position={[0, DESK_Y + 0.015, -0.62]} castShadow><meshStandardMaterial color="#1a1411" metalness={0.6} roughness={0.35} /></RB>
+      <RB args={[0.09, 0.45, 0.05]} radius={0.01} smoothness={4} position={[0, DESK_Y + 0.25, -0.76]} castShadow><meshStandardMaterial color="#1a1411" metalness={0.6} roughness={0.35} /></RB>
+      <RB args={[1.32, 0.78, 0.07]} radius={0.02} smoothness={4} position={[0, 1.28, -0.68]} castShadow><meshStandardMaterial color="#0e0b09" roughness={0.35} metalness={0.4} /></RB>
       <mesh position={[0, 1.28, -0.643]}><planeGeometry args={[1.22, 0.686]} /><meshBasicMaterial map={tex} toneMapped={false} /></mesh>
       {ctx.focus === "monitor" && (
         <Html transform position={[0, 1.28, -0.64]} scale={MONITOR_SCALE} zIndexRange={[20, 10]}>
@@ -166,7 +163,7 @@ function Monitor({ ctx }: { ctx: Ctx }) {
         </Html>
       )}
       <mesh position={[0.5, 0.905, -0.642]}><boxGeometry args={[0.025, 0.012, 0.004]} /><meshBasicMaterial color={C.signal} toneMapped={false} /></mesh>
-      {ctx.theme === "dark" && <Glow position={[0, 1.28, -0.4]} color="#6a8fd8" size={1.7} opacity={0.14} />}
+      {ctx.theme === "dark" && <Glow position={[0, 1.28, -0.4]} color="#e8cfa6" size={1.7} opacity={0.14} />}
     </Hot>
   )
 }
@@ -179,7 +176,7 @@ function Keys() {
     for (let r = 0; r < 4; r++) for (let k = 0; k < 14; k++) {
       m.setPosition(-0.2 + k * 0.0305, DESK_Y + 0.026, -0.262 + r * 0.03)
       ref.current.setMatrixAt(i, m)
-      ref.current.setColorAt(i, c.set(r === 0 && k === 13 ? C.signal : "#252f42"))
+      ref.current.setColorAt(i, c.set(r === 0 && k === 13 ? C.signal : "#3a2e26"))
       i++
     }
     ref.current.instanceMatrix.needsUpdate = true
@@ -191,9 +188,9 @@ function Keys() {
 function Peripherals() {
   return (
     <group>
-      <RB args={[0.46, 0.022, 0.15]} radius={0.006} smoothness={4} position={[0, DESK_Y + 0.012, -0.22]} castShadow receiveShadow><meshStandardMaterial color="#1a2230" roughness={0.5} metalness={0.2} /></RB>
+      <RB args={[0.46, 0.022, 0.15]} radius={0.006} smoothness={4} position={[0, DESK_Y + 0.012, -0.22]} castShadow receiveShadow><meshStandardMaterial color="#241c17" roughness={0.5} metalness={0.2} /></RB>
       <Keys />
-      <RB args={[0.06, 0.024, 0.1]} radius={0.012} smoothness={4} position={[0.46, DESK_Y + 0.012, -0.2]} castShadow><meshStandardMaterial color="#1a2230" roughness={0.4} metalness={0.2} /></RB>
+      <RB args={[0.06, 0.024, 0.1]} radius={0.012} smoothness={4} position={[0.46, DESK_Y + 0.012, -0.2]} castShadow><meshStandardMaterial color="#241c17" roughness={0.4} metalness={0.2} /></RB>
     </group>
   )
 }
@@ -205,24 +202,24 @@ function CardFace({ item }: { item: DeskItem }) {
     if (item.kind === "HELLO") {
       g.fillStyle = "#E7EAEE"; g.fillRect(0, 0, 400, 540)
       cover(g, img, 24, 24, 352, 400)
-      g.fillStyle = "#10161f"; g.font = f(DISPLAY, 58); g.fillText("HELLO", 28, 492)
-      g.fillStyle = "#44546a"; g.font = f(MONO, 17); g.fillText(item.org, 30, 522)
+      g.fillStyle = "#1d1612"; g.font = f(DISPLAY, 58); g.fillText("HELLO", 28, 492)
+      g.fillStyle = "#6b5a4c"; g.font = f(MONO, 17); g.fillText(item.org, 30, 522)
       return
     }
-    g.fillStyle = "#DCE2EA"; g.fillRect(0, 0, 400, 540)
-    g.fillStyle = "#c9d1dd"; g.fillRect(0, 0, 400, 54)
-    g.fillStyle = "#EDF2F8"; g.fillRect(0, 0, 120, 54)
-    g.fillStyle = "#0A0D13"; g.font = f(MONO, 22); g.fillText(item.kind, 18, 36)
-    g.fillStyle = "#44546a"; g.font = f(MONO, 17); g.fillText(item.org.toUpperCase(), 140, 34)
-    g.fillStyle = "#10161f"; g.font = f(DISPLAY, item.title.length > 11 ? 40 : item.title.length > 8 ? 52 : 66); g.fillText(item.title.toUpperCase(), 22, 132)
+    g.fillStyle = "#EEE5E9"; g.fillRect(0, 0, 400, 540)
+    g.fillStyle = "#E3D3C2"; g.fillRect(0, 0, 400, 54)
+    g.fillStyle = "#EEE5E9"; g.fillRect(0, 0, 120, 54)
+    g.fillStyle = "#0B0908"; g.font = f(MONO, 22); g.fillText(item.kind, 18, 36)
+    g.fillStyle = "#6b5a4c"; g.font = f(MONO, 17); g.fillText(item.org.toUpperCase(), 140, 34)
+    g.fillStyle = "#1d1612"; g.font = f(DISPLAY, item.title.length > 11 ? 40 : item.title.length > 8 ? 52 : 66); g.fillText(item.title.toUpperCase(), 22, 132)
     cover(g, img, 22, 160, 356, 220, true)
-    g.strokeStyle = "#8c98ab"; g.lineWidth = 2; g.strokeRect(22, 160, 356, 220)
+    g.strokeStyle = "#9A8B7A"; g.lineWidth = 2; g.strokeRect(22, 160, 356, 220)
     g.save(); g.translate(250, 440); g.rotate(-0.14)
-    g.strokeStyle = "#a1281f"; g.lineWidth = 3; g.font = f(MONO, 24)
+    g.strokeStyle = "#B73A27"; g.lineWidth = 3; g.font = f(MONO, 24)
     const w = g.measureText(item.stamp).width + 28
     g.strokeRect(-w / 2, -26, w, 46); g.strokeRect(-w / 2 + 5, -21, w - 10, 36)
-    g.fillStyle = "#a1281f"; g.textAlign = "center"; g.fillText(item.stamp, 0, 6); g.restore()
-    g.fillStyle = "#26334a"; g.font = f(MONO, 16); g.fillText(item.tags.join(" · "), 22, 512)
+    g.fillStyle = "#B73A27"; g.textAlign = "center"; g.fillText(item.stamp, 0, 6); g.restore()
+    g.fillStyle = "#4a3a2e"; g.font = f(MONO, 16); g.fillText(item.tags.join(" · "), 22, 512)
   }, item.id)
   return (
     <mesh position={[0, 0.0045, 0]} rotation={[-Math.PI / 2, 0, 0]}><planeGeometry args={[0.34, 0.459]} /><meshStandardMaterial map={tex} roughness={0.8} /></mesh>
@@ -252,7 +249,7 @@ function Card({ item, ctx }: { item: DeskItem; ctx: Ctx }) {
       onPointerOut={() => { want.current = 0; setCursor(false); ctx.hover(null); invalidate() }}
       onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); ctx.openCard(item.id) }}
     >
-      <RB args={[0.34, 0.004, 0.459]} radius={0.0015} smoothness={4} position={[0, 0.002, 0]} castShadow receiveShadow><meshStandardMaterial color="#c9d1dd" roughness={0.9} /></RB>
+      <RB args={[0.34, 0.004, 0.459]} radius={0.0015} smoothness={4} position={[0, 0.002, 0]} castShadow receiveShadow><meshStandardMaterial color="#E3D3C2" roughness={0.9} /></RB>
       <CardFace item={item} />
     </group>
   )
@@ -269,34 +266,34 @@ function Ring({ ctx }: { ctx: Ctx }) {
 /* ------------------------------------------------------------------ shelf */
 function Book({ title, x, y, w = 0.56 }: { title: string; x: number; y: number; w?: number }) {
   const tex = useCanvasTex(512, 96, (g) => {
-    g.fillStyle = "#18202D"; g.fillRect(0, 0, 512, 96)
-    g.fillStyle = "#FF5B4F"; g.fillRect(0, 0, 14, 96)
-    g.fillStyle = "#EDF2F8"; g.font = f(DISPLAY, 54); g.fillText(title.toUpperCase(), 34, 66)
-    g.fillStyle = "#8593A6"; g.font = f(MONO, 15); g.fillText("writeup", 400, 56)
+    g.fillStyle = "#1D1815"; g.fillRect(0, 0, 512, 96)
+    g.fillStyle = "#CF5C36"; g.fillRect(0, 0, 14, 96)
+    g.fillStyle = "#EEE5E9"; g.font = f(DISPLAY, 54); g.fillText(title.toUpperCase(), 34, 66)
+    g.fillStyle = "#9A9186"; g.font = f(MONO, 15); g.fillText("writeup", 400, 56)
   }, title)
   return (
     <group position={[x, y, -1.32]}>
       <RB args={[w, 0.09, 0.3]} radius={0.008} smoothness={4} castShadow><meshStandardMaterial color="#1a2232" roughness={0.65} /></RB>
       <mesh position={[0, 0, 0.1515]}><planeGeometry args={[w - 0.01, 0.082]} /><meshStandardMaterial map={tex} roughness={0.7} /></mesh>
-      <mesh position={[0.0, 0, 0]}><boxGeometry args={[w - 0.02, 0.07, 0.29]} /><meshStandardMaterial color="#d8dde6" roughness={0.9} /></mesh>
+      <mesh position={[0.0, 0, 0]}><boxGeometry args={[w - 0.02, 0.07, 0.29]} /><meshStandardMaterial color="#E3D8C6" roughness={0.9} /></mesh>
     </group>
   )
 }
 
 function Shelf({ ctx }: { ctx: Ctx }) {
   const wood = useMemo(() => woodTex("#3a2a1c", 1, 1), [])
-  const fillers = [[-0.85, 0.3, "#2a3550"], [-0.77, 0.26, "#8E1A13"], [-0.69, 0.32, "#1f2a40"], [-0.6, 0.27, "#44546a"], [-0.52, 0.3, "#C4261E"], [-0.44, 0.24, "#18202D"]] as const
+  const fillers = [[-0.85, 0.3, "#515A47"], [-0.77, 0.26, "#8A3A1F"], [-0.69, 0.32, "#3a2a20"], [-0.6, 0.27, "#6b5a4c"], [-0.52, 0.3, "#CD4631"], [-0.44, 0.24, "#1D1815"]] as const
   return (
     <Hot id="shelf" ctx={ctx}>
-      <RB args={[2.3, 0.04, 0.4]} radius={0.01} smoothness={4} position={[0, 1.99, -1.4]} castShadow receiveShadow><meshStandardMaterial color="#c9b9a6" map={wood} roughness={0.6} /></RB>
-      <mesh position={[0, 1.955, -1.2]}><boxGeometry args={[2.3, 0.02, 0.01]} /><meshBasicMaterial color={C.signal} toneMapped={false} /></mesh>
+      <RB args={[2.3, 0.04, 0.4]} radius={0.01} smoothness={4} position={[0, 1.84, -1.4]} castShadow receiveShadow><meshStandardMaterial color="#c9b9a6" map={wood} roughness={0.6} /></RB>
+      <mesh position={[0, 1.805, -1.2]}><boxGeometry args={[2.3, 0.02, 0.01]} /><meshBasicMaterial color={C.signal} toneMapped={false} /></mesh>
       {fillers.map(([x, h, c], i) => (
-        <RB key={i} args={[0.07, h, 0.25]} radius={0.006} smoothness={4} position={[x - 0.1, 2.01 + h / 2, -1.4]} castShadow><meshStandardMaterial color={c} roughness={0.75} /></RB>
+        <RB key={i} args={[0.07, h, 0.25]} radius={0.006} smoothness={4} position={[x - 0.1, 1.86 + h / 2, -1.4]} castShadow><meshStandardMaterial color={c} roughness={0.75} /></RB>
       ))}
-      <Book title="SAGE" x={0.1} y={2.065} />
-      <Book title="Recurser" x={0.14} y={2.155} w={0.5} />
-      <mesh position={[0.9, 2.08, -1.4]} castShadow><cylinderGeometry args={[0.07, 0.055, 0.13, 48]} /><meshStandardMaterial color="#8E1A13" roughness={0.7} /></mesh>
-      <mesh position={[0.9, 2.2, -1.4]} castShadow><icosahedronGeometry args={[0.1, 3]} /><meshStandardMaterial color="#2c4a3e" flatShading roughness={0.9} /></mesh>
+      <Book title="SAGE" x={0.1} y={1.915} />
+      <Book title="Recurser" x={0.14} y={2.005} w={0.5} />
+      <mesh position={[0.9, 1.93, -1.4]} castShadow><cylinderGeometry args={[0.07, 0.055, 0.13, 48]} /><meshStandardMaterial color="#8A3A1F" roughness={0.7} /></mesh>
+      <mesh position={[0.9, 2.05, -1.4]} castShadow><icosahedronGeometry args={[0.1, 3]} /><meshStandardMaterial color="#515A47" flatShading roughness={0.9} /></mesh>
     </Hot>
   )
 }
@@ -305,12 +302,12 @@ function Shelf({ ctx }: { ctx: Ctx }) {
 function PathNote({ row, x, y, rot }: { row: (typeof PATH_GROUPS)[number]["rows"][number]; x: number; y: number; rot: number }) {
   const { role, focus } = splitTitle(row.title)
   const tex = useCanvasTex(440, 270, (g) => {
-    g.fillStyle = "#DCE2EA"; g.fillRect(0, 0, 440, 270)
-    g.fillStyle = "#a1281f"; g.fillRect(0, 0, 440, 10)
-    g.fillStyle = "#a1281f"; g.font = f(MONO, 24); g.fillText(row.when, 20, 52)
-    g.fillStyle = "#10161f"; g.font = f(DISPLAY, focus.length > 22 ? 32 : 40); wrap(g, focus, 20, 100, 400, focus.length > 22 ? 36 : 44, 3)
-    g.fillStyle = "#44546a"; g.font = f(MONO, 18); if (role) wrap(g, role, 20, 196, 400, 22, 1)
-    g.fillStyle = "#26334a"; g.font = f(MONO, 18); wrap(g, row.org, 20, 246, 400, 22, 1)
+    g.fillStyle = "#EEE5E9"; g.fillRect(0, 0, 440, 270)
+    g.fillStyle = "#B73A27"; g.fillRect(0, 0, 440, 10)
+    g.fillStyle = "#B73A27"; g.font = f(MONO, 24); g.fillText(row.when, 20, 52)
+    g.fillStyle = "#1d1612"; g.font = f(DISPLAY, focus.length > 22 ? 32 : 40); wrap(g, focus, 20, 100, 400, focus.length > 22 ? 36 : 44, 3)
+    g.fillStyle = "#6b5a4c"; g.font = f(MONO, 18); if (role) wrap(g, role, 20, 196, 400, 22, 1)
+    g.fillStyle = "#4a3a2e"; g.font = f(MONO, 18); wrap(g, row.org, 20, 246, 400, 22, 1)
   }, row.id)
   return (
     <group position={[x, y, 0.03]} rotation={[0, 0, rot]}>
@@ -321,9 +318,9 @@ function PathNote({ row, x, y, rot }: { row: (typeof PATH_GROUPS)[number]["rows"
 }
 function PathHead({ label, x }: { label: string; x: number }) {
   const tex = useCanvasTex(440, 100, (g) => {
-    g.fillStyle = "#10161f"; g.fillRect(0, 0, 440, 100)
-    g.fillStyle = "#FF5B4F"; g.fillRect(0, 0, 14, 100)
-    g.fillStyle = "#EDF2F8"; g.font = f(DISPLAY, 58); g.fillText(label.toUpperCase(), 34, 72)
+    g.fillStyle = "#1d1612"; g.fillRect(0, 0, 440, 100)
+    g.fillStyle = "#CF5C36"; g.fillRect(0, 0, 14, 100)
+    g.fillStyle = "#EEE5E9"; g.font = f(DISPLAY, 58); g.fillText(label.toUpperCase(), 34, 72)
   }, label)
   return (
     <group position={[x, 0.36, 0.03]}>
@@ -337,10 +334,10 @@ function Board({ ctx }: { ctx: Ctx }) {
   const cork = useMemo(() => corkTex(), [])
   const X = [-0.52, 0, 0.52], Y = [0.12, -0.2]
   const bandTex = useCanvasTex(1500, 100, (g) => {
-    g.fillStyle = "#DCE2EA"; g.fillRect(0, 0, 1500, 100)
-    g.fillStyle = "#a1281f"; g.fillRect(0, 0, 14, 100)
-    g.fillStyle = "#10161f"; g.font = f(DISPLAY, 50); g.fillText("TEXAS A&M", 36, 68)
-    g.fillStyle = "#44546a"; g.font = f(MONO, 28); g.fillText(PATH_BAND.when + "  ·  " + PATH_BAND.org, 400, 62)
+    g.fillStyle = "#EEE5E9"; g.fillRect(0, 0, 1500, 100)
+    g.fillStyle = "#B73A27"; g.fillRect(0, 0, 14, 100)
+    g.fillStyle = "#1d1612"; g.font = f(DISPLAY, 50); g.fillText("TEXAS A&M", 36, 68)
+    g.fillStyle = "#6b5a4c"; g.font = f(MONO, 28); g.fillText(PATH_BAND.when + "  ·  " + PATH_BAND.org, 400, 62)
   }, "band")
   const rot = [[-0.02, 0.015], [0.012, -0.018], [-0.015, 0.02]]
   return (
@@ -371,9 +368,9 @@ function Drawer({ ctx }: { ctx: Ctx }) {
   const o = useRef(0.1)
   const invalidate = useThree((s) => s.invalidate)
   const tex = useCanvasTex(512, 96, (g) => {
-    g.fillStyle = "#223048"; g.fillRect(0, 0, 512, 96)
-    g.fillStyle = "#EDF2F8"; g.font = f(MONO, 34); g.fillText("SIDE QUESTS", 28, 56)
-    g.fillStyle = "#FF5B4F"; g.fillRect(28, 70, 100, 6)
+    g.fillStyle = "#3a2a20"; g.fillRect(0, 0, 512, 96)
+    g.fillStyle = "#EEE5E9"; g.font = f(MONO, 34); g.fillText("SIDE QUESTS", 28, 56)
+    g.fillStyle = "#CF5C36"; g.fillRect(28, 70, 100, 6)
   }, "drawer")
   useEffect(() => { shadow.dirty = true; invalidate() }, [ctx.focus, invalidate])
   useFrame((_, dt) => {
@@ -382,7 +379,7 @@ function Drawer({ ctx }: { ctx: Ctx }) {
     d.current.position.z = o.current
     if (Math.abs(goal - o.current) > 0.002) { shadow.dirty = true; invalidate() }
   })
-  const folders = ["#8E1A13", "#C4261E", "#617599", "#8593A6", "#2E3A54", "#C4261E", "#617599"]
+  const folders = ["#8A3A1F", "#CF5C36", "#EFC88B", "#81ADC8", "#515A47", "#9E6240", "#DEA47E"]
   // a centre drawer in the desk apron, flush with the front edge, ajar
   return (
     <Hot id="drawer" ctx={ctx} position={[0, 0.66, 0.5]}>
@@ -390,12 +387,12 @@ function Drawer({ ctx }: { ctx: Ctx }) {
       <group ref={d}>
         <RB args={[0.98, 0.13, 0.022]} radius={0.007} smoothness={4} position={[0, 0, 0.011]} castShadow><meshStandardMaterial color="#c9b9a6" map={useMemo(() => woodTex("#3a2a1c", 1, 1), [])} roughness={0.55} /></RB>
         <mesh position={[0, 0, 0.0235]}><planeGeometry args={[0.46, 0.086]} /><meshBasicMaterial map={tex} toneMapped={false} /></mesh>
-        <RB args={[0.14, 0.014, 0.02]} radius={0.006} smoothness={4} position={[0.36, 0, 0.032]}><meshStandardMaterial color="#aab4c4" metalness={0.85} roughness={0.25} /></RB>
-        <mesh position={[0, -0.05, -0.27]}><boxGeometry args={[0.94, 0.012, 0.52]} /><meshStandardMaterial color="#10161f" /></mesh>
+        <RB args={[0.14, 0.014, 0.02]} radius={0.006} smoothness={4} position={[0.36, 0, 0.032]}><meshStandardMaterial color="#C9BBA6" metalness={0.85} roughness={0.25} /></RB>
+        <mesh position={[0, -0.05, -0.27]}><boxGeometry args={[0.94, 0.012, 0.52]} /><meshStandardMaterial color="#1d1612" /></mesh>
         {folders.map((c, i) => (
           <mesh key={i} position={[-0.36 + i * 0.12, 0.0, -0.2 - (i % 3) * 0.04]} rotation={[0, 0, (i - 3) * 0.04]} castShadow><boxGeometry args={[0.014, 0.1, 0.24]} /><meshStandardMaterial color={c} roughness={0.8} /></mesh>
         ))}
-        <mesh position={[0.18, 0.045, -0.08]} rotation={[0.12, 0.2, -0.1]}><boxGeometry args={[0.16, 0.001, 0.2]} /><meshStandardMaterial color="#DCE2EA" roughness={0.9} /></mesh>
+        <mesh position={[0.18, 0.045, -0.08]} rotation={[0.12, 0.2, -0.1]}><boxGeometry args={[0.16, 0.001, 0.2]} /><meshStandardMaterial color="#EEE5E9" roughness={0.9} /></mesh>
       </group>
     </Hot>
   )
@@ -405,11 +402,11 @@ function Drawer({ ctx }: { ctx: Ctx }) {
 function Notepad({ ctx }: { ctx: Ctx }) {
   const tex = useCanvasTex(300, 400, (g) => {
     g.fillStyle = "#E9E4B8"; g.fillRect(0, 0, 300, 400)
-    g.fillStyle = "#a1281f"; g.fillRect(0, 0, 300, 10)
-    g.fillStyle = "#10161f"; g.font = f(DISPLAY, 46); g.fillText("CONTACT", 22, 78)
-    g.fillStyle = "#44546a"; g.font = f(MONO, 16); g.fillText("I read everything", 24, 108) // SPIKE COPY
-    ;[150, 190, 230, 270, 310].forEach((y) => { g.fillStyle = "#8c98ab"; g.fillRect(24, y, 250, 2) })
-    g.fillStyle = "#a1281f"; g.font = f(MONO, 20); g.fillText("email", 24, 144); g.fillText("github", 24, 184); g.fillText("linkedin", 24, 224); g.fillText("resume", 24, 264)
+    g.fillStyle = "#B73A27"; g.fillRect(0, 0, 300, 10)
+    g.fillStyle = "#1d1612"; g.font = f(DISPLAY, 46); g.fillText("CONTACT", 22, 78)
+    g.fillStyle = "#6b5a4c"; g.font = f(MONO, 16); g.fillText("I read everything", 24, 108) // SPIKE COPY
+    ;[150, 190, 230, 270, 310].forEach((y) => { g.fillStyle = "#9A8B7A"; g.fillRect(24, y, 250, 2) })
+    g.fillStyle = "#B73A27"; g.font = f(MONO, 20); g.fillText("email", 24, 144); g.fillText("github", 24, 184); g.fillText("linkedin", 24, 224); g.fillText("resume", 24, 264)
   }, "notes")
   return (
     <Hot id="notes" ctx={ctx} position={[1.1, DESK_Y, 0.3]} rotation={[0, -0.2, 0]}>
@@ -434,12 +431,12 @@ function Lamp({ ctx }: { ctx: Ctx }) {
   const arm = (a: [number, number, number], b: [number, number, number]) => {
     const va = new THREE.Vector3(...a), vb = new THREE.Vector3(...b), mid = va.clone().add(vb).multiplyScalar(0.5)
     const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), vb.clone().sub(va).normalize())
-    return <mesh position={mid} quaternion={q} castShadow><cylinderGeometry args={[0.009, 0.009, va.distanceTo(vb), 20]} /><meshStandardMaterial color="#aab4c4" metalness={0.9} roughness={0.25} /></mesh>
+    return <mesh position={mid} quaternion={q} castShadow><cylinderGeometry args={[0.009, 0.009, va.distanceTo(vb), 20]} /><meshStandardMaterial color="#C9BBA6" metalness={0.9} roughness={0.25} /></mesh>
   }
-  const joint = (p: [number, number, number], r = 0.016) => <mesh position={p} castShadow><sphereGeometry args={[r, 24, 16]} /><meshStandardMaterial color="#222c3f" metalness={0.8} roughness={0.3} /></mesh>
+  const joint = (p: [number, number, number], r = 0.016) => <mesh position={p} castShadow><sphereGeometry args={[r, 24, 16]} /><meshStandardMaterial color="#2a2320" metalness={0.8} roughness={0.3} /></mesh>
   return (
     <group onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); ctx.toggleLamp() }} {...hovFor(ctx, ctx.lamp ? "Lamp: off" : "Lamp: on")}>
-      <mesh position={[-1.08, DESK_Y, -0.4]} geometry={baseGeo} castShadow receiveShadow><meshStandardMaterial color="#1a2230" metalness={0.8} roughness={0.28} /></mesh>
+      <mesh position={[-1.08, DESK_Y, -0.4]} geometry={baseGeo} castShadow receiveShadow><meshStandardMaterial color="#241c17" metalness={0.8} roughness={0.28} /></mesh>
       {arm([-1.08, DESK_Y + 0.06, -0.4], [-1.0, 1.25, -0.36])}
       {joint([-1.0, 1.25, -0.36], 0.02)}
       {arm([-1.0, 1.25, -0.36], [-0.89, 1.46, -0.32])}
@@ -479,11 +476,11 @@ function Mug({ ctx }: { ctx: Ctx }) {
   return (
     <group>
       <group ref={g} position={[0.95 + R, DESK_Y, -0.18]} onClick={click} {...hovFor(ctx, "Mug")}>
-        <mesh position={[-R, H / 2, 0]} castShadow><cylinderGeometry args={[R, R * 0.9, H, 64, 1, true]} /><meshStandardMaterial color="#e6e9ee" roughness={0.3} side={THREE.DoubleSide} /></mesh>
-        <mesh position={[-R, 0.003, 0]}><cylinderGeometry args={[R * 0.9, R * 0.9, 0.006, 64]} /><meshStandardMaterial color="#e6e9ee" roughness={0.3} /></mesh>
+        <mesh position={[-R, H / 2, 0]} castShadow><cylinderGeometry args={[R, R * 0.9, H, 64, 1, true]} /><meshStandardMaterial color="#EEE5E9" roughness={0.3} side={THREE.DoubleSide} /></mesh>
+        <mesh position={[-R, 0.003, 0]}><cylinderGeometry args={[R * 0.9, R * 0.9, 0.006, 64]} /><meshStandardMaterial color="#EEE5E9" roughness={0.3} /></mesh>
         <mesh position={[-R, H - 0.012, 0]} rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[R * 0.97, 64]} /><meshStandardMaterial color="#2a160d" roughness={0.12} /></mesh>
         {/* handle: a half torus in the mug's own plane, both ends sunk into the wall */}
-        <mesh position={[-2 * R + 0.003, H / 2, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><torusGeometry args={[0.03, 0.0075, 16, 40, Math.PI]} /><meshStandardMaterial color="#e6e9ee" roughness={0.3} /></mesh>
+        <mesh position={[-2 * R + 0.003, H / 2, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><torusGeometry args={[0.03, 0.0075, 16, 40, Math.PI]} /><meshStandardMaterial color="#EEE5E9" roughness={0.3} /></mesh>
         <mesh position={[-R, H / 2 + 0.01, R + 0.001]}><planeGeometry args={[0.05, 0.016]} /><meshBasicMaterial color={C.signal} toneMapped={false} /></mesh>
       </group>
       <mesh ref={pud} visible={false} rotation={[-Math.PI / 2, 0, 0]} position={[1.1, DESK_Y + 0.003, -0.15]}>
@@ -499,7 +496,7 @@ function LightSwitch({ ctx }: { ctx: Ctx }) {
   useEffect(() => { rocker.current.rotation.x = ctx.theme === "light" ? -0.35 : 0.35 }, [ctx.theme])
   return (
     <group position={[-1.55, 1.3, -1.6]} onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); ctx.toggleTheme() }} {...hovFor(ctx, ctx.theme === "light" ? "Light switch: lights off" : "Light switch: lights on")}>
-      <RB args={[0.1, 0.16, 0.014]} radius={0.004} smoothness={4} castShadow><meshStandardMaterial color="#d8dde6" roughness={0.5} /></RB>
+      <RB args={[0.1, 0.16, 0.014]} radius={0.004} smoothness={4} castShadow><meshStandardMaterial color="#E3D8C6" roughness={0.5} /></RB>
       <mesh ref={rocker} position={[0, 0, 0.012]}><boxGeometry args={[0.03, 0.07, 0.016]} /><meshStandardMaterial color="#f3f4f6" roughness={0.4} /></mesh>
     </group>
   )

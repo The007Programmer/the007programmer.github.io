@@ -33,22 +33,39 @@
   --font-mono: 'Martian Mono', ui-monospace, monospace;
 }
 
-/* Light palette, switched by the wall light switch in the room. Same roles, so
-   every utility that reads a --color-* token follows. Signal deepens to the old
-   ember red: #FF5B4F on a cream ground is under 3:1, #C4261E clears AA. */
+/* The room's two palettes, switched by the wall light switch. They only apply
+   when the room sets data-theme, so the base tokens above stay as they were.
+   Dark: black, burnt orange, sand, pale pink, grey. Light: cream, clay, a
+   red-orange accent, sky blue. Text tones are lifted/deepened from the swatches
+   where the raw swatch fails 4.5:1; checked with src/lib/contrast.ts. */
+:root[data-theme="dark"] {
+  --color-void: #0B0908;
+  --color-ink: #14100E;
+  --color-ink-2: #1D1815;
+  --color-line: #3A312B;
+  --color-edge: #7C7C7C;
+  --color-chalk: #EEE5E9;
+  --color-chalk-2: #D2C4B4;
+  --color-mute: #9A9186;
+  --color-signal: #E06A42;
+  --color-coral: #EFC88B;
+  --color-ember: #CF5C36;
+  --color-rust: #8A3A1F;
+  color-scheme: dark;
+}
 :root[data-theme="light"] {
-  --color-void: #F2EFE8;
-  --color-ink: #E8E4DA;
-  --color-ink-2: #FAF8F3;
-  --color-line: #CFC8B8;
-  --color-edge: #6E6858;
-  --color-chalk: #161A22;
-  --color-chalk-2: #3A4352;
-  --color-mute: #566070;
-  --color-signal: #C4261E;
-  --color-coral: #A81F17;
-  --color-ember: #C4261E;
-  --color-rust: #8E1A13;
+  --color-void: #F8F2DC;
+  --color-ink: #EFE7CB;
+  --color-ink-2: #FDFAEC;
+  --color-line: #DDC9A8;
+  --color-edge: #9E6240;
+  --color-chalk: #2B1B13;
+  --color-chalk-2: #5E3F2B;
+  --color-mute: #7A5640;
+  --color-signal: #B73A27;
+  --color-coral: #2E6585;
+  --color-ember: #B73A27;
+  --color-rust: #8C2B1B;
   color-scheme: light;
 }
 

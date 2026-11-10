@@ -16,8 +16,12 @@ export function applyTheme(t: Theme, persist = false) {
   }
 }
 
-/* 3D palettes. DOM colours come from the CSS variables in index.css. */
+/* 3D palettes and the canvas-drawn UI tokens (DOM reads the CSS variables). */
 export const PAL = {
-  dark: { bg: "#07090e", wall: "#121926", wallSide: "#0f1520", floor: "#0e131c", rug: "#1a222f", ceil: "#090c12", base: "#1a2332", ambient: 0.14, key: 0.1, fogNear: 3.2, fogFar: 9 },
-  light: { bg: "#dfe3e8", wall: "#d6d2ca", wallSide: "#cfcbc3", floor: "#8f8678", rug: "#8a8478", ceil: "#ece9e3", base: "#bdb7ab", ambient: 0.75, key: 1.5, fogNear: 6, fogFar: 16 },
+  dark: { bg: "#0B0908", wall: "#2a1f19", wallSide: "#211812", floor: "#1c1510", rug: "#33241c", ceil: "#0d0a08", base: "#2a201a", fogNear: 3.2, fogFar: 9 },
+  light: { bg: "#F2EBD2", wall: "#E9D8B8", wallSide: "#E0CDAA", floor: "#9E6240", rug: "#81ADC8", ceil: "#F8F2DC", base: "#CBB48F", fogNear: 6, fogFar: 16 },
+} as const
+export const TOK = {
+  dark: { void: "#0B0908", ink: "#14100E", ink2: "#1D1815", edge: "#7C7C7C", chalk: "#EEE5E9", chalk2: "#D2C4B4", signal: "#E06A42" },
+  light: { void: "#F8F2DC", ink: "#EFE7CB", ink2: "#FDFAEC", edge: "#9E6240", chalk: "#2B1B13", chalk2: "#5E3F2B", signal: "#B73A27" },
 } as const

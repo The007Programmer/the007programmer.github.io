@@ -8,8 +8,9 @@ import { glowTex } from "./proc"
 const rnd = (a: number, b: number) => a + Math.random() * (b - a)
 
 /* ------------------------------------------------------------------- cat */
-/* Three draw calls: torso+legs, head, tail, each one merged geometry with vertex colours.
-   No frames while she is sitting: a timer wakes the scene only when a step ends. */
+/* One mesh per pose, each a single merged geometry (sit, loaf, two walking frames): the tail is a tube rooted
+   inside the haunch, the legs are tapered limbs, nothing floats. One draw call. Frames are only
+   requested while she moves; sitting costs a single timer to the end of the step. */
 type Step = { p: [number, number]; act: "sit" | "loaf" | "bat"; dur: number; card?: string; y?: number }
 const ROUTE: Step[] = [
   { p: [0.82, -0.62], act: "sit", dur: 9 },
@@ -19,42 +20,78 @@ const ROUTE: Step[] = [
   { p: [0.55, 0.38], act: "bat", dur: 2.6, card: "hello" },
   { p: [0.3, -0.6], act: "sit", dur: 9 },
 ]
-const part = (g: THREE.BufferGeometry, color: string, m?: THREE.Matrix4) => {
-  const c = g.clone()
-  if (m) c.applyMatrix4(m)
-  const col = new THREE.Color(color), n = c.attributes.position.count, arr = new Float32Array(n * 3)
-  for (let i = 0; i < n; i++) { arr[i * 3] = col.r; arr[i * 3 + 1] = col.g; arr[i * 3 + 2] = col.b }
-  c.setAttribute("color", new THREE.BufferAttribute(arr, 3))
-  return c
+type V = [number, number, number]
+const FUR = "#2a2320", FUR2 = "#3b322d"
+function paint(g: THREE.BufferGeometry, color: string) {
+  const c = new THREE.Color(color), n = g.attributes.position.count, a = new Float32Array(n * 3)
+  for (let i = 0; i < n; i++) { a[i * 3] = c.r; a[i * 3 + 1] = c.g; a[i * 3 + 2] = c.b }
+  g.setAttribute("color", new THREE.BufferAttribute(a, 3))
+  return g
 }
-const T = (x: number, y: number, z: number, rx = 0, ry = 0, rz = 0) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), new THREE.Vector3(1, 1, 1))
+const ell = (p: V, r: V, color = FUR, rx = 0) => {
+  const g = new THREE.SphereGeometry(1, 28, 20)
+  g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(...p), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, 0, 0)), new THREE.Vector3(...r)))
+  return paint(g, color)
+}
+const limb = (a: V, b: V, r0: number, r1: number, color = FUR) => {
+  const va = new THREE.Vector3(...a), vb = new THREE.Vector3(...b), len = va.distanceTo(vb)
+  const g = new THREE.CylinderGeometry(r1, r0, len, 16, 1)
+  g.applyMatrix4(new THREE.Matrix4().compose(va.clone().add(vb).multiplyScalar(0.5), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), vb.clone().sub(va).normalize()), new THREE.Vector3(1, 1, 1)))
+  return paint(g, color)
+}
+const tube = (pts: V[], r: number) => {
+  const curve = new THREE.CatmullRomCurve3(pts.map((p) => new THREE.Vector3(...p)))
+  const t = paint(new THREE.TubeGeometry(curve, 40, r, 12, false), FUR)
+  const end = pts[pts.length - 1]
+  return [t, ell(end, [r, r, r])]
+}
+const cone = (p: V, rz: number, rx = 0) => {
+  const g = new THREE.ConeGeometry(0.013, 0.032, 12)
+  g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(...p), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, 0, rz)), new THREE.Vector3(1, 1, 1)))
+  return paint(g, FUR)
+}
+function face(hx: number, hy: number, hz: number, tilt = 0) {
+  return [
+    ell([hx, hy, hz], [0.036, 0.032, 0.034], FUR, tilt),
+    cone([hx - 0.021, hy + 0.034, hz - 0.004], 0.28), cone([hx + 0.021, hy + 0.034, hz - 0.004], -0.28),
+    ell([hx - 0.014, hy + 0.004, hz + 0.031], [0.005, 0.005, 0.004], "#c8ff7a"), ell([hx + 0.014, hy + 0.004, hz + 0.031], [0.005, 0.005, 0.004], "#c8ff7a"),
+    ell([hx, hy - 0.006, hz + 0.034], [0.005, 0.004, 0.004], "#d99a8e"),
+    (() => { const g = new THREE.TorusGeometry(0.031, 0.004, 10, 32); g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(hx, hy - 0.026, hz - 0.008), new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2 + 0.2, 0, 0)), new THREE.Vector3(1, 1, 1))); return paint(g, "#CF5C36") })(),
+  ]
+}
 function buildCat() {
-  const FUR = "#2b2f3a", FUR2 = "#3a3f4d"
-  const cap = (r: number, l: number) => new THREE.CapsuleGeometry(r, l, 6, 16)
-  const torso = mergeGeometries([
-    part(cap(0.04, 0.1), FUR, T(0, 0.06, 0, Math.PI / 2)),
-    part(cap(0.032, 0.06), FUR2, T(0, 0.048, 0.03, Math.PI / 2)),
-    ...[[-0.025, 0.07], [0.025, 0.07], [-0.025, -0.07], [0.025, -0.07]].map(([x, z]) => part(cap(0.011, 0.04), FUR, T(x, 0.03, z))),
-  ])!
-  const head = mergeGeometries([
-    part(new THREE.SphereGeometry(0.036, 24, 18), FUR),
-    part(new THREE.ConeGeometry(0.014, 0.03, 8), FUR, T(-0.022, 0.036, -0.004, 0, 0, 0.3)),
-    part(new THREE.ConeGeometry(0.014, 0.03, 8), FUR, T(0.022, 0.036, -0.004, 0, 0, -0.3)),
-    part(new THREE.SphereGeometry(0.005, 10, 8), "#c8ff7a", T(-0.014, 0.006, 0.031)),
-    part(new THREE.SphereGeometry(0.005, 10, 8), "#c8ff7a", T(0.014, 0.006, 0.031)),
-    part(new THREE.TorusGeometry(0.03, 0.005, 8, 24), "#FF5B4F", T(0, -0.03, 0.01, Math.PI / 2)),
-  ])!
-  const tail = mergeGeometries([
-    part(cap(0.01, 0.12), FUR, T(0, 0, -0.06, Math.PI / 2)),
-    part(cap(0.009, 0.06), FUR, T(0, 0.03, -0.12, 0.6)),
-  ])!
-  return { torso, head, tail }
+  const m = (parts: THREE.BufferGeometry[]) => mergeGeometries(parts)!
+  const sit = m([
+    ell([0, 0.05, -0.035], [0.045, 0.05, 0.06]), ell([0, 0.098, 0.018], [0.036, 0.06, 0.04], FUR2, -0.25),
+    ...face(0, 0.165, 0.045),
+    limb([-0.016, 0.1, 0.04], [-0.016, 0.012, 0.055], 0.012, 0.009), limb([0.016, 0.1, 0.04], [0.016, 0.012, 0.055], 0.012, 0.009),
+    ell([-0.016, 0.008, 0.062], [0.012, 0.008, 0.017], FUR2), ell([0.016, 0.008, 0.062], [0.012, 0.008, 0.017], FUR2),
+    ell([-0.036, 0.009, 0.0], [0.011, 0.009, 0.028], FUR2), ell([0.036, 0.009, 0.0], [0.011, 0.009, 0.028], FUR2),
+    ...tube([[0, 0.03, -0.075], [0, 0.012, -0.13], [0.045, 0.009, -0.158], [0.092, 0.013, -0.125], [0.1, 0.034, -0.085]], 0.009),
+  ])
+  const loaf = m([
+    ell([0, 0.042, 0], [0.05, 0.042, 0.095]), ell([0, 0.034, 0.05], [0.04, 0.034, 0.05], FUR2),
+    ...face(0, 0.058, 0.105, 0.2),
+    ell([-0.02, 0.009, 0.118], [0.012, 0.009, 0.02], FUR2), ell([0.02, 0.009, 0.118], [0.012, 0.009, 0.02], FUR2),
+    ...tube([[0, 0.03, -0.09], [0.045, 0.014, -0.125], [0.075, 0.011, -0.075], [0.068, 0.013, -0.01]], 0.009),
+  ])
+  const walk = (off: number) => m([
+    ell([0, 0.085, 0], [0.034, 0.04, 0.085]), ell([0, 0.092, 0.06], [0.034, 0.042, 0.04], FUR2),
+    ell([0, 0.103, 0.088], [0.024, 0.03, 0.03]),
+    ...face(0, 0.118, 0.115),
+    limb([-0.02, 0.08, 0.06], [-0.02, 0.008, 0.06 + off], 0.012, 0.008), limb([0.02, 0.08, 0.06], [0.02, 0.008, 0.06 - off], 0.012, 0.008),
+    limb([-0.02, 0.08, -0.06], [-0.02, 0.008, -0.06 - off], 0.013, 0.008), limb([0.02, 0.08, -0.06], [0.02, 0.008, -0.06 + off], 0.013, 0.008),
+    ell([-0.02, 0.007, 0.065 + off], [0.01, 0.007, 0.015], FUR2), ell([0.02, 0.007, 0.065 - off], [0.01, 0.007, 0.015], FUR2),
+    ell([-0.02, 0.007, -0.06 - off], [0.01, 0.007, 0.015], FUR2), ell([0.02, 0.007, -0.06 + off], [0.01, 0.007, 0.015], FUR2),
+    ...tube([[0, 0.09, -0.075], [0, 0.115, -0.14], [0, 0.17, -0.155], [0.012, 0.205, -0.125]], 0.009),
+  ])
+  return { sit, loaf, walkA: walk(0.03), walkB: walk(-0.03) }
 }
 
 export function Cat({ ctx }: { ctx: Ctx }) {
-  const root = useRef<THREE.Group>(null!), body = useRef<THREE.Group>(null!), head = useRef<THREE.Group>(null!), tail = useRef<THREE.Group>(null!)
+  const root = useRef<THREE.Group>(null!), mesh = useRef<THREE.Mesh>(null!)
   const geo = useMemo(buildCat, [])
-  const st = useRef({ i: 0, t0: performance.now(), walking: false, ph: 0, hop: 0, look: 0, x: 0.82, z: -0.62, yaw: 0, y: 0 })
+  const st = useRef({ i: 0, t0: performance.now(), walking: false, ph: 0, hop: 0, x: 0.82, z: -0.62, yaw: 0, y: 0, pose: "" })
   const active = !ctx.focus || ctx.focus === "desk"
 
   useFrame((_, dtRaw) => {
@@ -69,31 +106,21 @@ export function Cat({ ctx }: { ctx: Ctx }) {
         const sp = 0.13 * dt
         s.x += (dx / d) * Math.min(sp, d); s.z += (dz / d) * Math.min(sp, d)
         let da = Math.atan2(dx, dz) - s.yaw; da = Math.atan2(Math.sin(da), Math.cos(da)); s.yaw += da * Math.min(1, dt * 6)
-        s.ph += dt * 9
+        s.ph += dt * 7
       }
     } else {
       const t = (now - s.t0) / 1000
       if (step.act === "bat" && step.card) catFx.card = t > 0.6 && t < step.dur - 0.3 ? step.card : null
       if (t > step.dur) { s.i = (s.i + 1) % ROUTE.length; s.walking = true; catFx.card = null }
     }
-    const sitting = !s.walking && (step.act === "sit" || step.act === "bat")
-    const loaf = !s.walking && step.act === "loaf"
+    const pose = moving ? (Math.sin(s.ph) > 0 ? "walkA" : "walkB") : step.act === "loaf" ? "loaf" : "sit"
+    if (pose !== s.pose) { s.pose = pose; mesh.current.geometry = geo[pose as keyof typeof geo] }
     const hopT = s.hop > 0 ? (s.hop -= dt, Math.sin((1 - s.hop / 0.5) * Math.PI) * 0.1) : 0
     const ty = step.y && !s.walking ? step.y : 0
     s.y += (ty - s.y) * Math.min(1, dt * 5)
-    g.position.set(s.x, DESK_Y + s.y + hopT, s.z)
-    g.rotation.y = s.yaw
-    const b = body.current
-    b.rotation.x += ((sitting ? -0.55 : 0) - b.rotation.x) * Math.min(1, dt * 6)
-    b.scale.y += ((loaf ? 0.8 : 1) - b.scale.y) * Math.min(1, dt * 6)
-    b.position.y = moving ? Math.abs(Math.sin(s.ph)) * 0.006 : 0
-    b.rotation.z = moving ? Math.sin(s.ph) * 0.05 : 0
-    s.look += ((s.hop > 0 ? 1 : 0) - s.look) * dt * 4
-    head.current.rotation.y = (sitting ? Math.sin(now / 1800) * 0.25 : 0) + s.look * 0.6
-    head.current.rotation.x = sitting ? 0.5 : loaf ? 0.2 : 0
-    tail.current.rotation.z = Math.sin(now / (moving ? 260 : 900)) * (moving ? 0.35 : 0.5)
-    tail.current.rotation.x = sitting || loaf ? 0.15 : 0.7
-    // frames only while something is actually moving; otherwise one timer to the end of the step
+    g.position.set(s.x, DESK_Y + s.y + hopT + (moving ? Math.abs(Math.sin(s.ph)) * 0.004 : 0), s.z)
+    g.rotation.y = s.yaw + (s.hop > 0 ? 0.5 : 0)
+    g.rotation.z = step.act === "bat" && !s.walking ? Math.sin(now / 110) * 0.05 : 0
     if (moving || s.hop > 0 || (step.act === "bat" && !s.walking)) ambient.next = Math.min(ambient.next, 66)
     else if (!s.walking) ambient.next = Math.min(ambient.next, Math.max(60, (step.dur - (now - s.t0) / 1000) * 1000 + 20))
   })
@@ -106,11 +133,7 @@ export function Cat({ ctx }: { ctx: Ctx }) {
   }
   return (
     <group ref={root} position={[0.82, DESK_Y, -0.62]} onClick={click} {...hovFor(ctx, "Cat")}>
-      <group ref={body}>
-        <mesh geometry={geo.torso} castShadow><meshStandardMaterial vertexColors roughness={0.95} /></mesh>
-        <group ref={head} position={[0, 0.09, 0.105]}><mesh geometry={geo.head}><meshStandardMaterial vertexColors roughness={0.95} /></mesh></group>
-        <group ref={tail} position={[0, 0.06, -0.12]} rotation={[0.7, 0, 0]}><mesh geometry={geo.tail}><meshStandardMaterial vertexColors roughness={0.95} /></mesh></group>
-      </group>
+      <mesh ref={mesh} geometry={geo.sit} castShadow><meshStandardMaterial vertexColors roughness={0.92} /></mesh>
     </group>
   )
 }
@@ -181,7 +204,7 @@ export function Duck({ ctx }: { ctx: Ctx }) {
 export function Glow({ position, color, size, opacity = 0.5 }: { position: [number, number, number]; color: string; size: number; opacity?: number }) {
   const map = useRef(glowTex()).current
   return (
-    <sprite position={position} scale={[size, size, 1]}>
+    <sprite position={position} scale={[size, size, 1]} raycast={() => null}>
       <spriteMaterial map={map} color={color} transparent opacity={opacity} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false} />
     </sprite>
   )

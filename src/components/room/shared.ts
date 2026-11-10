@@ -19,7 +19,7 @@ export interface Ctx {
 }
 export type InputRef = MutableRefObject<Input>
 
-export const C = { void: "#0A0D13", ink2: "#18202D", edge: "#617599", chalk: "#EDF2F8", signal: "#FF5B4F", ember: "#C4261E" }
+export const C = { void: "#0B0908", ink2: "#1D1815", edge: "#7C7C7C", chalk: "#EEE5E9", signal: "#CF5C36", ember: "#CD4631" }
 export const DESK_Y = 0.8
 
 /* shadow maps are frozen; anything that moves on the desk marks them dirty */
