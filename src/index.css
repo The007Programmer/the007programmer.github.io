@@ -135,3 +135,5 @@ body {
   -webkit-text-stroke: 3px var(--color-chalk-2);
   paint-order: stroke fill;
 }
+
+@keyframes fadein { from { opacity: 0 } to { opacity: 1 } }
