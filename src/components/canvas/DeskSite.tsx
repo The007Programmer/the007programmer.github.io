@@ -3,7 +3,7 @@ import { DESK, FIT, OBJS, TAPES, Decals, Drawer, TapeLabel, type ObjSpec } from 
 
 interface Cam { cx: number; cy: number; k: number }
 interface Body {
-  spec: ObjSpec; el: HTMLDivElement; face: HTMLDivElement
+  spec: ObjSpec; el: HTMLDivElement; face: HTMLDivElement; glare: HTMLDivElement
   x: number; y: number; r: number; s: number; ts: number
   vx: number; vy: number; vr: number
   hvx: number; hvy: number; lastMove: number
@@ -32,8 +32,9 @@ const Objects = memo(function Objects() {
         >
           <div data-face className="relative w-full h-full" style={{ transformStyle: "preserve-3d" }}>
             {o.face}
-            <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(260px circle at var(--gx,50%) var(--gy,50%), rgba(255,255,255,.2), transparent 65%)", opacity: "var(--ga,0)" }} />
-          </div>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              <div data-glare className="absolute pointer-events-none" style={{ left: "-50%", top: "-50%", width: "200%", height: "200%", opacity: 0, background: "radial-gradient(circle at 50% 50%, rgba(255,255,255,.22), transparent 22%)" }} />
+            </div>
         </div>
       ))}
     </>
@@ -82,7 +83,7 @@ export default function DeskSite() {
     bodies.current = OBJS.map((spec, i) => {
       const e = els.find((x) => x.dataset.obj === spec.id)!
       const b: Body = {
-        spec, el: e, face: e.querySelector("[data-face]") as HTMLDivElement,
+        spec, el: e, face: e.querySelector("[data-face]") as HTMLDivElement, glare: e.querySelector("[data-glare]") as HTMLDivElement,
         x: spec.x, y: spec.y, r: spec.r, s: 1, ts: 1, vx: 0, vy: 0, vr: 0, hvx: 0, hvy: 0, lastMove: 0,
         tx: null, ty: 0, tr: 0, delay: 0, tiltX: 0, tiltY: 0, ttX: 0, ttY: 0, ga: 0, tga: 0, gx: 50, gy: 50, held: false, z: i + 2,
       }
@@ -95,9 +96,8 @@ export default function DeskSite() {
     }
     const writeTilt = (b: Body) => {
       b.face.style.transform = `rotateX(${b.tiltX.toFixed(2)}deg) rotateY(${b.tiltY.toFixed(2)}deg)`
-      b.face.style.setProperty("--gx", b.gx.toFixed(0) + "%")
-      b.face.style.setProperty("--gy", b.gy.toFixed(0) + "%")
-      b.face.style.setProperty("--ga", b.ga.toFixed(2))
+      b.glare.style.transform = `translate3d(${((b.gx - 50) * b.spec.w / 100).toFixed(0)}px,${((b.gy - 50) * b.spec.h / 100).toFixed(0)}px,0)`
+      b.glare.style.opacity = b.ga.toFixed(2)
     }
     bodies.current.forEach((b) => { b.el.style.zIndex = String(b.z); write(b) })
 
