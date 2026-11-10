@@ -8,6 +8,7 @@ import { Tally } from "@/components/sections/Tally"
 import { Path } from "@/components/sections/Path"
 import { Toolkit } from "@/components/sections/Toolkit"
 import { Contact } from "@/components/sections/Contact"
+import { VelocityMarquee } from "@/components/kit/VelocityMarquee"
 import { Seam } from "@/components/kit/Seam"
 
 const SECTIONS = [
@@ -30,9 +31,11 @@ export default function App() {
             remove. Sections with no bg class sit on the body, which is `void`. */}
         <Hero />
         <Seam from="void" to="ink" />
+        <VelocityMarquee words={["Agents", "Systems", "Memory", "Graphs"]} speed={-4} variant="outline" ground="ink" className="bg-ink" />
         <Timeline />
         <Seam from="ink" to="void" />
         <Work />
+        <VelocityMarquee words={["Shipped", "Built", "Broke", "Fixed"]} speed={4} variant="fill" className="bg-void" />
         <Seam from="void" to="ink-2" />
         <Tally />
         <Seam from="ink-2" to="ink" />
@@ -42,6 +45,7 @@ export default function App() {
         {/* Same ground on both sides — no ramp to do, but the rule still marks
             the change so the page keeps its rhythm into the last section. */}
         <Seam from="void" to="void" />
+        <VelocityMarquee words={["Say hello", "Say something", "Say anything"]} speed={-5} variant="outline" />
         <Contact />
       </main>
       <Footer />

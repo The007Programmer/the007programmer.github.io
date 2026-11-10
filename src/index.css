@@ -127,3 +127,11 @@ body {
 .hero-name .ch.is-noise {
   opacity: 0.55;
 }
+
+/* Kinetic type: outlined marquee glyphs. Stroke, not fill, so the band reads
+   as a drawn line of type that the filled bands answer. */
+.marquee-outline {
+  color: var(--ground, var(--color-void));
+  -webkit-text-stroke: 3px var(--color-chalk-2);
+  paint-order: stroke fill;
+}

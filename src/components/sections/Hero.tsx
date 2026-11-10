@@ -1,7 +1,8 @@
-import { motion, useScroll, useTransform } from "motion/react"
-import { useRef } from "react"
+import { animate, motion, useScroll, useSpring, useTransform, useVelocity } from "motion/react"
+import { useRef, type PointerEvent } from "react"
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
 import { ScrambleName } from "@/components/kit/ScrambleName"
+import { LineMask } from "@/components/kit/LineMask"
 import FlowField from "@/components/kokonutui/flow-field"
 
 // Hoisted so the array identity is stable: ScrambleName takes it as an effect
@@ -14,6 +15,33 @@ export function Hero() {
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] })
   const y = useTransform(scrollYProgress, [0, 1], reduced ? [0, 0] : [0, 120])
   const opacity = useTransform(scrollYProgress, [0, 1], reduced ? [1, 1] : [1, 0])
+
+  // Exit: the name swells, loosens its tracking and leans with the scroll speed.
+  const scale = useTransform(scrollYProgress, [0, 1], reduced ? [1, 1] : [1, 1.14])
+  const tracking = useTransform(scrollYProgress, [0, 1], reduced ? ["-0.055em", "-0.055em"] : ["-0.055em", "0.01em"])
+  const { scrollY } = useScroll()
+  const skewX = useSpring(useTransform(useVelocity(scrollY), [-2500, 2500], reduced ? [0, 0] : [7, -7], { clamp: true }), {
+    stiffness: 300,
+    damping: 40,
+  })
+
+  // Per-letter hover. The decode builds `.ch` spans by hand, so delegate from
+  // the heading instead of binding to elements that come and go.
+  const onLetter = (e: PointerEvent<HTMLElement>) => {
+    if (reduced) return
+    const ch = (e.target as HTMLElement).closest<HTMLElement>(".hero-name .ch")
+    if (!ch || ch.dataset.busy || ch.classList.contains("is-noise")) return
+    ch.dataset.busy = "1"
+    const spin = (Math.random() < 0.5 ? -1 : 1) * (6 + Math.random() * 10)
+    animate(
+      ch,
+      { y: ["0em", "-0.16em", "0em"], rotate: [0, spin, 0], scaleY: [1, 1.08, 1], color: ["#EDF2F8", "#FF5B4F", "#EDF2F8"] },
+      { duration: 0.75, ease: "easeOut" }
+    ).then(() => {
+      delete ch.dataset.busy
+      ch.style.removeProperty("color")
+    })
+  }
 
   return (
     // select-none: the hero is a click surface now — every click sends a
@@ -49,23 +77,23 @@ export function Hero() {
         >
           Applied AI &amp; systems
         </motion.p>
-        <h1 className="font-display font-extrabold text-[clamp(4rem,15vw,12rem)] tracking-[-0.055em] leading-[0.95] mb-8">
+        <motion.h1
+          onPointerOver={onLetter}
+          style={{ scale, letterSpacing: tracking, skewX, transformOrigin: "0% 60%" }}
+          className="font-display font-extrabold text-[clamp(4rem,15vw,12rem)] leading-[0.95] mb-8"
+        >
           <ScrambleName lines={HERO_NAME} />
-        </h1>
-        <motion.p
-          initial={reduced ? false : { opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut", delay: 0.5 }}
+        </motion.h1>
+        <LineMask
+          delay={0.9}
           className="hero-thesis max-w-[34ch] font-display font-semibold text-[clamp(1.35rem,3.2vw,2.35rem)] leading-[1.15] tracking-[-0.02em]"
         >
-          At work it&rsquo;s the parts of agents nobody&rsquo;s solved yet &mdash; drift,
-          identity, cooperation. At home it&rsquo;s whatever annoyed me that week. Both
-          keep outgrowing what I built them for.
-        </motion.p>
+          {"At work it\u2019s the parts of agents nobody\u2019s solved yet \u2014 drift, identity, cooperation. At home it\u2019s whatever annoyed me that week. Both keep outgrowing what I built them for."}
+        </LineMask>
         <motion.p
           initial={reduced ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut", delay: 0.62 }}
+          transition={{ duration: 0.8, ease: "easeOut", delay: 1.6 }}
           className="hero-meta font-mono text-xs tracking-wide mt-6"
         >
           Sophomore at Texas A&amp;M · Two terms at TwelveLabs · Bay Area

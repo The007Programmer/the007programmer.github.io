@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ElementType } from "react"
 import { animate, splitText, stagger } from "animejs"
-import { useInView } from "motion/react"
+import { motion, useInView, useScroll, useTransform } from "motion/react"
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
 
 /**
@@ -32,6 +32,12 @@ export function SplitReveal({ children, as: Tag = "h2", className, delay = 0 }: 
   const ref = useRef<HTMLElement | null>(null)
   const reduced = useReducedMotionGate()
   const inView = useInView(ref, { once: true, margin: "0px 0px -14% 0px" })
+  // Scroll-scrubbed tracking: the heading arrives spread wide and tightens to
+  // its resting tracking as it climbs to the reading line, so it reads as being
+  // pulled into place rather than just appearing.
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.95", "start 0.4"] })
+  const letterSpacing = useTransform(scrollYProgress, [0, 1], ["0.045em", "-0.035em"])
+  const MotionTag = motion[Tag as keyof typeof motion] as typeof motion.h2
 
   useEffect(() => {
     if (reduced || !inView) return
@@ -66,8 +72,12 @@ export function SplitReveal({ children, as: Tag = "h2", className, delay = 0 }: 
   // unmount, so the shipped markup — and anything that reads it without running
   // scripts — sees the heading, not the machinery.
   return (
-    <Tag ref={ref} className={className}>
+    <MotionTag
+      ref={ref as React.RefObject<HTMLHeadingElement>}
+      className={className}
+      style={reduced ? undefined : { letterSpacing }}
+    >
       {children}
-    </Tag>
+    </MotionTag>
   )
 }

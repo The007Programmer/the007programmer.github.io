@@ -3,6 +3,7 @@ import { motion, useDragControls, useMotionValue, useScroll, useTransform, frame
 import { ProjectCard } from "@/components/kit/ProjectCard"
 import { ELECTRA, PROJECT_CARDS, OSS_ITEMS, type ProjectCardData } from "@/data/work"
 import { Reveal, Stagger, StaggerItem } from "@/components/kit/Reveal"
+import { ScrollWords } from "@/components/kit/ScrollWords"
 import { SplitReveal } from "@/components/kit/SplitReveal"
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
 import { cn } from "@/lib/utils"
@@ -207,7 +208,7 @@ export function Work() {
         <StaggerItem>
           <p className="stamp font-mono text-[0.6875rem] uppercase text-chalk-2 mb-2">{ELECTRA.stamp}</p>
           <h3 className="font-display font-extrabold text-3xl text-chalk mb-3">{ELECTRA.title}</h3>
-          <p className="text-chalk-2 leading-relaxed mb-4 max-w-[52ch]">{ELECTRA.lede}</p>
+          <ScrollWords className="text-chalk-2 text-lg leading-relaxed mb-4 max-w-[52ch]">{ELECTRA.lede}</ScrollWords>
           <p className="note text-mute text-sm">{ELECTRA.note}</p>
         </StaggerItem>
         <StaggerItem as="dl" className="spec grid gap-8">

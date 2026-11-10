@@ -1,6 +1,8 @@
 import { motion } from "motion/react"
 import { ActionButton } from "@/components/kit/ActionButton"
 import { Reveal, Stagger, StaggerItem } from "@/components/kit/Reveal"
+import { RollText } from "@/components/kit/RollText"
+import { ScrollWords } from "@/components/kit/ScrollWords"
 import { SplitReveal } from "@/components/kit/SplitReveal"
 
 const LINKS = [
@@ -38,21 +40,19 @@ export function Contact() {
             <SplitReveal as="span" className="block" delay={0.06}>Say something</SplitReveal>
             <SplitReveal as="span" className="block" delay={0.28}>interesting.</SplitReveal>
           </h2>
-          <Reveal delay={0.24}>
-            <p className="contact-copy max-w-[42ch] text-chalk-2 mb-8">
-              Agents, graph memory, video models, or a problem that doesn&rsquo;t have a name yet — I read everything that comes through here.
-            </p>
-          </Reveal>
+          <ScrollWords className="contact-copy max-w-[42ch] text-chalk-2 text-lg mb-8">
+            {"Agents, graph memory, video models, or a problem that doesn\u2019t have a name yet \u2014 I read everything that comes through here."}
+          </ScrollWords>
           <Stagger as="ul" className="contact-links flex flex-col gap-3 font-mono text-sm" gap={0.06} delay={0.3}>
             {LINKS.map((l) => (
               <StaggerItem as="li" key={l.href} y={10}>
                 <motion.a
                   href={l.href}
-                  className="inline-block hover:text-coral transition-colors"
+                  className="group inline-block text-chalk"
                   whileHover={{ x: 4 }}
                   transition={{ type: "spring", stiffness: 400, damping: 26 }}
                 >
-                  {l.label}
+                  <RollText>{l.label}</RollText>
                 </motion.a>
               </StaggerItem>
             ))}

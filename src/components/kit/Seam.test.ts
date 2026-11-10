@@ -73,10 +73,11 @@ describe('the page’s seam sequence', () => {
     return 'void'
   }
 
-  const nodes = [...main.matchAll(/<(Seam|[A-Z]\w+)\b([^>]*)\/>/g)].map((m) => ({
-    name: m[1],
-    attrs: m[2],
-  }))
+  // Marquee bands are type sitting on whichever ground they follow, not
+  // sections: they paint no ground of their own for a seam to ramp to.
+  const nodes = [...main.matchAll(/<(Seam|[A-Z]\w+)\b([^>]*)\/>/g)]
+    .map((m) => ({ name: m[1], attrs: m[2] }))
+    .filter((n) => n.name !== 'VelocityMarquee')
 
   it('finds the page it is meant to be checking', () => {
     expect(nodes.filter((n) => n.name === 'Seam').length).toBeGreaterThan(3)

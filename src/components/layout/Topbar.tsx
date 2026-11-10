@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { motion, useScroll, useSpring } from "motion/react"
+import { RollText } from "@/components/kit/RollText"
 import { cn } from "@/lib/utils"
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
 
@@ -71,7 +72,7 @@ export function Topbar({ sections }: TopbarProps) {
               key={s.id}
               href={`#${s.id}`}
               className={cn(
-                "font-mono text-[0.6875rem] uppercase tracking-wide text-chalk no-underline pb-0.5 border-b border-transparent transition-opacity",
+                "group font-mono text-[0.6875rem] uppercase tracking-wide text-chalk no-underline pb-0.5 border-b border-transparent transition-opacity",
                 active && active !== s.id && "opacity-55",
                 active === s.id && "opacity-100 border-chalk"
               )}
@@ -79,7 +80,7 @@ export function Topbar({ sections }: TopbarProps) {
               whileTap={reduced ? undefined : { y: 0, scale: 0.96 }}
               transition={{ type: "spring", stiffness: 500, damping: 26 }}
             >
-              {s.label}
+              <RollText>{s.label}</RollText>
             </motion.a>
           ))}
         </nav>

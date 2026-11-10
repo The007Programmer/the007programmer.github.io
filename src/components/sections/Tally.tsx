@@ -2,6 +2,7 @@ import { useRef, useEffect } from "react"
 import { motion, useInView, useMotionValue, useTransform, animate } from "motion/react"
 import { useLiveRepoCount } from "@/hooks/useLiveRepoCount"
 import { useReducedMotionGate } from "@/hooks/useReducedMotionGate"
+import { ScrollWords } from "@/components/kit/ScrollWords"
 import { Reveal } from "@/components/kit/Reveal"
 import { ShippingChart } from "./ShippingChart"
 
@@ -60,9 +61,9 @@ export function Tally() {
         <p className="font-mono text-[0.6875rem] uppercase tracking-wide text-coral mb-1">
           Cumulative, by month
         </p>
-        <p className="text-chalk-2 mb-6 max-w-[52ch]">
+        <ScrollWords className="text-chalk-2 mb-6 max-w-[52ch]">
           Everything above came out of a job or a weekend. This is the running total.
-        </p>
+        </ScrollWords>
         <ShippingChart />
       </Reveal>
     </section>
