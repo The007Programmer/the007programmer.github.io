@@ -92,12 +92,12 @@ function Lights({ ctx }: { ctx: Ctx }) {
       <ambientLight ref={amb} color={light ? "#fff4e6" : "#8d9ec4"} />
       <directionalLight ref={key} position={[-2, 3.2, 2.5]} color={light ? "#fff1dc" : "#a8b8e0"} />
       <primitive object={target} position={[-0.15, DESK_Y, 0.05]} />
-      <spotLight ref={spot} position={[-0.88, 1.42, -0.32]} target={target} angle={0.75} penumbra={0.9} color="#ffc990" decay={1.6} distance={7} castShadow shadow-mapSize={[512, 512]} shadow-bias={-0.0004} />
+      <spotLight ref={spot} position={[-0.84, 1.36, -0.32]} target={target} angle={0.75} penumbra={0.9} color="#ffc990" decay={1.6} distance={7} castShadow shadow-mapSize={[512, 512]} shadow-bias={-0.0004} />
       <pointLight ref={warm} position={[-0.8, 1.35, 0]} color="#ffb070" distance={4} decay={2} />
       <pointLight ref={mon} position={[0, 1.25, -0.2]} color="#7fa6ff" distance={3} decay={2} />
       <pointLight ref={red} position={[0, 1.9, -1.2]} color={C.signal} distance={2.4} decay={2} />
       {/* the drawer's own light, spilling out of the gap */}
-      <pointLight position={[0.55, 0.64, 0.72]} color="#ff9a6a" intensity={0.5} distance={1.2} decay={2} />
+      <pointLight position={[0, 0.62, 0.7]} color="#ff9a6a" intensity={0.6} distance={1.3} decay={2} />
       <hemisphereLight ref={hemi} args={[light ? "#fff6ea" : "#8aa0d8", light ? "#8a7f70" : "#1a1410", 0.3]} />
     </>
   )
@@ -114,22 +114,22 @@ function Shell({ ctx }: { ctx: Ctx }) {
   return (
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><planeGeometry args={[9, 8]} /><meshStandardMaterial color={P.floor} map={floor} roughness={0.8} /></mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0.9]} receiveShadow><circleGeometry args={[1.5, 48]} /><meshStandardMaterial color={P.rug} map={rug} roughness={1} /></mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0.9]} receiveShadow><circleGeometry args={[1.5, 96]} /><meshStandardMaterial color={P.rug} map={rug} roughness={1} /></mesh>
       <mesh position={[0, 1.5, -1.62]} receiveShadow><planeGeometry args={[9, 3]} /><meshStandardMaterial color={P.wall} roughnessMap={wall} roughness={1} /></mesh>
       <mesh position={[-3.2, 1.5, 0]} rotation={[0, Math.PI / 2, 0]} receiveShadow><planeGeometry args={[8, 3]} /><meshStandardMaterial color={P.wallSide} roughness={1} /></mesh>
       <mesh position={[3.2, 1.5, 0]} rotation={[0, -Math.PI / 2, 0]} receiveShadow><planeGeometry args={[8, 3]} /><meshStandardMaterial color={P.wallSide} roughness={1} /></mesh>
       <mesh position={[0, 3, 0]} rotation={[Math.PI / 2, 0, 0]}><planeGeometry args={[9, 8]} /><meshStandardMaterial color={P.ceil} /></mesh>
-      <RB args={[9, 0.14, 0.04]} radius={0.01} smoothness={2} position={[0, 0.07, -1.6]}><meshStandardMaterial color={P.base} roughness={0.6} /></RB>
+      <RB args={[9, 0.14, 0.04]} radius={0.01} smoothness={4} position={[0, 0.07, -1.6]}><meshStandardMaterial color={P.base} roughness={0.6} /></RB>
       {/* desk top: bevelled slab, grain map */}
-      <RB args={[3.1, 0.06, 1.5]} radius={0.014} smoothness={2} position={[0, DESK_Y - 0.03, -0.25]} castShadow receiveShadow>
+      <RB args={[3.1, 0.06, 1.5]} radius={0.014} smoothness={4} position={[0, DESK_Y - 0.03, -0.25]} castShadow receiveShadow>
         <meshStandardMaterial color="#c9b9a6" map={wood} roughnessMap={woodRough} roughness={0.62} metalness={0.04} />
       </RB>
       <mesh position={[0, DESK_Y - 0.075, -0.25]}><boxGeometry args={[3.05, 0.03, 1.45]} /><meshStandardMaterial color="#1b140e" /></mesh>
       {[[-1.45, -0.9], [1.45, -0.9], [-1.45, 0.4], [1.45, 0.4]].map(([x, z], i) => (
-        <RB key={i} args={[0.07, DESK_Y - 0.06, 0.07]} radius={0.01} smoothness={2} position={[x, (DESK_Y - 0.06) / 2, z]} castShadow><meshStandardMaterial color="#10151d" metalness={0.5} roughness={0.4} /></RB>
+        <RB key={i} args={[0.07, DESK_Y - 0.06, 0.07]} radius={0.01} smoothness={4} position={[x, (DESK_Y - 0.06) / 2, z]} castShadow><meshStandardMaterial color="#10151d" metalness={0.5} roughness={0.4} /></RB>
       ))}
       {/* desk mat: felt */}
-      <RB args={[2.2, 0.004, 0.95]} radius={0.002} smoothness={2} position={[0.1, DESK_Y + 0.002, 0.05]} receiveShadow><meshStandardMaterial color="#1a2230" map={rug} roughness={1} /></RB>
+      <RB args={[2.2, 0.004, 0.95]} radius={0.002} smoothness={4} position={[0.1, DESK_Y + 0.002, 0.05]} receiveShadow><meshStandardMaterial color="#1a2230" map={rug} roughness={1} /></RB>
     </group>
   )
 }
@@ -156,9 +156,9 @@ function Monitor({ ctx }: { ctx: Ctx }) {
   }, "monitor" + ctx.theme)
   return (
     <Hot id="monitor" ctx={ctx}>
-      <RB args={[0.5, 0.03, 0.26]} radius={0.01} smoothness={2} position={[0, DESK_Y + 0.015, -0.62]} castShadow><meshStandardMaterial color="#10151d" metalness={0.6} roughness={0.35} /></RB>
-      <RB args={[0.09, 0.45, 0.05]} radius={0.01} smoothness={2} position={[0, DESK_Y + 0.25, -0.76]} castShadow><meshStandardMaterial color="#10151d" metalness={0.6} roughness={0.35} /></RB>
-      <RB args={[1.32, 0.78, 0.07]} radius={0.02} smoothness={2} position={[0, 1.28, -0.68]} castShadow><meshStandardMaterial color="#0c1018" roughness={0.35} metalness={0.4} /></RB>
+      <RB args={[0.5, 0.03, 0.26]} radius={0.01} smoothness={4} position={[0, DESK_Y + 0.015, -0.62]} castShadow><meshStandardMaterial color="#10151d" metalness={0.6} roughness={0.35} /></RB>
+      <RB args={[0.09, 0.45, 0.05]} radius={0.01} smoothness={4} position={[0, DESK_Y + 0.25, -0.76]} castShadow><meshStandardMaterial color="#10151d" metalness={0.6} roughness={0.35} /></RB>
+      <RB args={[1.32, 0.78, 0.07]} radius={0.02} smoothness={4} position={[0, 1.28, -0.68]} castShadow><meshStandardMaterial color="#0c1018" roughness={0.35} metalness={0.4} /></RB>
       <mesh position={[0, 1.28, -0.643]}><planeGeometry args={[1.22, 0.686]} /><meshBasicMaterial map={tex} toneMapped={false} /></mesh>
       {ctx.focus === "monitor" && (
         <Html transform position={[0, 1.28, -0.64]} scale={MONITOR_SCALE} zIndexRange={[20, 10]}>
@@ -191,9 +191,9 @@ function Keys() {
 function Peripherals() {
   return (
     <group>
-      <RB args={[0.46, 0.022, 0.15]} radius={0.006} smoothness={2} position={[0, DESK_Y + 0.012, -0.22]} castShadow receiveShadow><meshStandardMaterial color="#1a2230" roughness={0.5} metalness={0.2} /></RB>
+      <RB args={[0.46, 0.022, 0.15]} radius={0.006} smoothness={4} position={[0, DESK_Y + 0.012, -0.22]} castShadow receiveShadow><meshStandardMaterial color="#1a2230" roughness={0.5} metalness={0.2} /></RB>
       <Keys />
-      <RB args={[0.06, 0.024, 0.1]} radius={0.012} smoothness={2} position={[0.46, DESK_Y + 0.012, -0.2]} castShadow><meshStandardMaterial color="#1a2230" roughness={0.4} metalness={0.2} /></RB>
+      <RB args={[0.06, 0.024, 0.1]} radius={0.012} smoothness={4} position={[0.46, DESK_Y + 0.012, -0.2]} castShadow><meshStandardMaterial color="#1a2230" roughness={0.4} metalness={0.2} /></RB>
     </group>
   )
 }
@@ -252,7 +252,7 @@ function Card({ item, ctx }: { item: DeskItem; ctx: Ctx }) {
       onPointerOut={() => { want.current = 0; setCursor(false); ctx.hover(null); invalidate() }}
       onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); ctx.openCard(item.id) }}
     >
-      <RB args={[0.34, 0.004, 0.459]} radius={0.0015} smoothness={2} position={[0, 0.002, 0]} castShadow receiveShadow><meshStandardMaterial color="#c9d1dd" roughness={0.9} /></RB>
+      <RB args={[0.34, 0.004, 0.459]} radius={0.0015} smoothness={4} position={[0, 0.002, 0]} castShadow receiveShadow><meshStandardMaterial color="#c9d1dd" roughness={0.9} /></RB>
       <CardFace item={item} />
     </group>
   )
@@ -276,7 +276,7 @@ function Book({ title, x, y, w = 0.56 }: { title: string; x: number; y: number; 
   }, title)
   return (
     <group position={[x, y, -1.32]}>
-      <RB args={[w, 0.09, 0.3]} radius={0.008} smoothness={2} castShadow><meshStandardMaterial color="#1a2232" roughness={0.65} /></RB>
+      <RB args={[w, 0.09, 0.3]} radius={0.008} smoothness={4} castShadow><meshStandardMaterial color="#1a2232" roughness={0.65} /></RB>
       <mesh position={[0, 0, 0.1515]}><planeGeometry args={[w - 0.01, 0.082]} /><meshStandardMaterial map={tex} roughness={0.7} /></mesh>
       <mesh position={[0.0, 0, 0]}><boxGeometry args={[w - 0.02, 0.07, 0.29]} /><meshStandardMaterial color="#d8dde6" roughness={0.9} /></mesh>
     </group>
@@ -288,15 +288,15 @@ function Shelf({ ctx }: { ctx: Ctx }) {
   const fillers = [[-0.85, 0.3, "#2a3550"], [-0.77, 0.26, "#8E1A13"], [-0.69, 0.32, "#1f2a40"], [-0.6, 0.27, "#44546a"], [-0.52, 0.3, "#C4261E"], [-0.44, 0.24, "#18202D"]] as const
   return (
     <Hot id="shelf" ctx={ctx}>
-      <RB args={[2.3, 0.04, 0.4]} radius={0.01} smoothness={2} position={[0, 1.99, -1.4]} castShadow receiveShadow><meshStandardMaterial color="#c9b9a6" map={wood} roughness={0.6} /></RB>
+      <RB args={[2.3, 0.04, 0.4]} radius={0.01} smoothness={4} position={[0, 1.99, -1.4]} castShadow receiveShadow><meshStandardMaterial color="#c9b9a6" map={wood} roughness={0.6} /></RB>
       <mesh position={[0, 1.955, -1.2]}><boxGeometry args={[2.3, 0.02, 0.01]} /><meshBasicMaterial color={C.signal} toneMapped={false} /></mesh>
       {fillers.map(([x, h, c], i) => (
-        <RB key={i} args={[0.07, h, 0.25]} radius={0.006} smoothness={2} position={[x - 0.1, 2.01 + h / 2, -1.4]} castShadow><meshStandardMaterial color={c} roughness={0.75} /></RB>
+        <RB key={i} args={[0.07, h, 0.25]} radius={0.006} smoothness={4} position={[x - 0.1, 2.01 + h / 2, -1.4]} castShadow><meshStandardMaterial color={c} roughness={0.75} /></RB>
       ))}
       <Book title="SAGE" x={0.1} y={2.065} />
       <Book title="Recurser" x={0.14} y={2.155} w={0.5} />
-      <mesh position={[0.9, 2.08, -1.4]} castShadow><cylinderGeometry args={[0.07, 0.055, 0.13, 12]} /><meshStandardMaterial color="#8E1A13" roughness={0.7} /></mesh>
-      <mesh position={[0.9, 2.2, -1.4]} castShadow><icosahedronGeometry args={[0.1, 1]} /><meshStandardMaterial color="#2c4a3e" flatShading roughness={0.9} /></mesh>
+      <mesh position={[0.9, 2.08, -1.4]} castShadow><cylinderGeometry args={[0.07, 0.055, 0.13, 48]} /><meshStandardMaterial color="#8E1A13" roughness={0.7} /></mesh>
+      <mesh position={[0.9, 2.2, -1.4]} castShadow><icosahedronGeometry args={[0.1, 3]} /><meshStandardMaterial color="#2c4a3e" flatShading roughness={0.9} /></mesh>
     </Hot>
   )
 }
@@ -345,7 +345,7 @@ function Board({ ctx }: { ctx: Ctx }) {
   const rot = [[-0.02, 0.015], [0.012, -0.018], [-0.015, 0.02]]
   return (
     <Hot id="board" ctx={ctx} position={[1.85, 1.55, -1.6]}>
-      <RB args={[1.68, 1.04, 0.05]} radius={0.015} smoothness={2} position={[0, 0, -0.01]} receiveShadow castShadow><meshStandardMaterial color="#2a1f16" roughness={0.6} /></RB>
+      <RB args={[1.68, 1.04, 0.05]} radius={0.015} smoothness={4} position={[0, 0, -0.01]} receiveShadow castShadow><meshStandardMaterial color="#2a1f16" roughness={0.6} /></RB>
       <mesh position={[0, 0, 0.016]} receiveShadow><planeGeometry args={[1.58, 0.94]} /><meshStandardMaterial map={cork} roughness={1} /></mesh>
       {PATH_GROUPS.map((gr, i) => (
         <group key={gr.id}>
@@ -368,37 +368,34 @@ function Board({ ctx }: { ctx: Ctx }) {
 /* ----------------------------------------------------------------- drawer */
 function Drawer({ ctx }: { ctx: Ctx }) {
   const d = useRef<THREE.Group>(null!)
-  const o = useRef(0.13)
+  const o = useRef(0.1)
   const invalidate = useThree((s) => s.invalidate)
-  const tex = useCanvasTex(512, 128, (g) => {
-    g.fillStyle = "#223048"; g.fillRect(0, 0, 512, 128)
-    g.fillStyle = "#EDF2F8"; g.font = f(MONO, 38); g.fillText("SIDE QUESTS", 30, 74)
-    g.fillStyle = "#FF5B4F"; g.fillRect(30, 94, 110, 7)
+  const tex = useCanvasTex(512, 96, (g) => {
+    g.fillStyle = "#223048"; g.fillRect(0, 0, 512, 96)
+    g.fillStyle = "#EDF2F8"; g.font = f(MONO, 34); g.fillText("SIDE QUESTS", 28, 56)
+    g.fillStyle = "#FF5B4F"; g.fillRect(28, 70, 100, 6)
   }, "drawer")
   useEffect(() => { shadow.dirty = true; invalidate() }, [ctx.focus, invalidate])
   useFrame((_, dt) => {
-    const goal = ctx.focus === "drawer" ? 0.5 : 0.13
+    const goal = ctx.focus === "drawer" ? 0.42 : 0.1
     o.current += (goal - o.current) * (ctx.reduced ? 1 : 1 - Math.exp(-dt * 5))
     d.current.position.z = o.current
     if (Math.abs(goal - o.current) > 0.002) { shadow.dirty = true; invalidate() }
   })
-  const folders = ["#8E1A13", "#C4261E", "#617599", "#8593A6", "#2E3A54"]
+  const folders = ["#8E1A13", "#C4261E", "#617599", "#8593A6", "#2E3A54", "#C4261E", "#617599"]
+  // a centre drawer in the desk apron, flush with the front edge, ajar
   return (
-    <Hot id="drawer" ctx={ctx} position={[0.55, 0.64, 0.5]}>
-      {/* carcass hangs under the desk front edge */}
-      <RB args={[0.96, 0.2, 0.5]} radius={0.01} smoothness={2} position={[0, 0.02, -0.25]} castShadow receiveShadow><meshStandardMaterial color="#1b2536" roughness={0.6} metalness={0.2} /></RB>
+    <Hot id="drawer" ctx={ctx} position={[0, 0.66, 0.5]}>
+      <RB args={[1.04, 0.15, 0.5]} radius={0.01} smoothness={4} position={[0, 0, -0.25]} castShadow receiveShadow><meshStandardMaterial color="#1b140e" roughness={0.7} /></RB>
       <group ref={d}>
-        <RB args={[0.9, 0.17, 0.024]} radius={0.007} smoothness={2} position={[0, 0.02, 0.012]} castShadow><meshStandardMaterial color="#34415a" metalness={0.3} roughness={0.4} /></RB>
-        <mesh position={[0, 0.03, 0.0255]}><planeGeometry args={[0.5, 0.125]} /><meshBasicMaterial map={tex} toneMapped={false} /></mesh>
-        <RB args={[0.16, 0.016, 0.02]} radius={0.006} smoothness={2} position={[0, -0.045, 0.034]}><meshStandardMaterial color="#aab4c4" metalness={0.8} roughness={0.25} /></RB>
-        <mesh position={[0, -0.04, -0.3]}><boxGeometry args={[0.86, 0.016, 0.56]} /><meshStandardMaterial color="#10161f" /></mesh>
+        <RB args={[0.98, 0.13, 0.022]} radius={0.007} smoothness={4} position={[0, 0, 0.011]} castShadow><meshStandardMaterial color="#c9b9a6" map={useMemo(() => woodTex("#3a2a1c", 1, 1), [])} roughness={0.55} /></RB>
+        <mesh position={[0, 0, 0.0235]}><planeGeometry args={[0.46, 0.086]} /><meshBasicMaterial map={tex} toneMapped={false} /></mesh>
+        <RB args={[0.14, 0.014, 0.02]} radius={0.006} smoothness={4} position={[0.36, 0, 0.032]}><meshStandardMaterial color="#aab4c4" metalness={0.85} roughness={0.25} /></RB>
+        <mesh position={[0, -0.05, -0.27]}><boxGeometry args={[0.94, 0.012, 0.52]} /><meshStandardMaterial color="#10161f" /></mesh>
         {folders.map((c, i) => (
-          <group key={i} position={[-0.32 + i * 0.16, 0.03, -0.25 - (i % 2) * 0.05]} rotation={[0, 0, (i - 2) * 0.05]}>
-            <mesh castShadow><boxGeometry args={[0.012, 0.12, 0.42]} /><meshStandardMaterial color={c} roughness={0.8} /></mesh>
-          </group>
+          <mesh key={i} position={[-0.36 + i * 0.12, 0.0, -0.2 - (i % 3) * 0.04]} rotation={[0, 0, (i - 3) * 0.04]} castShadow><boxGeometry args={[0.014, 0.1, 0.24]} /><meshStandardMaterial color={c} roughness={0.8} /></mesh>
         ))}
-        {/* a paper corner standing up out of the gap */}
-        <mesh position={[0.2, 0.1, -0.12]} rotation={[0.1, 0, -0.08]}><boxGeometry args={[0.2, 0.12, 0.004]} /><meshStandardMaterial color="#DCE2EA" roughness={0.9} /></mesh>
+        <mesh position={[0.18, 0.045, -0.08]} rotation={[0.12, 0.2, -0.1]}><boxGeometry args={[0.16, 0.001, 0.2]} /><meshStandardMaterial color="#DCE2EA" roughness={0.9} /></mesh>
       </group>
     </Hot>
   )
@@ -416,7 +413,7 @@ function Notepad({ ctx }: { ctx: Ctx }) {
   }, "notes")
   return (
     <Hot id="notes" ctx={ctx} position={[1.1, DESK_Y, 0.3]} rotation={[0, -0.2, 0]}>
-      <RB args={[0.2, 0.02, 0.27]} radius={0.004} smoothness={2} position={[0, 0.01, 0]} castShadow receiveShadow><meshStandardMaterial color="#c9c39a" roughness={0.9} /></RB>
+      <RB args={[0.2, 0.02, 0.27]} radius={0.004} smoothness={4} position={[0, 0.01, 0]} castShadow receiveShadow><meshStandardMaterial color="#c9c39a" roughness={0.9} /></RB>
       <mesh position={[0, 0.0215, 0]} rotation={[-Math.PI / 2, 0, 0]}><planeGeometry args={[0.195, 0.26]} /><meshStandardMaterial map={tex} roughness={0.9} /></mesh>
       <mesh position={[0.17, 0.011, 0.04]} rotation={[0, 0.5, Math.PI / 2]} castShadow><cylinderGeometry args={[0.007, 0.007, 0.17, 8]} /><meshStandardMaterial color={C.signal} roughness={0.4} /></mesh>
     </Hot>
@@ -425,22 +422,34 @@ function Notepad({ ctx }: { ctx: Ctx }) {
 
 /* ------------------------------------------------------------- lamp + mug */
 function Lamp({ ctx }: { ctx: Ctx }) {
-  const bulb = useRef<THREE.MeshStandardMaterial>(null!)
-  useEffect(() => { bulb.current.emissiveIntensity = ctx.lamp ? 3 : 0 }, [ctx.lamp])
+  const bulb = useRef<THREE.MeshStandardMaterial>(null!), inner = useRef<THREE.MeshStandardMaterial>(null!)
+  useEffect(() => { bulb.current.emissiveIntensity = ctx.lamp ? 4 : 0; inner.current.emissiveIntensity = ctx.lamp ? 1.4 : 0 }, [ctx.lamp])
+  // weighted base and a bell shade, both turned on a lathe
+  const baseGeo = useMemo(() => new THREE.LatheGeometry([[0.001, 0], [0.14, 0], [0.145, 0.006], [0.14, 0.014], [0.11, 0.026], [0.06, 0.038], [0.022, 0.05], [0.016, 0.07]].map(([x, y]) => new THREE.Vector2(x, y)), 64), [])
+  const shadeGeo = useMemo(() => {
+    const pts: THREE.Vector2[] = []
+    for (let i = 0; i <= 24; i++) { const t = i / 24; pts.push(new THREE.Vector2(0.018 + Math.pow(t, 0.7) * 0.125 + Math.sin(t * Math.PI) * 0.012, 0.11 - t * 0.11)) }
+    return new THREE.LatheGeometry(pts, 64)
+  }, [])
   const arm = (a: [number, number, number], b: [number, number, number]) => {
     const va = new THREE.Vector3(...a), vb = new THREE.Vector3(...b), mid = va.clone().add(vb).multiplyScalar(0.5)
-    const len = va.distanceTo(vb)
     const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), vb.clone().sub(va).normalize())
-    return <mesh position={mid} quaternion={q} castShadow><cylinderGeometry args={[0.012, 0.012, len, 10]} /><meshStandardMaterial color="#222c3f" metalness={0.7} roughness={0.3} /></mesh>
+    return <mesh position={mid} quaternion={q} castShadow><cylinderGeometry args={[0.009, 0.009, va.distanceTo(vb), 20]} /><meshStandardMaterial color="#aab4c4" metalness={0.9} roughness={0.25} /></mesh>
   }
+  const joint = (p: [number, number, number], r = 0.016) => <mesh position={p} castShadow><sphereGeometry args={[r, 24, 16]} /><meshStandardMaterial color="#222c3f" metalness={0.8} roughness={0.3} /></mesh>
   return (
     <group onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); ctx.toggleLamp() }} {...hovFor(ctx, ctx.lamp ? "Lamp: off" : "Lamp: on")}>
-      <mesh position={[-1.08, DESK_Y + 0.02, -0.4]} castShadow><cylinderGeometry args={[0.12, 0.14, 0.04, 24]} /><meshStandardMaterial color="#1a2230" metalness={0.7} roughness={0.3} /></mesh>
-      {arm([-1.08, DESK_Y + 0.04, -0.4], [-1.0, 1.25, -0.36])}
-      {arm([-1.0, 1.25, -0.36], [-0.88, 1.43, -0.32])}
-      <mesh position={[-0.88, 1.43, -0.32]} rotation={[0, 0, -0.5]} castShadow><coneGeometry args={[0.13, 0.17, 24, 1, true]} /><meshStandardMaterial color={C.ember} side={THREE.DoubleSide} roughness={0.4} metalness={0.4} /></mesh>
-      <mesh position={[-0.89, 1.36, -0.32]}><sphereGeometry args={[0.04, 16, 12]} /><meshStandardMaterial ref={bulb} color="#ffe2b8" emissive="#ffb070" emissiveIntensity={3} /></mesh>
-      {ctx.lamp && <Glow position={[-0.89, 1.34, -0.3]} color="#ffb070" size={0.9} opacity={0.55} />}
+      <mesh position={[-1.08, DESK_Y, -0.4]} geometry={baseGeo} castShadow receiveShadow><meshStandardMaterial color="#1a2230" metalness={0.8} roughness={0.28} /></mesh>
+      {arm([-1.08, DESK_Y + 0.06, -0.4], [-1.0, 1.25, -0.36])}
+      {joint([-1.0, 1.25, -0.36], 0.02)}
+      {arm([-1.0, 1.25, -0.36], [-0.89, 1.46, -0.32])}
+      {joint([-0.89, 1.46, -0.32])}
+      <group position={[-0.89, 1.46, -0.32]} rotation={[0, 0, 0.55]}>
+        <mesh geometry={shadeGeo} position={[0, -0.09, 0]} castShadow><meshStandardMaterial color={C.ember} side={THREE.DoubleSide} roughness={0.35} metalness={0.5} /></mesh>
+        <mesh geometry={shadeGeo} position={[0, -0.09, 0]} scale={0.96}><meshStandardMaterial ref={inner} color="#ffd9a8" emissive="#ffa860" emissiveIntensity={1.4} side={THREE.BackSide} /></mesh>
+        <mesh position={[0, -0.1, 0]}><sphereGeometry args={[0.032, 24, 16]} /><meshStandardMaterial ref={bulb} color="#ffe2b8" emissive="#ffb070" emissiveIntensity={4} /></mesh>
+      </group>
+      {ctx.lamp && <Glow position={[-0.82, 1.33, -0.32]} color="#ffb070" size={0.8} opacity={0.5} />}
     </group>
   )
 }
@@ -470,11 +479,11 @@ function Mug({ ctx }: { ctx: Ctx }) {
   return (
     <group>
       <group ref={g} position={[0.95 + R, DESK_Y, -0.18]} onClick={click} {...hovFor(ctx, "Mug")}>
-        <mesh position={[-R, H / 2, 0]} castShadow><cylinderGeometry args={[R, R * 0.9, H, 24, 1, true]} /><meshStandardMaterial color="#e6e9ee" roughness={0.3} side={THREE.DoubleSide} /></mesh>
-        <mesh position={[-R, 0.003, 0]}><cylinderGeometry args={[R * 0.9, R * 0.9, 0.006, 24]} /><meshStandardMaterial color="#e6e9ee" roughness={0.3} /></mesh>
-        <mesh position={[-R, H - 0.012, 0]} rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[R * 0.97, 24]} /><meshStandardMaterial color="#2a160d" roughness={0.12} /></mesh>
+        <mesh position={[-R, H / 2, 0]} castShadow><cylinderGeometry args={[R, R * 0.9, H, 64, 1, true]} /><meshStandardMaterial color="#e6e9ee" roughness={0.3} side={THREE.DoubleSide} /></mesh>
+        <mesh position={[-R, 0.003, 0]}><cylinderGeometry args={[R * 0.9, R * 0.9, 0.006, 64]} /><meshStandardMaterial color="#e6e9ee" roughness={0.3} /></mesh>
+        <mesh position={[-R, H - 0.012, 0]} rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[R * 0.97, 64]} /><meshStandardMaterial color="#2a160d" roughness={0.12} /></mesh>
         {/* handle: a half torus in the mug's own plane, both ends sunk into the wall */}
-        <mesh position={[-2 * R + 0.003, H / 2, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><torusGeometry args={[0.03, 0.0075, 8, 20, Math.PI]} /><meshStandardMaterial color="#e6e9ee" roughness={0.3} /></mesh>
+        <mesh position={[-2 * R + 0.003, H / 2, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><torusGeometry args={[0.03, 0.0075, 16, 40, Math.PI]} /><meshStandardMaterial color="#e6e9ee" roughness={0.3} /></mesh>
         <mesh position={[-R, H / 2 + 0.01, R + 0.001]}><planeGeometry args={[0.05, 0.016]} /><meshBasicMaterial color={C.signal} toneMapped={false} /></mesh>
       </group>
       <mesh ref={pud} visible={false} rotation={[-Math.PI / 2, 0, 0]} position={[1.1, DESK_Y + 0.003, -0.15]}>
@@ -490,7 +499,7 @@ function LightSwitch({ ctx }: { ctx: Ctx }) {
   useEffect(() => { rocker.current.rotation.x = ctx.theme === "light" ? -0.35 : 0.35 }, [ctx.theme])
   return (
     <group position={[-1.55, 1.3, -1.6]} onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); ctx.toggleTheme() }} {...hovFor(ctx, ctx.theme === "light" ? "Light switch: lights off" : "Light switch: lights on")}>
-      <RB args={[0.1, 0.16, 0.014]} radius={0.004} smoothness={2} castShadow><meshStandardMaterial color="#d8dde6" roughness={0.5} /></RB>
+      <RB args={[0.1, 0.16, 0.014]} radius={0.004} smoothness={4} castShadow><meshStandardMaterial color="#d8dde6" roughness={0.5} /></RB>
       <mesh ref={rocker} position={[0, 0, 0.012]}><boxGeometry args={[0.03, 0.07, 0.016]} /><meshStandardMaterial color="#f3f4f6" roughness={0.4} /></mesh>
     </group>
   )

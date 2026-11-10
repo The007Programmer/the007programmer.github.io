@@ -11,7 +11,7 @@ export const STATIONS: Station[] = [
   { id: "desk", num: "02", label: "Desk", pos: [0.05, 1.8, 0.75], look: [0.05, 0.8, 0.1], label3: [-0.1, 0.95, 0.5] },
   { id: "shelf", num: "03", label: "Writeups", pos: [0.65, 1.95, 0.3], look: [0.25, 2.0, -1.4], label3: [0, 2.42, -1.4] },
   { id: "board", num: "04", label: "Path", pos: [2.2, 1.55, 0.1], look: [2.2, 1.55, -1.6], label3: [1.85, 2.2, -1.55] },
-  { id: "drawer", num: "05", label: "Side quests", pos: [0.95, 1.45, 1.55], look: [0.95, 0.62, 0.75], label3: [0.55, 0.5, 0.95] },
+  { id: "drawer", num: "05", label: "Side quests", pos: [0.4, 1.3, 1.55], look: [0.4, 0.6, 0.65], label3: [0, 0.52, 0.62] },
   { id: "notes", num: "06", label: "Contact", pos: [1.4, 1.55, 0.75], look: [1.4, 0.8, 0.3], label3: [1.1, 0.95, 0.45] },
 ]
 export const stationOf = (id: SId) => STATIONS.find((s) => s.id === id)!

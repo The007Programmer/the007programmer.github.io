@@ -1,51 +1,81 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import { useFrame, useThree } from "@react-three/fiber"
 import * as THREE from "three"
-import { C, DESK_Y, ambient, catFx, hovFor, type Ctx, type InputRef } from "./shared"
+import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js"
+import { DESK_Y, ambient, catFx, hovFor, type Ctx, type InputRef } from "./shared"
 import { glowTex } from "./proc"
 
 const rnd = (a: number, b: number) => a + Math.random() * (b - a)
 
 /* ------------------------------------------------------------------- cat */
+/* Three draw calls: torso+legs, head, tail, each one merged geometry with vertex colours.
+   No frames while she is sitting: a timer wakes the scene only when a step ends. */
 type Step = { p: [number, number]; act: "sit" | "loaf" | "bat"; dur: number; card?: string; y?: number }
 const ROUTE: Step[] = [
-  { p: [0.82, -0.62], act: "sit", dur: 5 },
-  { p: [0.02, -0.25], act: "loaf", dur: 6, y: 0.035 },            // on the keyboard
+  { p: [0.82, -0.62], act: "sit", dur: 9 },
+  { p: [0.02, -0.25], act: "loaf", dur: 12, y: 0.035 },            // on the keyboard
   { p: [-0.62, 0.0], act: "bat", dur: 2.6, card: "mailsmith" },
-  { p: [-1.0, 0.3], act: "sit", dur: 4 },
+  { p: [-1.0, 0.3], act: "sit", dur: 8 },
   { p: [0.55, 0.38], act: "bat", dur: 2.6, card: "hello" },
-  { p: [0.3, -0.6], act: "sit", dur: 4 },
+  { p: [0.3, -0.6], act: "sit", dur: 9 },
 ]
-const FUR = "#2b2f3a", FUR2 = "#3a3f4d"
+const part = (g: THREE.BufferGeometry, color: string, m?: THREE.Matrix4) => {
+  const c = g.clone()
+  if (m) c.applyMatrix4(m)
+  const col = new THREE.Color(color), n = c.attributes.position.count, arr = new Float32Array(n * 3)
+  for (let i = 0; i < n; i++) { arr[i * 3] = col.r; arr[i * 3 + 1] = col.g; arr[i * 3 + 2] = col.b }
+  c.setAttribute("color", new THREE.BufferAttribute(arr, 3))
+  return c
+}
+const T = (x: number, y: number, z: number, rx = 0, ry = 0, rz = 0) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), new THREE.Vector3(1, 1, 1))
+function buildCat() {
+  const FUR = "#2b2f3a", FUR2 = "#3a3f4d"
+  const cap = (r: number, l: number) => new THREE.CapsuleGeometry(r, l, 6, 16)
+  const torso = mergeGeometries([
+    part(cap(0.04, 0.1), FUR, T(0, 0.06, 0, Math.PI / 2)),
+    part(cap(0.032, 0.06), FUR2, T(0, 0.048, 0.03, Math.PI / 2)),
+    ...[[-0.025, 0.07], [0.025, 0.07], [-0.025, -0.07], [0.025, -0.07]].map(([x, z]) => part(cap(0.011, 0.04), FUR, T(x, 0.03, z))),
+  ])!
+  const head = mergeGeometries([
+    part(new THREE.SphereGeometry(0.036, 24, 18), FUR),
+    part(new THREE.ConeGeometry(0.014, 0.03, 8), FUR, T(-0.022, 0.036, -0.004, 0, 0, 0.3)),
+    part(new THREE.ConeGeometry(0.014, 0.03, 8), FUR, T(0.022, 0.036, -0.004, 0, 0, -0.3)),
+    part(new THREE.SphereGeometry(0.005, 10, 8), "#c8ff7a", T(-0.014, 0.006, 0.031)),
+    part(new THREE.SphereGeometry(0.005, 10, 8), "#c8ff7a", T(0.014, 0.006, 0.031)),
+    part(new THREE.TorusGeometry(0.03, 0.005, 8, 24), "#FF5B4F", T(0, -0.03, 0.01, Math.PI / 2)),
+  ])!
+  const tail = mergeGeometries([
+    part(cap(0.01, 0.12), FUR, T(0, 0, -0.06, Math.PI / 2)),
+    part(cap(0.009, 0.06), FUR, T(0, 0.03, -0.12, 0.6)),
+  ])!
+  return { torso, head, tail }
+}
 
 export function Cat({ ctx }: { ctx: Ctx }) {
-  const root = useRef<THREE.Group>(null!), body = useRef<THREE.Group>(null!), head = useRef<THREE.Group>(null!), tail = useRef<THREE.Group>(null!), paw = useRef<THREE.Mesh>(null!)
-  const legs = useRef<THREE.Mesh[]>([])
-  const st = useRef({ i: 0, t: 0, walking: true, ph: 0, hop: 0, look: 0, x: 0.82, z: -0.62, yaw: 0, y: 0, started: false })
+  const root = useRef<THREE.Group>(null!), body = useRef<THREE.Group>(null!), head = useRef<THREE.Group>(null!), tail = useRef<THREE.Group>(null!)
+  const geo = useMemo(buildCat, [])
+  const st = useRef({ i: 0, t0: performance.now(), walking: false, ph: 0, hop: 0, look: 0, x: 0.82, z: -0.62, yaw: 0, y: 0 })
   const active = !ctx.focus || ctx.focus === "desk"
 
   useFrame((_, dtRaw) => {
     const dt = Math.min(dtRaw, 0.12), s = st.current
-    const g = root.current
     if (!active || ctx.reduced) return
-    const step = ROUTE[s.i]
+    const g = root.current, step = ROUTE[s.i], now = performance.now()
     let moving = false
     if (s.walking) {
       const dx = step.p[0] - s.x, dz = step.p[1] - s.z, d = Math.hypot(dx, dz)
-      if (d < 0.02) { s.walking = false; s.t = 0 } else {
+      if (d < 0.02) { s.walking = false; s.t0 = now } else {
         moving = true
         const sp = 0.13 * dt
         s.x += (dx / d) * Math.min(sp, d); s.z += (dz / d) * Math.min(sp, d)
-        const want = Math.atan2(dx, dz)
-        let da = want - s.yaw; da = Math.atan2(Math.sin(da), Math.cos(da)); s.yaw += da * Math.min(1, dt * 6)
+        let da = Math.atan2(dx, dz) - s.yaw; da = Math.atan2(Math.sin(da), Math.cos(da)); s.yaw += da * Math.min(1, dt * 6)
         s.ph += dt * 9
       }
     } else {
-      s.t += dt
-      if (step.act === "bat" && step.card) catFx.card = s.t > 0.6 && s.t < step.dur - 0.3 ? step.card : null
-      if (s.t > step.dur) { s.i = (s.i + 1) % ROUTE.length; s.walking = true; catFx.card = null }
+      const t = (now - s.t0) / 1000
+      if (step.act === "bat" && step.card) catFx.card = t > 0.6 && t < step.dur - 0.3 ? step.card : null
+      if (t > step.dur) { s.i = (s.i + 1) % ROUTE.length; s.walking = true; catFx.card = null }
     }
-    // pose
     const sitting = !s.walking && (step.act === "sit" || step.act === "bat")
     const loaf = !s.walking && step.act === "loaf"
     const hopT = s.hop > 0 ? (s.hop -= dt, Math.sin((1 - s.hop / 0.5) * Math.PI) * 0.1) : 0
@@ -54,22 +84,18 @@ export function Cat({ ctx }: { ctx: Ctx }) {
     g.position.set(s.x, DESK_Y + s.y + hopT, s.z)
     g.rotation.y = s.yaw
     const b = body.current
-    b.rotation.x += ((sitting ? -0.55 : loaf ? 0 : 0) - b.rotation.x) * Math.min(1, dt * 6)
+    b.rotation.x += ((sitting ? -0.55 : 0) - b.rotation.x) * Math.min(1, dt * 6)
     b.scale.y += ((loaf ? 0.8 : 1) - b.scale.y) * Math.min(1, dt * 6)
-    b.position.y = (loaf ? 0.03 : sitting ? 0.07 : 0.06) + (moving ? Math.abs(Math.sin(s.ph)) * 0.006 : 0)
-    legs.current.forEach((l, k) => {
-      if (!l) return
-      l.visible = !loaf
-      l.rotation.x = moving ? Math.sin(s.ph + (k % 2 ? Math.PI : 0) + (k > 1 ? Math.PI : 0)) * 0.7 : 0
-    })
+    b.position.y = moving ? Math.abs(Math.sin(s.ph)) * 0.006 : 0
+    b.rotation.z = moving ? Math.sin(s.ph) * 0.05 : 0
     s.look += ((s.hop > 0 ? 1 : 0) - s.look) * dt * 4
-    head.current.rotation.y = Math.sin(performance.now() / 1800) * 0.25 + s.look * 0.6
+    head.current.rotation.y = (sitting ? Math.sin(now / 1800) * 0.25 : 0) + s.look * 0.6
     head.current.rotation.x = sitting ? 0.5 : loaf ? 0.2 : 0
-    tail.current.rotation.z = Math.sin(performance.now() / (moving ? 260 : 700)) * (moving ? 0.35 : 0.6)
+    tail.current.rotation.z = Math.sin(now / (moving ? 260 : 900)) * (moving ? 0.35 : 0.5)
     tail.current.rotation.x = sitting || loaf ? 0.15 : 0.7
-    paw.current.visible = step.act === "bat" && !s.walking
-    if (paw.current.visible) paw.current.rotation.x = -0.6 + Math.sin(s.t * 9) * 0.6
-    ambient.next = Math.min(ambient.next, moving || s.hop > 0 || step.act === "bat" ? 66 : 200)
+    // frames only while something is actually moving; otherwise one timer to the end of the step
+    if (moving || s.hop > 0 || (step.act === "bat" && !s.walking)) ambient.next = Math.min(ambient.next, 66)
+    else if (!s.walking) ambient.next = Math.min(ambient.next, Math.max(60, (step.dur - (now - s.t0) / 1000) * 1000 + 20))
   })
 
   const click = (e: { stopPropagation: () => void; delta: number }) => {
@@ -78,30 +104,13 @@ export function Cat({ ctx }: { ctx: Ctx }) {
     st.current.hop = 0.5
     ctx.toast(["Mrrp.", "Prrt?", "She allows it."][Math.floor(Math.random() * 3)]) // SPIKE COPY
   }
-  const fur = <meshStandardMaterial color={FUR} roughness={0.95} />
   return (
-    <group ref={root} onClick={click} {...hovFor(ctx, "Cat")} scale={1}>
-      <mesh position={[0, 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[0.1, 14]} /><meshBasicMaterial color="#000" transparent opacity={0.25} depthWrite={false} /></mesh>
-      <group ref={body} position={[0, 0.06, 0]}>
-        <mesh rotation={[Math.PI / 2, 0, 0]} castShadow><capsuleGeometry args={[0.04, 0.1, 4, 10]} />{fur}</mesh>
-        <mesh position={[0, -0.012, 0.03]} rotation={[Math.PI / 2, 0, 0]}><capsuleGeometry args={[0.032, 0.06, 4, 8]} /><meshStandardMaterial color={FUR2} roughness={1} /></mesh>
-        <group ref={head} position={[0, 0.03, 0.105]}>
-          <mesh castShadow><sphereGeometry args={[0.036, 12, 10]} />{fur}</mesh>
-          <mesh position={[-0.022, 0.036, -0.004]} rotation={[0, 0, 0.3]}><coneGeometry args={[0.014, 0.03, 4]} />{fur}</mesh>
-          <mesh position={[0.022, 0.036, -0.004]} rotation={[0, 0, -0.3]}><coneGeometry args={[0.014, 0.03, 4]} />{fur}</mesh>
-          <mesh position={[-0.014, 0.006, 0.031]}><sphereGeometry args={[0.005, 6, 6]} /><meshBasicMaterial color="#c8ff7a" toneMapped={false} /></mesh>
-          <mesh position={[0.014, 0.006, 0.031]}><sphereGeometry args={[0.005, 6, 6]} /><meshBasicMaterial color="#c8ff7a" toneMapped={false} /></mesh>
-          <mesh position={[0, -0.03, 0.01]} rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[0.03, 0.005, 6, 14]} /><meshStandardMaterial color={C.signal} roughness={0.5} /></mesh>
-        </group>
-        <mesh ref={paw} position={[0.03, -0.01, 0.12]} rotation={[-0.6, 0, 0]}><capsuleGeometry args={[0.011, 0.05, 3, 6]} />{fur}</mesh>
-        <group ref={tail} position={[0, 0.0, -0.12]} rotation={[0.7, 0, 0]}>
-          <mesh position={[0, 0, -0.06]} rotation={[Math.PI / 2, 0, 0]}><capsuleGeometry args={[0.01, 0.12, 3, 6]} />{fur}</mesh>
-          <mesh position={[0, 0.03, -0.12]} rotation={[0.6, 0, 0]}><capsuleGeometry args={[0.009, 0.06, 3, 6]} />{fur}</mesh>
-        </group>
+    <group ref={root} position={[0.82, DESK_Y, -0.62]} onClick={click} {...hovFor(ctx, "Cat")}>
+      <group ref={body}>
+        <mesh geometry={geo.torso} castShadow><meshStandardMaterial vertexColors roughness={0.95} /></mesh>
+        <group ref={head} position={[0, 0.09, 0.105]}><mesh geometry={geo.head}><meshStandardMaterial vertexColors roughness={0.95} /></mesh></group>
+        <group ref={tail} position={[0, 0.06, -0.12]} rotation={[0.7, 0, 0]}><mesh geometry={geo.tail}><meshStandardMaterial vertexColors roughness={0.95} /></mesh></group>
       </group>
-      {[[-0.025, 0.07], [0.025, 0.07], [-0.025, -0.07], [0.025, -0.07]].map(([x, z], k) => (
-        <mesh key={k} ref={(m) => { if (m) legs.current[k] = m }} position={[x, 0.03, z]}><capsuleGeometry args={[0.011, 0.04, 3, 6]} />{fur}</mesh>
-      ))}
     </group>
   )
 }
@@ -132,7 +141,7 @@ export function Eyes({ ctx, input }: { ctx: Ctx; input: InputRef }) {
     const k = st.blink > 0 ? (st.blink -= dt, 0.08) : 1
     lids.current.forEach((l) => l && (l.scale.y = k))
     pupils.current.forEach((p) => p && p.position.set(-input.current.px * 0.016, -input.current.py * 0.01, 0.03))
-    if (dark && !ctx.reduced) ambient.next = Math.min(ambient.next, st.a > 0.01 || want ? 66 : 250)
+    if (dark && !ctx.reduced) ambient.next = Math.min(ambient.next, st.a > 0.01 || want ? 66 : 500)
   })
   return (
     <group ref={g} position={pos} visible={false}>
