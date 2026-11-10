@@ -57,8 +57,10 @@ describe('ramp', () => {
 // reordered or restyled, and a seam left ramping to the wrong ground puts the
 // hard step back — quietly, because a wrong dark grey still looks like a
 // gradient. This walks the page as written and checks every join.
-describe('the page’s seam sequence', () => {
-  const app = readFileSync('src/App.tsx', 'utf8')
+// These checks read the scrolling page out of App.tsx. The app is the 3D room now and has no <main> page, so there is
+// no seam sequence to check; they come back on their own if a <main> page is mounted again.
+const app = readFileSync('src/App.tsx', 'utf8')
+describe.skipIf(!app.includes('<main'))('the page’s seam sequence', () => {
   const main = app.slice(app.indexOf('<main'), app.indexOf('</main>'))
 
   /** The ground a section paints, from its own root element. */
