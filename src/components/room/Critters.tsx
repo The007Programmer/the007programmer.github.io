@@ -8,8 +8,9 @@ import { glowTex } from "./proc"
 const rnd = (a: number, b: number) => a + Math.random() * (b - a)
 
 /* --------------------------------------------------------- lucky cat figurine
-   A still ceramic figurine, one merged mesh plus a paw that waves when you touch it. It never animates on its own,
-   so it costs nothing when idle. (It replaces the walking cat, which needed a frame tick and four poses.) */
+   A still ceramic maneki-neko: lathe-turned pear body, head with inner ears, blush, whiskers, bib, collar and bell,
+   a koban coin in the resting paw, and a raised paw that waves when you touch it. One merged mesh plus the waving
+   arm. Nothing animates on its own, so it costs nothing while idle. */
 type V = [number, number, number]
 function paint(g: THREE.BufferGeometry, color: string) {
   const c = new THREE.Color(color), n = g.attributes.position.count, a = new Float32Array(n * 3)
@@ -17,25 +18,40 @@ function paint(g: THREE.BufferGeometry, color: string) {
   g.setAttribute("color", new THREE.BufferAttribute(a, 3))
   return g
 }
-const ell = (p: V, r: V, color: string, rot: V = [0, 0, 0]) => {
-  const g = new THREE.SphereGeometry(1, 32, 24)
-  g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(...p), new THREE.Quaternion().setFromEuler(new THREE.Euler(...rot)), new THREE.Vector3(...r)))
-  return paint(g, color)
+const place = (g: THREE.BufferGeometry, p: V, rot: V = [0, 0, 0], sc: V = [1, 1, 1]) => {
+  g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(...p), new THREE.Quaternion().setFromEuler(new THREE.Euler(...rot)), new THREE.Vector3(...sc)))
+  return g
 }
-const CREAM = "#EEE5E9", RED = "#CF5C36", GOLD = "#EFC88B", INK = "#1d1612"
+const ell = (p: V, r: V, color: string, rot: V = [0, 0, 0]) => paint(place(new THREE.SphereGeometry(1, 40, 28), p, rot, r), color)
+const CREAM = "#F1E8E2", PINK = "#E8A09A", RED = "#C4452B", GOLD = "#E9B957", INK = "#1d1612", GREY = "#b9aea6"
 function buildFigurine() {
-  const ear = (x: number) => { const g = new THREE.ConeGeometry(0.014, 0.03, 16); g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(x, 0.15, 0), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -x * 12)), new THREE.Vector3(1, 1, 1))); return paint(g, CREAM) }
-  const collar = new THREE.TorusGeometry(0.03, 0.005, 12, 40); collar.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(0, 0.098, 0.004), new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2 + 0.15, 0, 0)), new THREE.Vector3(1, 1, 1)))
+  // body: one lathe profile, base to neck
+  const prof = [[0.001, 0], [0.046, 0], [0.048, 0.006], [0.047, 0.014], [0.05, 0.03], [0.048, 0.05], [0.04, 0.075], [0.03, 0.092], [0.026, 0.1], [0.001, 0.1]].map(([x, y]) => new THREE.Vector2(x, y))
+  const body = paint(new THREE.LatheGeometry(prof, 64), CREAM)
+  const base = paint(new THREE.CylinderGeometry(0.052, 0.054, 0.012, 64), RED); place(base, [0, 0.006, 0])
+  const ear = (x: number) => [
+    paint(place(new THREE.ConeGeometry(0.0155, 0.034, 24), [x, 0.165, -0.002], [0, 0, -x * 9]), CREAM),
+    paint(place(new THREE.ConeGeometry(0.01, 0.024, 24), [x * 0.98, 0.1625, 0.006], [0, 0, -x * 9]), PINK),
+  ]
+  const collar = paint(place(new THREE.TorusGeometry(0.031, 0.0055, 16, 56), [0, 0.1, 0.002], [Math.PI / 2 + 0.12, 0, 0]), RED)
+  const bib = paint(place(new THREE.SphereGeometry(1, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), [0, 0.092, 0.028], [Math.PI / 2 + 0.3, 0, 0], [0.026, 0.01, 0.026]), RED)
+  const whisk = (sx: number, i: number) => {
+    const g = new THREE.CylinderGeometry(0.0006, 0.0006, 0.034, 6)
+    return paint(place(g, [sx * 0.047, 0.127 + (i - 1) * 0.008, 0.026], [0, 0, Math.PI / 2 + sx * (i - 1) * 0.2], [1, 1, 1]), GREY)
+  }
+  const coin = [paint(place(new THREE.CylinderGeometry(0.02, 0.02, 0.005, 40), [-0.02, 0.05, 0.047], [Math.PI / 2, 0, 0.2]), GOLD), paint(place(new THREE.TorusGeometry(0.0145, 0.0014, 8, 40), [-0.02, 0.05, 0.0505], [0, 0, 0]), RED)]
   return mergeGeometries([
-    ell([0, 0.045, 0], [0.04, 0.05, 0.034], CREAM),
-    ell([0, 0.0, 0], [0.043, 0.01, 0.037], RED),                 // base ring
-    ell([0, 0.12, 0.004], [0.037, 0.032, 0.033], CREAM),         // head
-    ear(-0.024), ear(0.024),
-    paint(collar, RED),
-    ell([0, 0.088, 0.034], [0.009, 0.009, 0.008], GOLD),         // bell
-    ell([-0.014, 0.125, 0.03], [0.0045, 0.0045, 0.003], INK), ell([0.014, 0.125, 0.03], [0.0045, 0.0045, 0.003], INK),
-    ell([0, 0.115, 0.036], [0.005, 0.004, 0.003], RED),
-    ell([-0.02, 0.06, 0.03], [0.013, 0.02, 0.012], CREAM),       // resting paw
+    body, base, ell([0, 0.128, 0.004], [0.04, 0.034, 0.035], CREAM), ...ear(-0.026), ...ear(0.026),
+    collar, bib, ell([0, 0.083, 0.035], [0.0095, 0.0095, 0.009], GOLD), ell([0, 0.0835, 0.0425], [0.0014, 0.0045, 0.0014], INK),
+    // face: closed happy eyes, nose, mouth, blush
+    ...[-1, 1].map((sx) => paint(place(new THREE.TorusGeometry(0.0062, 0.0011, 8, 20, Math.PI), [sx * 0.0145, 0.1315, 0.0345], [0, 0, 0]), INK)),
+    ell([0, 0.1225, 0.0385], [0.0055, 0.0042, 0.0032], PINK),
+    ...[-1, 1].map((sx) => ell([sx * 0.026, 0.1185, 0.031], [0.0085, 0.0055, 0.0025], PINK)),
+    ...[-1, 1].flatMap((sx) => [0, 1, 2].map((i) => whisk(sx, i))),
+    // resting paw holding the coin, feet, tail tucked behind
+    ell([-0.022, 0.05, 0.036], [0.013, 0.021, 0.013], CREAM), ...coin,
+    ell([-0.02, 0.011, 0.041], [0.016, 0.01, 0.014], CREAM), ell([0.02, 0.011, 0.041], [0.016, 0.01, 0.014], CREAM),
+    ell([0.0, 0.035, -0.046], [0.012, 0.024, 0.012], CREAM, [0.4, 0, 0]),
   ])!
 }
 
@@ -46,22 +62,24 @@ export function Figurine({ ctx }: { ctx: Ctx }) {
   useFrame((_, dt) => {
     if (wave.current > 0) {
       wave.current = Math.max(0, wave.current - dt)
-      arm.current.rotation.z = -0.5 + Math.sin(wave.current * 14) * 0.5 * Math.min(1, wave.current)
+      arm.current.rotation.z = -0.35 + Math.sin(wave.current * 12) * 0.38 * Math.min(1, wave.current * 1.5)
       shadow.dirty = true; invalidate()
     }
   })
   const click = (e: { stopPropagation: () => void; delta: number }) => {
     if (e.delta > 6) return
-    e.stopPropagation(); wave.current = 1.6
+    e.stopPropagation(); wave.current = 1.8
     ctx.toast("Lucky.") // SPIKE COPY
     invalidate()
   }
   return (
     <group position={[0.68, DESK_Y, -0.62]} rotation={[0, -0.3, 0]} onClick={click} {...hovFor(ctx, "Lucky cat")}>
-      <mesh geometry={geo} castShadow><meshStandardMaterial vertexColors roughness={0.25} metalness={0.02} /></mesh>
-      {/* the waving paw */}
-      <group ref={arm} position={[0.028, 0.07, 0.01]} rotation={[0, 0, -0.5]}>
-        <mesh position={[0.0, 0.03, 0]} castShadow><capsuleGeometry args={[0.011, 0.04, 6, 16]} /><meshStandardMaterial color={CREAM} roughness={0.25} /></mesh>
+      <mesh geometry={geo} castShadow><meshStandardMaterial vertexColors roughness={0.22} metalness={0.02} /></mesh>
+      {/* the beckoning paw: upper arm, rounded paw, pink pad */}
+      <group ref={arm} position={[0.04, 0.066, 0.004]} rotation={[0, 0, -0.35]}>
+        <mesh position={[0.004, 0.026, 0]} castShadow><capsuleGeometry args={[0.012, 0.035, 8, 20]} /><meshStandardMaterial color={CREAM} roughness={0.22} /></mesh>
+        <mesh position={[0.004, 0.06, 0]} castShadow><sphereGeometry args={[0.0145, 28, 20]} /><meshStandardMaterial color={CREAM} roughness={0.22} /></mesh>
+        <mesh position={[0.004, 0.06, 0.0125]}><sphereGeometry args={[0.0065, 16, 12]} /><meshStandardMaterial color={PINK} roughness={0.4} /></mesh>
       </group>
     </group>
   )
@@ -71,10 +89,10 @@ export function Figurine({ ctx }: { ctx: Ctx }) {
 export function Eyes({ ctx, input }: { ctx: Ctx; input: InputRef }) {
   const g = useRef<THREE.Group>(null!), lids = useRef<THREE.Mesh[]>([]), pupils = useRef<THREE.Mesh[]>([])
   const mats = useRef<THREE.MeshBasicMaterial[]>([])
-  const s = useRef({ a: 0, hidden: 0, nextBlink: 2, blink: 0 })
+  const s = useRef({ a: 0, hidden: 0, nextBlink: 2, blink: 0, gaze: 0 })
   const invalidate = useThree((st) => st.invalidate)
   const dark = ctx.theme === "dark" && !ctx.lamp
-  const pos = new THREE.Vector3(-2.05, 1.02, -1.58)
+  const pos = new THREE.Vector3(-2.35, 1.02, -1.58)
   const tmp = useRef({ d: new THREE.Vector3(), f: new THREE.Vector3() })
 
   useEffect(() => { invalidate() }, [dark, invalidate])
@@ -92,7 +110,10 @@ export function Eyes({ ctx, input }: { ctx: Ctx; input: InputRef }) {
     if (t > st.nextBlink) { st.blink = 0.14; st.nextBlink = t + rnd(2.5, 6) }
     const k = st.blink > 0 ? (st.blink -= dt, 0.08) : 1
     lids.current.forEach((l) => l && (l.scale.y = k))
-    pupils.current.forEach((p) => p && p.position.set(-input.current.px * 0.016, -input.current.py * 0.01, 0.03))
+    // they scan: look left, hold, look right, hold, with a little of the cursor on top
+    const sweep = Math.sin(t * 0.55) > 0 ? 1 : -1
+    st.gaze += (sweep * 0.022 - st.gaze) * Math.min(1, dt * 3.2)
+    pupils.current.forEach((p) => p && p.position.set(st.gaze - input.current.px * 0.004, -input.current.py * 0.004, 0.03))
     if (dark && !ctx.reduced) ambient.next = Math.min(ambient.next, st.a > 0.01 || want ? 66 : 500)
   })
   return (
@@ -109,22 +130,6 @@ export function Eyes({ ctx, input }: { ctx: Ctx; input: InputRef }) {
           </mesh>
         </group>
       ))}
-    </group>
-  )
-}
-
-/* --------------------------------------------------------------- rubber duck */
-export function Duck({ ctx }: { ctx: Ctx }) {
-  const g = useRef<THREE.Group>(null!), hop = useRef(0)
-  const invalidate = useThree((s) => s.invalidate)
-  useFrame((_, dt) => {
-    if (hop.current > 0) { hop.current = Math.max(0, hop.current - dt); g.current.position.y = 1.67 + Math.sin((1 - hop.current / 0.4) * Math.PI) * 0.07; g.current.rotation.y += dt * 14; invalidate() }
-  })
-  return (
-    <group ref={g} position={[0.42, 1.67, -0.7]} onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); hop.current = 0.4; ctx.toast("Squeak. It has heard worse code.") /* SPIKE COPY */ }} {...hovFor(ctx, "Duck")}>
-      <mesh position={[0, 0.03, 0]} castShadow><sphereGeometry args={[0.032, 14, 10]} /><meshStandardMaterial color="#ffd23f" roughness={0.45} /></mesh>
-      <mesh position={[0, 0.068, 0.012]} castShadow><sphereGeometry args={[0.02, 12, 8]} /><meshStandardMaterial color="#ffd23f" roughness={0.45} /></mesh>
-      <mesh position={[0, 0.066, 0.034]} rotation={[Math.PI / 2, 0, 0]}><coneGeometry args={[0.008, 0.016, 6]} /><meshStandardMaterial color="#ff8a3d" /></mesh>
     </group>
   )
 }

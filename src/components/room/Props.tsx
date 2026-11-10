@@ -91,8 +91,8 @@ export function Keyboard({ ctx }: { ctx: Ctx }) {
 
 /* ============================================================ camera: Canon EOS R8, links to Instagram */
 export function Camera({ ctx }: { ctx: Ctx }) {
-  const g = useRef<THREE.Group>(null!)
-  const h = useRef(0), want = useRef(0)
+  const g = useRef<THREE.Group>(null!), lamp = useRef<THREE.PointLight>(null!)
+  const h = useRef(0), want = useRef(0), pop = useRef(0)
   const invalidate = useThree((s) => s.invalidate)
   const rough = useMemo(() => noiseTex("#888888", 0.5, 3, 3, false), [])
   const label = useCanvasTex(256, 96, (c) => {
@@ -103,7 +103,11 @@ export function Camera({ ctx }: { ctx: Ctx }) {
     h.current += (want.current - h.current) * (ctx.reduced ? 1 : 1 - Math.exp(-dt * 12))
     g.current.position.y = h.current * 0.025
     g.current.rotation.x = -h.current * 0.18
-    if (Math.abs(want.current - h.current) > 0.003) { shadow.dirty = true; invalidate() }
+    // the flash: a dim standing glow so the dark room has some fill, and a bright pop on click
+    const base = ctx.theme === "light" ? 0.12 : 0.8
+    if (pop.current > 0) pop.current = Math.max(0, pop.current - dt * 3.2)
+    lamp.current.intensity = base + pop.current * 9
+    if (pop.current > 0 || Math.abs(want.current - h.current) > 0.003) { shadow.dirty = true; invalidate() }
   })
   const body = <meshStandardMaterial color="#141415" roughness={0.55} roughnessMap={rough} metalness={0.15} />
   const dark = <meshStandardMaterial color="#0b0b0c" roughness={0.7} />
@@ -115,13 +119,18 @@ export function Camera({ ctx }: { ctx: Ctx }) {
         ref={g}
         onPointerOver={(e) => { e.stopPropagation(); want.current = 1; setCursor(true); ctx.hover("Photography on Instagram ↗"); invalidate() }}
         onPointerOut={() => { want.current = 0; setCursor(false); ctx.hover(null); invalidate() }}
-        onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); ctx.toast("Opening Instagram"); window.open(INSTAGRAM, "_blank", "noopener,noreferrer") }}
+        onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); pop.current = 1; invalidate(); ctx.toast("Opening Instagram"); window.setTimeout(() => window.open(INSTAGRAM, "_blank", "noopener,noreferrer"), ctx.reduced ? 0 : 280) }}
       >
         <RoundedBox args={[0.133, 0.076, 0.05]} radius={0.008} smoothness={4} position={[0, 0.045, 0]} castShadow>{body}</RoundedBox>
         <RoundedBox args={[0.036, 0.076, 0.058]} radius={0.01} smoothness={4} position={[-0.048, 0.045, 0.004]} castShadow>{body}</RoundedBox>
         <RoundedBox args={[0.133, 0.014, 0.05]} radius={0.006} smoothness={3} position={[0, 0.089, 0]} castShadow><meshStandardMaterial color="#1c1c1e" roughness={0.45} metalness={0.3} /></RoundedBox>
         <RoundedBox args={[0.036, 0.02, 0.044]} radius={0.006} smoothness={3} position={[0, 0.102, -0.002]} castShadow>{body}</RoundedBox>
-        <mesh position={[0, 0.113, -0.002]}><boxGeometry args={[0.026, 0.003, 0.02]} />{metal}</mesh>
+        {/* a small flash on the hot shoe: its head glows softly, and its light is the only fill on this side of the room */}
+        <mesh position={[0, 0.116, -0.002]}><boxGeometry args={[0.026, 0.004, 0.02]} />{metal}</mesh>
+        <RoundedBox args={[0.034, 0.03, 0.026]} radius={0.004} smoothness={3} position={[0, 0.133, -0.002]} castShadow>{body}</RoundedBox>
+        <RoundedBox args={[0.036, 0.022, 0.012]} radius={0.003} smoothness={3} position={[0, 0.151, 0.01]} rotation={[-0.15, 0, 0]}>{body}</RoundedBox>
+        <mesh position={[0, 0.151, 0.0165]} rotation={[-0.15, 0, 0]}><planeGeometry args={[0.03, 0.017]} /><meshStandardMaterial color="#fff4e0" emissive="#ffe2b8" emissiveIntensity={1.6} toneMapped={false} /></mesh>
+        <pointLight ref={lamp} position={[0, 0.16, 0.04]} color="#ffe6c4" intensity={0.4} distance={3.2} decay={2} />
         <mesh position={[0.04, 0.0975, -0.004]} castShadow><cylinderGeometry args={[0.0115, 0.0115, 0.009, 32]} />{metal}</mesh>
         <mesh position={[-0.052, 0.0975, 0.008]} castShadow><cylinderGeometry args={[0.0065, 0.0065, 0.006, 20]} />{metal}</mesh>
         <mesh position={[0, 0.045, 0.027]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.0375, 0.0375, 0.004, 48]} />{metal}</mesh>

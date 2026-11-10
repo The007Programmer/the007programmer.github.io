@@ -9,7 +9,7 @@ import { DISPLAY, MONO, cover, f, loadImg, useCanvasTex, wrap } from "./tex"
 import { PAL, TOK } from "./theme"
 import { corkTex, noiseTex, woodTex } from "./proc"
 import { C, DESK_Y, ambient, hovFor, setCursor, shadow, type Ctx, type InputRef } from "./shared"
-import { Duck, Eyes, Figurine, Glow } from "./Critters"
+import { Eyes, Figurine, Glow } from "./Critters"
 import { Camera, Keyboard } from "./Props"
 
 export type { Ctx, Input } from "./shared"
@@ -260,7 +260,7 @@ function Book({ title, x, y, w = 0.56 }: { title: string; x: number; y: number; 
     g.fillStyle = "#1D1815"; g.fillRect(0, 0, 512, 96)
     g.fillStyle = "#CF5C36"; g.fillRect(0, 0, 14, 96)
     g.fillStyle = "#EEE5E9"; g.font = f(DISPLAY, 54); g.fillText(title.toUpperCase(), 34, 66)
-    g.fillStyle = "#9A9186"; g.font = f(MONO, 15); g.fillText("writeup", 400, 56)
+    g.fillStyle = "#C9BBA6"; g.font = f(MONO, 24); g.fillText("writeup", 372, 60)
   }, title)
   return (
     <group position={[x, y, -1.32]}>
@@ -297,8 +297,8 @@ function PathNote({ row, x, y, rot }: { row: (typeof PATH_GROUPS)[number]["rows"
     g.fillStyle = "#B73A27"; g.fillRect(0, 0, 440, 10)
     g.fillStyle = "#B73A27"; g.font = f(MONO, 24); g.fillText(row.when, 20, 52)
     g.fillStyle = "#1d1612"; g.font = f(DISPLAY, focus.length > 22 ? 32 : 40); wrap(g, focus, 20, 100, 400, focus.length > 22 ? 36 : 44, 3)
-    g.fillStyle = "#6b5a4c"; g.font = f(MONO, 18); if (role) wrap(g, role, 20, 196, 400, 22, 1)
-    g.fillStyle = "#4a3a2e"; g.font = f(MONO, 18); wrap(g, row.org, 20, 246, 400, 22, 1)
+    g.fillStyle = "#4a3a2e"; g.font = f(MONO, 22); if (role) wrap(g, role, 20, 190, 400, 26, 1)
+    g.fillStyle = "#1d1612"; g.font = f(MONO, 22); wrap(g, row.org, 20, 246, 400, 26, 1)
   }, row.id)
   return (
     <group position={[x, y, 0.03]} rotation={[0, 0, rot]}>
@@ -518,15 +518,15 @@ function LightSwitch({ ctx }: { ctx: Ctx }) {
   const rocker = useRef<THREE.Mesh>(null!)
   const dark = ctx.theme === "dark"
   useEffect(() => { rocker.current.rotation.x = ctx.theme === "light" ? -0.4 : 0.4; shadow.dirty = true }, [ctx.theme])
-  const label = useCanvasTex(256, 64, (g) => {
-    g.fillStyle = dark ? "#EEE5E9" : "#2B1B13"; g.font = f(MONO, 30); g.textAlign = "center"; g.fillText("LIGHTS", 128, 42)
+  const label = useCanvasTex(256, 80, (g) => {
+    g.fillStyle = dark ? "#1d1612" : "#EEE5E9"; g.font = f(MONO, 46); g.textAlign = "center"; g.fillText("LIGHTS", 128, 56)
   }, "sw" + ctx.theme)
   // in the gap between the monitor and the corkboard (seen from the seat): bigger than a real switch, high contrast on both walls, the far side of the room from the lamp
   return (
     <group position={[1.15, 1.42, -1.6]} onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); ctx.toggleTheme() }} {...hovFor(ctx, ctx.theme === "light" ? "Light switch: lights off" : "Light switch: lights on")}>
       <RB args={[0.15, 0.24, 0.016]} radius={0.006} smoothness={4} castShadow><meshStandardMaterial color={dark ? "#EEE5E9" : "#2B1B13"} roughness={0.45} /></RB>
       <mesh ref={rocker} position={[0, 0.02, 0.014]}><boxGeometry args={[0.05, 0.1, 0.02]} /><meshStandardMaterial color={C.signal} roughness={0.35} emissive={C.signal} emissiveIntensity={dark ? 0.35 : 0} /></mesh>
-      <mesh position={[0, -0.085, 0.0095]}><planeGeometry args={[0.12, 0.03]} /><meshBasicMaterial map={label} transparent toneMapped={false} /></mesh>
+      <mesh position={[0, -0.088, 0.0095]}><planeGeometry args={[0.13, 0.04]} /><meshBasicMaterial map={label} transparent toneMapped={false} /></mesh>
     </group>
   )
 }
@@ -581,7 +581,6 @@ export default function Scene({ ctx, input, onReady }: { ctx: Ctx; input: InputR
       <Mug ctx={ctx} />
       <LightSwitch ctx={ctx} />
       <Figurine ctx={ctx} />
-      <Duck ctx={ctx} />
       <Eyes ctx={ctx} input={input} />
       <Shadows />
       <ShadowGate />

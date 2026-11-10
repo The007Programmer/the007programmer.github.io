@@ -162,6 +162,11 @@ export default function Room() {
       input.current.px = (e.clientX / innerWidth) * 2 - 1; input.current.py = (e.clientY / innerHeight) * 2 - 1; inv() }
     const key = (e: KeyboardEvent) => {
       if (e.key === "Escape") { if (card) setCard(null); else if (focus) setFocus(null); return }
+      // the numbers on the station bar are shortcuts: 1-7 go straight there
+      if (!e.metaKey && !e.ctrlKey && !e.altKey && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) {
+        const st = STATIONS.find((x) => String(Number(x.num)) === e.key)
+        if (st) { e.preventDefault(); goto(st.id); return }
+      }
       if (focus || (e.target as HTMLElement)?.tagName === "BUTTON") return
       const i = input.current
       if (e.key === "ArrowLeft") i.ox = Math.min(35, i.ox + 6)
@@ -174,7 +179,7 @@ export default function Room() {
     window.addEventListener("pointermove", move)
     window.addEventListener("keydown", key)
     return () => { window.removeEventListener("pointermove", move); window.removeEventListener("keydown", key) }
-  }, [focus, card])
+  }, [focus, card, goto])
 
   const drag = useRef<{ x: number; y: number } | null>(null)
   const onDown = (e: React.PointerEvent) => { drag.current = { x: e.clientX, y: e.clientY } }
@@ -209,7 +214,7 @@ export default function Room() {
 
       <header className="absolute top-4 left-4 md:top-5 md:left-6 pointer-events-none">
         <div className="font-display font-extrabold uppercase text-[20px] tracking-[-0.02em]">Aahil Shaikh</div>
-        <div className="font-mono text-[11px] text-mute mt-1">{focus ? (narrow ? "tap back to sit down" : "esc to sit back") : narrow ? "drag to look around · tap anything" : "move to look around · click anything · tab for the stations"}</div>
+        <div className="font-mono text-[11px] text-mute mt-1">{focus ? (narrow ? "tap back to sit down" : "esc to sit back · 1-7 to jump") : narrow ? "drag to look around · tap anything" : "move to look around · click anything · press 1-7 to jump to a station"}</div>
       </header>
 
       {focus && (
@@ -221,7 +226,7 @@ export default function Room() {
       {/* station nav: also the keyboard path into the scene */}
       <nav aria-label="Stations" className={narrow ? "absolute bottom-3 inset-x-0 flex gap-2 px-3 overflow-x-auto [&>button]:shrink-0 [&>button]:whitespace-nowrap" : "absolute bottom-5 left-1/2 -translate-x-1/2 flex flex-wrap justify-center gap-2 px-4"}>
         {STATIONS.map((s) => (
-          <button key={s.id} onClick={() => goto(s.id)} aria-pressed={focus === s.id} className={`font-mono text-[11px] tracking-[0.1em] uppercase px-3 py-2 border bg-ink-2/80 backdrop-blur-sm focus-visible:outline-2 focus-visible:outline-signal ${focus === s.id ? "border-signal text-signal" : "border-line text-chalk-2 hover:border-edge hover:text-chalk"}`}>
+          <button key={s.id} onClick={() => goto(s.id)} aria-pressed={focus === s.id} aria-keyshortcuts={String(Number(s.num))} className={`font-mono text-[11px] tracking-[0.1em] uppercase px-3 py-2 border bg-ink-2/80 backdrop-blur-sm focus-visible:outline-2 focus-visible:outline-signal ${focus === s.id ? "border-signal text-signal" : "border-line text-chalk-2 hover:border-edge hover:text-chalk"}`}>
             <span className="text-signal">{s.num}</span> {s.label}
           </button>
         ))}
@@ -244,7 +249,7 @@ export default function Room() {
         <div className="absolute right-4 md:right-6 top-16 md:top-20 font-mono text-[12px] text-chalk-2 bg-ink-2/90 border border-line px-4 py-2" style={{ animation: `roomIn .35s ${delay} both` }}>Pick something up. {narrow ? "Tap a card to open it." : "Hover lifts it, click opens it."}</div>
       )}
 
-      <div ref={tip} aria-hidden="true" className={`pointer-events-none absolute left-0 top-0 z-40 font-mono text-[11px] tracking-[0.12em] uppercase bg-void/85 border border-line px-2 py-1 text-chalk ${hoverLabel && !focus ? "" : "hidden"}`}>{hoverLabel}</div>
+      <div ref={tip} aria-hidden="true" className={`pointer-events-none absolute left-0 top-0 z-40 font-mono text-[12px] tracking-[0.12em] uppercase bg-void/90 border border-line px-2.5 py-1.5 text-chalk ${hoverLabel && !focus ? "" : "hidden"}`}>{hoverLabel}</div>
 
       {msg && <div role="status" className="absolute left-1/2 -translate-x-1/2 top-16 z-50 max-w-[92vw] text-center font-mono text-sm bg-ink-2 border border-edge px-4 py-2 pointer-events-none">{msg}</div>}
     </div>
