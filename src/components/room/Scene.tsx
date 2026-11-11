@@ -157,32 +157,26 @@ function Shell({ ctx }: { ctx: Ctx }) {
 }
 
 /* ---------------------------------------------------------------- monitor */
-/* a sticky note standing on the shelf, in the gap between the books and the plant, folded into a little A-frame so it stays up on its own
-   and faces the seat; its arrow points down at the monitor. Lettering is Caveat (self-hosted via @fontsource), loaded before the canvas
+/* a sticky note stuck on the top edge of the bezel: only its adhesive strip overlaps the bezel's top rail, the rest stands up above the monitor,
+   so it never covers the screen. Its arrow points down at the screen. Lettering is Caveat (self-hosted via @fontsource), loaded before the canvas
    is drawn. Clicking it is clicking the monitor (it is inside the monitor's hot group), and it goes away once the monitor has been opened this session. */
 function StickyNote({ narrow }: { narrow: boolean }) {
   const tex = useCanvasTex(384, 384, async (g) => {
     try { await document.fonts.load("700 100px Caveat") } catch { /* falls back to cursive */ }
     g.fillStyle = "#F0DC82"; g.fillRect(0, 0, 384, 384)
-    g.fillStyle = "rgba(0,0,0,0.07)"; g.fillRect(0, 0, 384, 36) // the adhesive strip
+    g.fillStyle = "rgba(0,0,0,0.07)"; g.fillRect(0, 348, 384, 36) // the adhesive strip, at the bottom: it is the part stuck to the bezel
     g.fillStyle = "#3a2a1c"; g.textAlign = "center"; g.textBaseline = "alphabetic"
-    g.font = "700 112px Caveat, 'Segoe Print', cursive"; g.fillText("click me", 192, 128)
-    // arrow pointing down, at the monitor below
+    g.font = "700 104px Caveat, 'Segoe Print', cursive"; g.fillText("click me", 192, 118)
+    // arrow pointing down, at the screen below
     g.strokeStyle = "#B73A27"; g.lineWidth = 14; g.lineCap = "round"; g.lineJoin = "round"
-    g.beginPath(); g.moveTo(192, 160); g.bezierCurveTo(178, 200, 206, 232, 192, 282); g.stroke()
-    g.beginPath(); g.moveTo(152, 244); g.lineTo(192, 290); g.lineTo(234, 246); g.stroke()
-  }, "sticky3")
-  const L = 0.2, a = 0.12, T = new THREE.Vector3(0, L * Math.cos(a), -L * Math.sin(a)), B = new THREE.Vector3(0, 0, -0.07)
-  const phi = Math.atan2(T.z - B.z, T.y - B.y), mid = T.clone().add(B).multiplyScalar(0.5), len = T.distanceTo(B)
+    g.beginPath(); g.moveTo(192, 150); g.bezierCurveTo(178, 200, 206, 240, 192, 300); g.stroke()
+    g.beginPath(); g.moveTo(150, 262); g.lineTo(192, 308); g.lineTo(236, 264); g.stroke()
+  }, "sticky4")
+  const k = narrow ? 1.25 : 1, S = 0.2 * k
   return (
-    <group position={[0.61, 1.862, -1.34]} rotation={[0, -0.05, 0]} scale={narrow ? 1.25 : 1}>
-      <mesh position={[0, (L / 2) * Math.cos(a), -(L / 2) * Math.sin(a)]} rotation={[-a, 0, 0]}>
-        <planeGeometry args={[L, L]} /><meshStandardMaterial map={tex} roughness={0.9} />
-      </mesh>
-      <mesh position={mid} rotation={[phi, 0, 0]}>
-        <planeGeometry args={[L * 0.9, len]} /><meshStandardMaterial color="#d8c46a" roughness={0.9} side={THREE.DoubleSide} />
-      </mesh>
-    </group>
+    <mesh position={[0.44, 1.634 + S / 2, -0.64]} rotation={[0, 0, 0.04]}>
+      <planeGeometry args={[S, S]} /><meshStandardMaterial map={tex} roughness={0.9} />
+    </mesh>
   )
 }
 
