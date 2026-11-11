@@ -11,6 +11,8 @@ import { corkTex, noiseTex, woodTex } from "./proc"
 import { C, DESK_Y, ambient, cardHover, hovFor, setCursor, shadow, type Ctx, type InputRef } from "./shared"
 import { Eyes, Figurine, Glow } from "./Critters"
 import { Camera, Keyboard, Plant, Puddle, Steam } from "./Props"
+import { Mouse } from "./Mouse"
+import { Watch } from "./Watch"
 
 export type { Ctx, Input } from "./shared"
 const MONITOR_SCALE = 0.038 // drei CSS3D maps CSS px to world at a fixed ratio; tuned by measuring so 1280px fills the 1.22m screen
@@ -65,7 +67,7 @@ function Rig({ ctx, input }: { ctx: Ctx; input: InputRef }) {
       const { px, py, ox, oy } = input.current
       const yaw = THREE.MathUtils.clamp(-px * 26 + ox, -35, 35)
       // pointer gain stays under ~29 deg per half screen, so what you point at does not slide away from the cursor
-      const pitch = THREE.MathUtils.clamp(-9 - py * 20 + oy, -50, 25)
+      const pitch = THREE.MathUtils.clamp(-12.5 - py * 20 + oy, -50, 25)
       _e.set(THREE.MathUtils.degToRad(pitch), THREE.MathUtils.degToRad(yaw), 0)
       _q.setFromEuler(_e)
       _p.set(...SEAT)
@@ -186,14 +188,6 @@ function Monitor({ ctx }: { ctx: Ctx }) {
       <mesh position={[0.5, 0.905, -0.642]}><boxGeometry args={[0.025, 0.012, 0.004]} /><meshBasicMaterial color={C.signal} toneMapped={false} /></mesh>
       {ctx.theme === "dark" && <Glow position={[0, 1.28, -0.4]} color="#e8cfa6" size={1.7} opacity={0.14} />}
     </Hot>
-  )
-}
-
-function Peripherals() {
-  return (
-    <group>
-      <RB args={[0.06, 0.024, 0.1]} radius={0.012} smoothness={4} position={[0.46, DESK_Y + 0.012, -0.2]} castShadow><meshStandardMaterial color="#241c17" roughness={0.4} metalness={0.2} /></RB>
-    </group>
   )
 }
 
@@ -340,7 +334,7 @@ function Board({ ctx }: { ctx: Ctx }) {
   }, "band")
   const rot = [[-0.02, 0.015], [0.012, -0.018], [-0.015, 0.02]]
   return (
-    <Hot id="board" ctx={ctx} position={[2.2, 1.55, -1.6]}>
+    <Hot id="board" ctx={ctx} position={[1.85, 1.55, -1.6]} scale={0.75}>
       <RB args={[1.68, 1.04, 0.05]} radius={0.015} smoothness={4} position={[0, 0, -0.01]} receiveShadow castShadow><meshStandardMaterial color="#2a1f16" roughness={0.6} /></RB>
       <mesh position={[0, 0, 0.016]} receiveShadow><planeGeometry args={[1.58, 0.94]} /><meshStandardMaterial map={cork} roughness={1} /></mesh>
       {PATH_GROUPS.map((gr, i) => (
@@ -566,7 +560,7 @@ function LightSwitch({ ctx }: { ctx: Ctx }) {
   }, "sw" + ctx.theme)
   // in the gap between the monitor and the corkboard (seen from the seat): bigger than a real switch, high contrast on both walls, the far side of the room from the lamp
   return (
-    <group position={[1.15, 1.42, -1.6]} onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); ctx.toggleTheme() }} {...hovFor(ctx, ctx.theme === "light" ? "Light switch: lights off" : "Light switch: lights on")}>
+    <group position={[1.04, 1.42, -1.6]} onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); ctx.toggleTheme() }} {...hovFor(ctx, ctx.theme === "light" ? "Light switch: lights off" : "Light switch: lights on")}>
       <RB args={[0.15, 0.24, 0.016]} radius={0.006} smoothness={4} castShadow><meshStandardMaterial color={dark ? "#EEE5E9" : "#2B1B13"} roughness={0.45} /></RB>
       <mesh ref={rocker} position={[0, 0.02, 0.014]}><boxGeometry args={[0.05, 0.1, 0.02]} /><meshStandardMaterial color={C.signal} roughness={0.35} emissive={C.signal} emissiveIntensity={dark ? 0.35 : 0} /></mesh>
       <mesh position={[0, -0.088, 0.0095]}><planeGeometry args={[0.13, 0.04]} /><meshBasicMaterial map={label} transparent toneMapped={false} /></mesh>
@@ -600,7 +594,7 @@ export default function Scene({ ctx, input, onReady }: { ctx: Ctx; input: InputR
       frameloop="demand"
       camera={{ fov: 58, near: 0.05, far: 30, position: SEAT, rotation: [-0.2, 0, 0] }}
       gl={{ antialias: true, powerPreference: "high-performance" }}
-      onCreated={({ gl, invalidate }) => { if (location.search.includes("perf")) (window as unknown as { __gl: THREE.WebGLRenderer }).__gl = gl; input.current.inv = invalidate; gl.shadowMap.autoUpdate = false; gl.toneMapping = THREE.ACESFilmicToneMapping; gl.toneMappingExposure = 1.15; onReady() }}
+      onCreated={(state) => { const { gl, invalidate } = state; if (location.search.includes("perf")) Object.assign(window, { __gl: gl, __st: state }); input.current.inv = invalidate; gl.shadowMap.autoUpdate = false; gl.toneMapping = THREE.ACESFilmicToneMapping; gl.toneMappingExposure = 1.15; onReady() }}
     >
       <color attach="background" args={[PAL.dark.bg]} />
       <fog attach="fog" args={[PAL.dark.bg, 3.2, 9]} />
@@ -608,9 +602,10 @@ export default function Scene({ ctx, input, onReady }: { ctx: Ctx; input: InputR
       <Lights ctx={ctx} />
       <Shell ctx={ctx} />
       <Monitor ctx={ctx} />
-      <Peripherals />
+      <Mouse ctx={ctx} />
       <Keyboard ctx={ctx} />
       <Camera ctx={ctx} />
+      {ctx.watch && <Watch ctx={ctx} />}
       <Hot id="desk" ctx={ctx}>
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, DESK_Y + 0.001, 0.2]}><planeGeometry args={[2.6, 0.7]} /><meshBasicMaterial visible={false} /></mesh>
         {DESK_ITEMS.map((it) => <Card key={it.id} item={it} ctx={ctx} />)}

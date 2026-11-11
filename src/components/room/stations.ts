@@ -1,21 +1,27 @@
 import { OSS_ITEMS } from "@/data/work"
 
-export type SId = "monitor" | "desk" | "shelf" | "board" | "drawer" | "notes" | "keyboard"
+export type SId = "monitor" | "desk" | "shelf" | "board" | "drawer" | "notes" | "keyboard" | "watch"
 type V3 = [number, number, number]
 export interface Station { id: SId; label: string; num: string; pos: V3; look: V3; label3: V3 }
 
 export const SEAT: V3 = [0, 1.3, 1.35]
+/* where the watch lies on the desk (x, z): right of the keyboard, left of the HELLO card */
+export const WATCH_AT: [number, number] = [0.245, -0.06]
 
 export const STATIONS: Station[] = [
   { id: "monitor", num: "01", label: "Agents & Systems", pos: [0, 1.28, 0.21], look: [0, 1.28, -0.64], label3: [0, 1.78, -0.6] },
   { id: "desk", num: "02", label: "Desk", pos: [0.05, 1.8, 0.75], look: [0.05, 0.8, 0.1], label3: [-0.1, 0.95, 0.5] },
   { id: "shelf", num: "03", label: "Writeups", pos: [1.1, 1.75, 0.35], look: [0.72, 1.85, -1.4], label3: [0, 2.25, -1.4] },
-  { id: "board", num: "04", label: "Path", pos: [2.55, 1.55, 0.1], look: [2.55, 1.55, -1.6], label3: [1.85, 2.2, -1.55] },
+  { id: "board", num: "04", label: "Path", pos: [2.2, 1.55, 0.1], look: [2.2, 1.55, -1.6], label3: [1.85, 2.2, -1.55] },
   { id: "drawer", num: "05", label: "Side quests", pos: [0.4, 1.3, 1.55], look: [0.4, 0.6, 0.65], label3: [0, 0.52, 0.62] },
   { id: "notes", num: "06", label: "Contact", pos: [1.4, 1.55, 0.75], look: [1.4, 0.8, 0.3], label3: [1.1, 0.95, 0.45] },
-  { id: "keyboard", num: "07", label: "Keyboard", pos: [0.18, 1.1, 0.25], look: [0.18, 0.83, -0.2], label3: [0, 0.95, -0.2] },
 ]
-export const stationOf = (id: SId) => STATIONS.find((s) => s.id === id)!
+/* close-up poses with no button on the station bar: reached by clicking the object itself */
+export const EXTRA: Station[] = [
+  { id: "keyboard", num: "", label: "Keyboard", pos: [0.18, 1.1, 0.25], look: [0.18, 0.83, -0.2], label3: [0, 0.95, -0.2] },
+  { id: "watch", num: "", label: "Watch", pos: [WATCH_AT[0] + 0.045, 0.99, 0.0], look: [WATCH_AT[0] + 0.045, 0.8, WATCH_AT[1] - 0.015], label3: [0, 0.95, 0] },
+]
+export const stationOf = (id: SId) => [...STATIONS, ...EXTRA].find((s) => s.id === id)!
 
 export interface DeskItem {
   id: string

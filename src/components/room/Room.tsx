@@ -5,7 +5,9 @@ import { PAL, applyTheme, initialTheme, type Theme } from "./theme"
 import MonitorOS from "./MonitorOS"
 import Scene, { type Ctx, type Input } from "./Scene"
 import { DESK_ITEMS, STATIONS, type SId } from "./stations"
+import { fx } from "./shared"
 
+const KONAMI = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"]
 const CONTACT = [
   { href: "mailto:aahils2019@gmail.com", label: "aahils2019@gmail.com" },
   { href: "https://github.com/The007Programmer", label: "GitHub" },
@@ -114,6 +116,16 @@ function KeyboardPanel() {
   )
 }
 
+function WatchPanel() {
+  return (
+    <>
+      <H k="found on the desk">Seiko × Initial D AE86</H>
+      <p className="text-[15px] leading-[1.55] text-chalk-2">The 30th-anniversary limited-edition chronograph: steel case, tachymeter bezel, three subdials, panda dial with a red accent.</p>
+      <p className="font-mono text-[12px] text-mute mt-4">A model: the dial layout and markings are approximate.</p>
+    </>
+  )
+}
+
 function NotesPanel() {
   return (
     <>
@@ -135,6 +147,8 @@ export default function Room() {
   const [theme, setTheme] = useState<Theme>(initialTheme)
   const [flash, setFlash] = useState<{ c: string; k: number } | null>(null)
   const [msg, setMsg] = useState("")
+  const [watch, setWatch] = useState(() => { try { return sessionStorage.getItem("room.watch") === "1" } catch { return false } })
+  const konami = useRef({ i: 0, t: 0 })
   const [ready, setReady] = useState(false)
   const [narrow, setNarrow] = useState(() => innerWidth < 768 || innerWidth < innerHeight)
   useEffect(() => { const f = () => setNarrow(innerWidth < 768 || innerWidth < innerHeight); window.addEventListener("resize", f); return () => window.removeEventListener("resize", f) }, [])
@@ -148,7 +162,15 @@ export default function Room() {
   const openCard = useCallback((id: string) => { setFocus("desk"); setCard(id) }, [])
   const toast = useCallback((m: string) => setMsg(m), [])
   const toggleTheme = () => { const t: Theme = theme === "dark" ? "light" : "dark"; setTheme(t); applyTheme(t, true); if (!reduced) setFlash({ c: PAL[t].bg, k: Date.now() }); setMsg(t === "light" ? "Click. Lights on." : "Click. Lights off.") } // SPIKE COPY
-  const ctx: Ctx = { focus, card, lamp, theme, toggleTheme, reduced, narrow, goto, openCard, hover: setHoverLabel, toggleLamp: () => { setLamp((l) => !l); setMsg(lamp ? "Lamp off." : "Lamp on.") }, toast }
+  const ctx: Ctx = { focus, card, lamp, theme, watch, toggleTheme, reduced, narrow, goto, openCard, hover: setHoverLabel, toggleLamp: () => { setLamp((l) => !l); setMsg(lamp ? "Lamp off." : "Lamp on.") }, toast }
+
+  const unlockWatch = useCallback(() => {
+    if (watch) { setMsg("The watch is already on the desk."); return }
+    fx.watchDrop = true
+    setWatch(true)
+    try { sessionStorage.setItem("room.watch", "1") } catch { /* private mode: it just resets next visit */ }
+    setMsg("Konami code. Something just landed on the desk.")
+  }, [watch])
 
   useEffect(() => { applyTheme(theme) }, [theme])
   useEffect(() => { if (!msg) return; const t = setTimeout(() => setMsg(""), 2400); return () => clearTimeout(t) }, [msg])
@@ -161,8 +183,20 @@ export default function Room() {
       if (tip.current) tip.current.style.transform = `translate(${e.clientX + 14}px, ${e.clientY + 16}px)`
       input.current.px = (e.clientX / innerWidth) * 2 - 1; input.current.py = (e.clientY / innerHeight) * 2 - 1; inv() }
     const key = (e: KeyboardEvent) => {
+      // up up down down left right left right B A. A key that advances the sequence is not also a look-around key;
+      // a held key (repeat) or a miss resets it, so ordinary arrow look-around is unaffected
+      if (!e.metaKey && !e.ctrlKey && !e.altKey && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) {
+        const k = e.key.length === 1 ? e.key.toLowerCase() : e.key, kn = konami.current
+        window.clearTimeout(kn.t)
+        if (!e.repeat && k === KONAMI[kn.i]) {
+          kn.i++
+          if (kn.i === KONAMI.length) { kn.i = 0; unlockWatch(); e.preventDefault(); return }
+          kn.t = window.setTimeout(() => { kn.i = 0 }, 1500)
+          if (k.startsWith("Arrow")) { e.preventDefault(); return }
+        } else kn.i = 0
+      }
       if (e.key === "Escape") { if (card) setCard(null); else if (focus) setFocus(null); return }
-      // the numbers on the station bar are shortcuts: 1-7 go straight there
+      // the numbers on the station bar are shortcuts: 1-6 go straight there
       if (!e.metaKey && !e.ctrlKey && !e.altKey && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) {
         const st = STATIONS.find((x) => String(Number(x.num)) === e.key)
         if (st) { e.preventDefault(); goto(st.id); return }
@@ -179,7 +213,7 @@ export default function Room() {
     window.addEventListener("pointermove", move)
     window.addEventListener("keydown", key)
     return () => { window.removeEventListener("pointermove", move); window.removeEventListener("keydown", key) }
-  }, [focus, card, goto])
+  }, [focus, card, goto, unlockWatch])
 
   const drag = useRef<{ x: number; y: number } | null>(null)
   const onDown = (e: React.PointerEvent) => { drag.current = { x: e.clientX, y: e.clientY } }
@@ -214,7 +248,7 @@ export default function Room() {
 
       <header className="absolute top-4 left-4 md:top-5 md:left-6 pointer-events-none">
         <div className="font-display font-extrabold uppercase text-[20px] tracking-[-0.02em]">Aahil Shaikh</div>
-        <div className="font-mono text-[11px] text-mute mt-1">{focus ? (narrow ? "tap back to sit down" : "esc to sit back · 1-7 to jump") : narrow ? "drag to look around · tap anything" : "move to look around · click anything · press 1-7 to jump to a station"}</div>
+        <div className="font-mono text-[11px] leading-[1.5] text-mute mt-1 max-w-[300px]">{focus ? (narrow ? "tap back to sit down" : "esc to sit back · 1-6 to jump") : narrow ? "drag to look around · tap anything" : "move to look around · click anything · press 1-6 to jump to a station"}</div>
       </header>
 
       {focus && (
@@ -224,9 +258,9 @@ export default function Room() {
       )}
 
       {/* station nav: also the keyboard path into the scene */}
-      <nav aria-label="Stations" className={narrow ? "absolute bottom-3 inset-x-0 flex gap-2 px-3 overflow-x-auto [&>button]:shrink-0 [&>button]:whitespace-nowrap" : "absolute bottom-5 left-1/2 -translate-x-1/2 flex flex-wrap justify-center gap-2 px-4"}>
+      <nav aria-label="Stations" className={narrow ? "absolute bottom-3 inset-x-0 flex gap-2 px-3 overflow-x-auto [&>button]:shrink-0 [&>button]:whitespace-nowrap" : "absolute bottom-2.5 inset-x-0 flex flex-wrap justify-center gap-2 px-4"}>
         {STATIONS.map((s) => (
-          <button key={s.id} onClick={() => goto(s.id)} aria-pressed={focus === s.id} aria-keyshortcuts={String(Number(s.num))} className={`font-mono text-[11px] tracking-[0.1em] uppercase px-3 py-2 border bg-ink-2/80 backdrop-blur-sm focus-visible:outline-2 focus-visible:outline-signal ${focus === s.id ? "border-signal text-signal" : "border-line text-chalk-2 hover:border-edge hover:text-chalk"}`}>
+          <button key={s.id} onClick={() => goto(s.id)} aria-pressed={focus === s.id} aria-keyshortcuts={String(Number(s.num))} className={`font-mono text-[11px] tracking-[0.1em] uppercase px-3 py-2 md:py-1.5 border bg-ink-2/80 backdrop-blur-sm focus-visible:outline-2 focus-visible:outline-signal ${focus === s.id ? "border-signal text-signal" : "border-line text-chalk-2 hover:border-edge hover:text-chalk"}`}>
             <span className="text-signal">{s.num}</span> {s.label}
           </button>
         ))}
@@ -243,6 +277,7 @@ export default function Room() {
           {focus === "drawer" && <DrawerPanel />}
           {focus === "notes" && <NotesPanel />}
           {focus === "keyboard" && <KeyboardPanel />}
+          {focus === "watch" && <WatchPanel />}
         </section>
       )}
       {focus === "desk" && !card && (
