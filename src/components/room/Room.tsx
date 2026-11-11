@@ -3,6 +3,7 @@ import { PROJECT_CARDS } from "@/data/work"
 import { PATH_BAND, PATH_GROUPS, SIDE_ITEMS, splitTitle } from "./content"
 import { PAL, applyTheme, initialTheme, type Theme } from "./theme"
 import MonitorOS from "./MonitorOS"
+import { osNav } from "./shared"
 import Scene, { type Ctx, type Input } from "./Scene"
 import { DESK_ITEMS, STATIONS, type SId } from "./stations"
 
@@ -157,7 +158,7 @@ export default function Room() {
   const openCard = useCallback((id: string) => { setFocus("desk"); setCard(id) }, [])
   const toast = useCallback((m: string) => setMsg(m), [])
   const toggleTheme = () => { const t: Theme = theme === "dark" ? "light" : "dark"; setTheme(t); applyTheme(t, true); if (!reduced) setFlash({ c: PAL[t].bg, k: Date.now() }); setMsg(t === "light" ? "Click. Lights on." : "Click. Lights off.") } // SPIKE COPY
-  const ctx: Ctx = { focus, card, lamp, theme, toggleTheme, reduced, narrow, goto, openCard, hover: setHoverLabel, toggleLamp: () => { setLamp((l) => !l); setMsg(lamp ? "Lamp off." : "Lamp on.") }, toast }
+  const ctx: Ctx = { focus, card, lamp, theme, toggleTheme, reduced, narrow, goto, leave: () => setFocus(null), openCard, hover: setHoverLabel, toggleLamp: () => { setLamp((l) => !l); setMsg(lamp ? "Lamp off." : "Lamp on.") }, toast }
 
   useEffect(() => { applyTheme(theme) }, [theme])
   useEffect(() => { if (!msg) return; const t = setTimeout(() => setMsg(""), 2400); return () => clearTimeout(t) }, [msg])
@@ -170,7 +171,8 @@ export default function Room() {
       if (tip.current) tip.current.style.transform = `translate(${e.clientX + 14}px, ${e.clientY + 16}px)`
       input.current.px = (e.clientX / innerWidth) * 2 - 1; input.current.py = (e.clientY / innerHeight) * 2 - 1; inv() }
     const key = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { if (card) setCard(null); else if (focus) setFocus(null); return }
+      // one Esc, one level: inside the monitor it pops the on-screen view first, and only from its home does it leave
+      if (e.key === "Escape") { if (focus === "monitor" && osNav.depth > 0) { osNav.back(); return } if (card) setCard(null); else if (focus) setFocus(null); return }
       // the numbers on the station bar are shortcuts: 1-6 go straight there
       if (!e.metaKey && !e.ctrlKey && !e.altKey && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) {
         const st = STATIONS.find((x) => String(Number(x.num)) === e.key)
@@ -203,12 +205,20 @@ export default function Room() {
 
   useEffect(() => { if (focus) setTimeout(() => back.current?.focus({ preventScroll: true }), 50) }, [focus])
 
-  const showPanel = focus && !(focus === "monitor" && !narrow) && (focus !== "desk" || card)
+  // the side panel stays mounted (and fades) while the camera eases back out, rather than vanishing the instant you leave
+  const [held, setHeld] = useState<{ f: SId; c: string | null } | null>(null)
+  useEffect(() => {
+    if (focus) { setHeld({ f: focus, c: card }); return }
+    const t = window.setTimeout(() => setHeld(null), reduced ? 0 : 450)
+    return () => window.clearTimeout(t)
+  }, [focus, card, reduced])
+  const pf = focus ?? held?.f ?? null, pc = focus ? card : held?.c ?? null, closing = !focus && !!held
+  const showPanel = pf && !(pf === "monitor" && !narrow) && (pf !== "desk" || pc)
   const delay = reduced ? "0s" : "0.55s"
 
   return (
     <div className="fixed inset-0 bg-void text-chalk overflow-hidden select-none">
-      <style>{`@keyframes roomFlash{from{opacity:.85}to{opacity:0}}@keyframes roomIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}`}</style>
+      <style>{`@keyframes roomFlash{from{opacity:.85}to{opacity:0}}@keyframes roomOut{from{opacity:1}to{opacity:0;transform:translateY(8px)}}@keyframes roomIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}`}</style>
       <div className="absolute inset-0" style={{ touchAction: "none" }} onPointerDown={onDown} onPointerMove={onMove}>
         <Suspense fallback={null}>
           <Scene ctx={ctx} input={input} onReady={() => setReady(true)} />
@@ -244,15 +254,15 @@ export default function Room() {
       </nav>
 
       {showPanel && (
-        <section aria-label={focus!} className={narrow ? "absolute inset-x-2 bottom-[64px] h-[52vh] overflow-y-auto bg-ink-2/95 border border-line p-5 shadow-2xl" : "absolute right-5 top-20 bottom-[120px] w-[min(460px,92vw)] overflow-y-auto bg-ink-2/95 border border-line p-7 shadow-2xl"} style={{ animation: `roomIn .35s ${delay} both` }}>
-          {focus === "monitor" && <div className="-m-5 h-[calc(100%+2.5rem)]"><MonitorOS compact /></div>}
-          {focus === "desk" && card && <CardPanel id={card} />}
-          {focus === "shelf" && <ShelfPanel />}
-          {focus === "board" && <BoardPanel />}
-          {focus === "drawer" && <DrawerPanel />}
-          {focus === "notes" && <NotesPanel />}
-          {focus === "keyboard" && <KeyboardPanel />}
-          {focus === "watch" && <WatchPanel />}
+        <section aria-label={pf!} className={narrow ? "absolute inset-x-2 bottom-[64px] h-[52vh] overflow-y-auto bg-ink-2/95 border border-line p-5 shadow-2xl" : "absolute right-5 top-20 bottom-[120px] w-[min(460px,92vw)] overflow-y-auto bg-ink-2/95 border border-line p-7 shadow-2xl"} style={{ animation: closing ? "roomOut .4s ease-in both" : `roomIn .35s ${delay} both` }}>
+          {pf === "monitor" && <div className="-m-5 h-[calc(100%+2.5rem)]"><MonitorOS compact onExit={() => setFocus(null)} /></div>}
+          {pf === "desk" && pc && <CardPanel id={pc} />}
+          {pf === "shelf" && <ShelfPanel />}
+          {pf === "board" && <BoardPanel />}
+          {pf === "drawer" && <DrawerPanel />}
+          {pf === "notes" && <NotesPanel />}
+          {pf === "keyboard" && <KeyboardPanel />}
+          {pf === "watch" && <WatchPanel />}
         </section>
       )}
       {focus === "desk" && !card && (

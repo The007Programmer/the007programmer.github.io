@@ -12,6 +12,7 @@ export interface Ctx {
   reduced: boolean
   narrow: boolean
   goto: (id: SId) => void
+  leave: () => void
   openCard: (id: string) => void
   toggleLamp: () => void
   toggleTheme: () => void
@@ -37,3 +38,6 @@ export const hovFor = (ctx: Ctx, label: string) => ({
 /* which desk card the pointer is on (kept briefly after it leaves, so the camera does not flap): the rig leans toward it */
 export const cardHover = { id: null as string | null }
 
+
+/* the on-screen desktop reports how deep it is (0 = home), so Esc can pop a level there before it leaves the monitor */
+export const osNav = { depth: 0, back: () => {} }

@@ -35,8 +35,11 @@ const RB = RoundedBox
 
 /* -------------------------------------------------------------- camera rig */
 const _m = new THREE.Matrix4(), _up = new THREE.Vector3(0, 1, 0), _l = new THREE.Vector3(), _q = new THREE.Quaternion(), _e = new THREE.Euler(0, 0, 0, "YXZ"), _p = new THREE.Vector3(), _v = new THREE.Vector3(), _v2 = new THREE.Vector3()
+const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
 function Rig({ ctx, input }: { ctx: Ctx; input: InputRef }) {
   const invalidate = useThree((s) => s.invalidate)
+  // every change of station (in, out, or between) is one eased move of the same length; after it, the camera just follows its target
+  const tw = useRef<{ key: string; t: number; p: THREE.Vector3; q: THREE.Quaternion } | null>(null)
   useEffect(() => { invalidate() }, [ctx.focus, invalidate])
   useFrame((state, dt) => {
     const cam = state.camera as THREE.PerspectiveCamera
@@ -72,6 +75,17 @@ function Rig({ ctx, input }: { ctx: Ctx; input: InputRef }) {
       _e.set(THREE.MathUtils.degToRad(pitch), THREE.MathUtils.degToRad(yaw), 0)
       _q.setFromEuler(_e)
       _p.set(...SEAT)
+    }
+    const key = ctx.focus ?? "seat"
+    if (!tw.current || tw.current.key !== key) tw.current = { key, t: ctx.reduced || !tw.current ? 1 : 0, p: cam.position.clone(), q: cam.quaternion.clone() }
+    const w = tw.current
+    if (w.t < 1) {
+      w.t = Math.min(1, w.t + Math.min(dt, 0.05) / 0.85) // a demand-driven first frame arrives after a long idle, so its dt must not eat the whole move
+      const e = easeInOut(w.t)
+      cam.position.copy(w.p).lerp(_p, e)
+      cam.quaternion.copy(w.q).slerp(_q, e)
+      invalidate()
+      return
     }
     const k = ctx.reduced ? 1 : 1 - Math.exp(-dt * (ctx.focus ? 4.2 : 5))
     cam.position.lerp(_p, k)
@@ -184,6 +198,15 @@ function Monitor({ ctx }: { ctx: Ctx }) {
   const T = TOK[ctx.theme]
   const [seen, setSeen] = useState(() => { try { return sessionStorage.getItem("room.monitorSeen") === "1" } catch { return false } })
   useEffect(() => { if (ctx.focus === "monitor" && !seen) { setSeen(true); try { sessionStorage.setItem("room.monitorSeen", "1") } catch { /* ignore */ } } }, [ctx.focus, seen])
+  // the on-screen desktop stays mounted while the camera eases out, and fades with it
+  const on = ctx.focus === "monitor"
+  const [html, setHtml] = useState(false), [litUp, setLitUp] = useState(false)
+  useEffect(() => {
+    if (on) { setHtml(true); const r = requestAnimationFrame(() => setLitUp(true)); return () => cancelAnimationFrame(r) }
+    setLitUp(false)
+    const t = window.setTimeout(() => setHtml(false), ctx.reduced ? 0 : 350)
+    return () => window.clearTimeout(t)
+  }, [on, ctx.reduced])
   const tex = useCanvasTex(1280, 720, async (g) => {
     const grd = g.createLinearGradient(0, 0, 1280, 720); grd.addColorStop(0, T.ink2); grd.addColorStop(1, T.void)
     g.fillStyle = grd; g.fillRect(0, 0, 1280, 720)
@@ -206,9 +229,9 @@ function Monitor({ ctx }: { ctx: Ctx }) {
       <RB args={[0.09, 0.45, 0.05]} radius={0.01} smoothness={4} position={[0, DESK_Y + 0.25, -0.76]} castShadow><meshStandardMaterial color="#1a1411" metalness={0.6} roughness={0.35} /></RB>
       <RB args={[1.32, 0.78, 0.07]} radius={0.02} smoothness={4} position={[0, 1.28, -0.68]} castShadow><meshStandardMaterial color="#0e0b09" roughness={0.35} metalness={0.4} /></RB>
       <mesh position={[0, 1.28, -0.643]}><planeGeometry args={[1.22, 0.686]} /><meshBasicMaterial map={tex} toneMapped={false} /></mesh>
-      {ctx.focus === "monitor" && !ctx.narrow && (
+      {html && !ctx.narrow && (
         <Html transform position={[0, 1.28, -0.64]} scale={MONITOR_SCALE} zIndexRange={[20, 10]}>
-          <MonitorOS />
+          <div style={{ opacity: litUp ? 1 : 0, transition: ctx.reduced ? "none" : "opacity 0.25s ease" }}><MonitorOS onExit={ctx.leave} /></div>
         </Html>
       )}
       {!seen && <StickyNote narrow={ctx.narrow} />}

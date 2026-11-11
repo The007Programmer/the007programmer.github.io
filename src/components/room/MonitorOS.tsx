@@ -1,5 +1,6 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { AGENT_ITEMS, HOME, SIDE_ITEMS, SYSTEM_ITEMS, TOOLKIT_GROUPS, WRITING_ITEMS, type Item } from "./content"
+import { osNav } from "./shared"
 
 type Folder = "agents" | "systems" | "side" | "toolkit" | "writing"
 const FOLDERS: { id: Folder; label: string }[] = [
@@ -39,16 +40,25 @@ function ItemDetail({ it, back, compact }: { it: Item; back: () => void; compact
 
 /* The little desktop on the monitor glass. Fixed 1280x720 CSS px.
    Home is a README that says who this is; Electra lives inside Agents. */
-export default function MonitorOS({ compact = false }: { compact?: boolean }) {
+export default function MonitorOS({ compact = false, onExit }: { compact?: boolean; onExit?: () => void }) {
   const [folder, setFolder] = useState<Folder | null>(null)
   const [open, setOpen] = useState<string | null>(null)
   const items = folder ? ITEMS[folder] : undefined
   const it = items?.find((i) => i.id === open)
   const go = (f: Folder | null) => { setFolder(f); setOpen(null) }
+  // the stack of views is home > folder > item, so its depth is 0, 1 or 2; back pops one level and leaving is only offered from home
+  const depth = it ? 2 : folder ? 1 : 0
+  const back = () => { if (open) setOpen(null); else if (folder) go(null) }
+  const live = useRef({ depth, back, onExit })
+  live.current = { depth, back, onExit }
+  useEffect(() => {
+    osNav.depth = depth; osNav.back = () => live.current.back()
+    return () => { osNav.depth = 0; osNav.back = () => {} }
+  }, [depth])
   const title = !folder ? "README.md" : it ? `${folder}/${it.id}` : folder === "side" ? "side quests" : folder
 
   return (
-    <div className="flex flex-col bg-void text-chalk select-text" style={compact ? { width: "100%", height: "100%" } : { width: 1280, height: 720 }}>
+    <div onContextMenu={(e) => { e.preventDefault(); const l = live.current; if (l.depth > 0) l.back(); else l.onExit?.() }} className="flex flex-col bg-void text-chalk select-text" style={compact ? { width: "100%", height: "100%" } : { width: 1280, height: 720 }}>
       <div className="h-[40px] shrink-0 flex items-center gap-3 px-4 bg-ink border-b border-line font-mono text-[13px] text-chalk-2">
         <span className="font-bold text-signal">&gt;_</span><span>{HOME.name.toLowerCase()}</span><span className="ml-auto text-mute">desktop</span>
       </div>
@@ -65,7 +75,9 @@ export default function MonitorOS({ compact = false }: { compact?: boolean }) {
           <div className="flex-1 min-h-0 flex flex-col border border-edge bg-ink-2">
             <div className="h-[36px] shrink-0 flex items-center gap-2 px-3 bg-ink border-b border-line">
               <span className="size-3 rounded-full bg-signal" /><span className="size-3 rounded-full bg-edge" /><span className="size-3 rounded-full bg-line" />
-              <span className="ml-3 font-mono text-[13px] text-chalk-2">{title}</span>
+              {depth > 0 && <button onClick={back} className="ml-2 font-mono text-[13px] text-signal hover:underline cursor-pointer px-1 focus-visible:outline-2 focus-visible:outline-signal">‹ back</button>}
+              <span className="ml-2 font-mono text-[13px] text-chalk-2">{title}</span>
+              <span className="ml-3 font-mono text-[11px] text-mute hidden sm:inline">{depth > 0 ? "right-click or Esc to go back" : "right-click or Esc to leave"}</span>
               {folder && <button onClick={() => go(null)} aria-label="Close window" className="ml-auto font-mono text-[14px] text-chalk-2 hover:text-signal cursor-pointer px-2 focus-visible:outline-2 focus-visible:outline-signal">×</button>}
             </div>
             <div className={`flex-1 min-h-0 overflow-y-auto ${compact ? "p-4" : "p-8"}`}>
