@@ -170,9 +170,13 @@ export default function Room() {
       if (e.pointerType === "touch") return // touch looks by dragging, not by where the finger is
       if (tip.current) tip.current.style.transform = `translate(${e.clientX + 14}px, ${e.clientY + 16}px)`
       input.current.px = (e.clientX / innerWidth) * 2 - 1; input.current.py = (e.clientY / innerHeight) * 2 - 1; inv() }
+    // one step back, shared by Esc and right-click: inside the monitor pop an on-screen level first, then close a card, then leave the station
+    const stepBack = () => { if (focus === "monitor" && osNav.depth > 0) osNav.back(); else if (card) setCard(null); else if (focus) setFocus(null) }
+    // while any station is focused the browser menu never opens: a right-click anywhere (window, capture phase, so nothing under it can swallow it) is a back step
+    const ctxMenu = (e: MouseEvent) => { if (!focus) return; e.preventDefault(); e.stopPropagation(); stepBack() }
     const key = (e: KeyboardEvent) => {
       // one Esc, one level: inside the monitor it pops the on-screen view first, and only from its home does it leave
-      if (e.key === "Escape") { if (focus === "monitor" && osNav.depth > 0) { osNav.back(); return } if (card) setCard(null); else if (focus) setFocus(null); return }
+      if (e.key === "Escape") { stepBack(); return }
       // the numbers on the station bar are shortcuts: 1-6 go straight there
       if (!e.metaKey && !e.ctrlKey && !e.altKey && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) {
         const st = STATIONS.find((x) => String(Number(x.num)) === e.key)
@@ -189,7 +193,8 @@ export default function Room() {
     }
     window.addEventListener("pointermove", move)
     window.addEventListener("keydown", key)
-    return () => { window.removeEventListener("pointermove", move); window.removeEventListener("keydown", key) }
+    window.addEventListener("contextmenu", ctxMenu, true)
+    return () => { window.removeEventListener("contextmenu", ctxMenu, true); window.removeEventListener("pointermove", move); window.removeEventListener("keydown", key) }
   }, [focus, card, goto])
 
   const drag = useRef<{ x: number; y: number } | null>(null)
@@ -255,7 +260,7 @@ export default function Room() {
 
       {showPanel && (
         <section aria-label={pf!} className={narrow ? "absolute inset-x-2 bottom-[64px] h-[52vh] overflow-y-auto bg-ink-2/95 border border-line p-5 shadow-2xl" : "absolute right-5 top-20 bottom-[120px] w-[min(460px,92vw)] overflow-y-auto bg-ink-2/95 border border-line p-7 shadow-2xl"} style={{ animation: closing ? "roomOut .4s ease-in both" : `roomIn .35s ${delay} both` }}>
-          {pf === "monitor" && <div className="-m-5 h-[calc(100%+2.5rem)]"><MonitorOS compact onExit={() => setFocus(null)} /></div>}
+          {pf === "monitor" && <div className="-m-5 h-[calc(100%+2.5rem)]"><MonitorOS compact /></div>}
           {pf === "desk" && pc && <CardPanel id={pc} />}
           {pf === "shelf" && <ShelfPanel />}
           {pf === "board" && <BoardPanel />}

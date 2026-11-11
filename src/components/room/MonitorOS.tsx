@@ -40,7 +40,7 @@ function ItemDetail({ it, back, compact }: { it: Item; back: () => void; compact
 
 /* The little desktop on the monitor glass. Fixed 1280x720 CSS px.
    Home is a README that says who this is; Electra lives inside Agents. */
-export default function MonitorOS({ compact = false, onExit }: { compact?: boolean; onExit?: () => void }) {
+export default function MonitorOS({ compact = false }: { compact?: boolean }) {
   const [folder, setFolder] = useState<Folder | null>(null)
   const [open, setOpen] = useState<string | null>(null)
   const items = folder ? ITEMS[folder] : undefined
@@ -49,8 +49,8 @@ export default function MonitorOS({ compact = false, onExit }: { compact?: boole
   // the stack of views is home > folder > item, so its depth is 0, 1 or 2; back pops one level and leaving is only offered from home
   const depth = it ? 2 : folder ? 1 : 0
   const back = () => { if (open) setOpen(null); else if (folder) go(null) }
-  const live = useRef({ depth, back, onExit })
-  live.current = { depth, back, onExit }
+  const live = useRef({ back })
+  live.current = { back }
   useEffect(() => {
     osNav.depth = depth; osNav.back = () => live.current.back()
     return () => { osNav.depth = 0; osNav.back = () => {} }
@@ -58,7 +58,7 @@ export default function MonitorOS({ compact = false, onExit }: { compact?: boole
   const title = !folder ? "README.md" : it ? `${folder}/${it.id}` : folder === "side" ? "side quests" : folder
 
   return (
-    <div onContextMenu={(e) => { e.preventDefault(); const l = live.current; if (l.depth > 0) l.back(); else l.onExit?.() }} className="flex flex-col bg-void text-chalk select-text" style={compact ? { width: "100%", height: "100%" } : { width: 1280, height: 720 }}>
+    <div className="flex flex-col bg-void text-chalk select-text" style={compact ? { width: "100%", height: "100%" } : { width: 1280, height: 720 }}>
       <div className="h-[40px] shrink-0 flex items-center gap-3 px-4 bg-ink border-b border-line font-mono text-[13px] text-chalk-2">
         <span className="font-bold text-signal">&gt;_</span><span>{HOME.name.toLowerCase()}</span><span className="ml-auto text-mute">desktop</span>
       </div>

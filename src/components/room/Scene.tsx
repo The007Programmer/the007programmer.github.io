@@ -231,7 +231,7 @@ function Monitor({ ctx }: { ctx: Ctx }) {
       <mesh position={[0, 1.28, -0.643]}><planeGeometry args={[1.22, 0.686]} /><meshBasicMaterial map={tex} toneMapped={false} /></mesh>
       {html && !ctx.narrow && (
         <Html transform position={[0, 1.28, -0.64]} scale={MONITOR_SCALE} zIndexRange={[20, 10]}>
-          <div style={{ opacity: litUp ? 1 : 0, transition: ctx.reduced ? "none" : "opacity 0.25s ease" }}><MonitorOS onExit={ctx.leave} /></div>
+          <div style={{ opacity: litUp ? 1 : 0, transition: ctx.reduced ? "none" : "opacity 0.25s ease" }}><MonitorOS /></div>
         </Html>
       )}
       {!seen && <StickyNote narrow={ctx.narrow} />}
