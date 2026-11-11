@@ -5,8 +5,8 @@ type V3 = [number, number, number]
 export interface Station { id: SId; label: string; num: string; pos: V3; look: V3; label3: V3 }
 
 export const SEAT: V3 = [0, 1.3, 1.35]
-/* where the watch lies on the desk (x, z): right of the keyboard, left of the HELLO card */
-export const WATCH_AT: [number, number] = [0.245, -0.06]
+/* where the watch lies on the desk (x, z): between the camera and the front right edge of the desk */
+export const WATCH_AT: [number, number] = [0.84, 0.13]
 
 export const STATIONS: Station[] = [
   { id: "monitor", num: "01", label: "Agents & Systems", pos: [0, 1.28, 0.21], look: [0, 1.28, -0.64], label3: [0, 1.78, -0.6] },
@@ -19,7 +19,7 @@ export const STATIONS: Station[] = [
 /* close-up poses with no button on the station bar: reached by clicking the object itself */
 export const EXTRA: Station[] = [
   { id: "keyboard", num: "", label: "Keyboard", pos: [0.18, 1.1, 0.25], look: [0.18, 0.83, -0.2], label3: [0, 0.95, -0.2] },
-  { id: "watch", num: "", label: "Watch", pos: [WATCH_AT[0] + 0.045, 0.99, 0.0], look: [WATCH_AT[0] + 0.045, 0.8, WATCH_AT[1] - 0.015], label3: [0, 0.95, 0] },
+  { id: "watch", num: "", label: "Watch", pos: [WATCH_AT[0] + 0.05, 0.98, WATCH_AT[1] + 0.07], look: [WATCH_AT[0] + 0.05, 0.8, WATCH_AT[1] - 0.005], label3: [0, 0.95, 0] },
 ]
 export const stationOf = (id: SId) => [...STATIONS, ...EXTRA].find((s) => s.id === id)!
 

@@ -119,9 +119,8 @@ function KeyboardPanel() {
 function WatchPanel() {
   return (
     <>
-      <H k="found on the desk">Seiko × Initial D AE86</H>
-      <p className="text-[15px] leading-[1.55] text-chalk-2">The 30th-anniversary limited-edition chronograph: steel case, tachymeter bezel, three subdials, panda dial with a red accent.</p>
-      <p className="font-mono text-[12px] text-mute mt-4">A model: the dial layout and markings are approximate.</p>
+      <H k="found on the desk">Seiko × Initial D</H>
+      <p className="text-[15px] leading-[1.55] text-chalk-2">30th Anniversary. Limited to 1,995 pieces. AE86 panda dial.</p>
     </>
   )
 }
