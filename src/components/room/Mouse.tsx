@@ -76,7 +76,7 @@ export function Mouse({ ctx }: { ctx: Ctx }) {
   const bump = useMemo(() => knurlTex(40), [])
   return (
     <group
-      position={[0.35, DESK_Y + 0.0015, -0.05]} rotation={[0, 0.16, 0]} scale={1.1}
+      position={[0.34, DESK_Y + 0.0015, -0.23]} rotation={[0, 0.16, 0]} scale={1.1}
       onPointerOver={(e) => { e.stopPropagation(); setCursor(true); ctx.hover("Mouse") }}
       onPointerOut={() => { setCursor(false); ctx.hover(null) }}
       onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); ctx.toast("Click.") }}

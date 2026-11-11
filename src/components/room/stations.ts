@@ -5,8 +5,8 @@ type V3 = [number, number, number]
 export interface Station { id: SId; label: string; num: string; pos: V3; look: V3; label3: V3 }
 
 export const SEAT: V3 = [0, 1.3, 1.35]
-/* where the watch lies on the desk (x, z): in front of the FlashGuard card (closer to the seat), upright, between the card and the desk front edge; clear of the lamp base and the mug */
-export const WATCH_AT: [number, number] = [-0.8, 0.37]
+/* where the watch lies on the desk (x, z): behind the FlashGuard card (toward the monitor), upright, between the card and the lamp base and mug; clear of the lamp base and the mug */
+export const WATCH_AT: [number, number] = [-0.76, -0.24]
 
 export const STATIONS: Station[] = [
   { id: "monitor", num: "01", label: "Agents & Systems", pos: [0, 1.28, 0.21], look: [0, 1.28, -0.64], label3: [0, 1.78, -0.6] },
@@ -38,7 +38,7 @@ export interface DeskItem {
   rot: number
 }
 const SHOT: Record<string, string> = { flashguard: "flashguard.png", mailsmith: "mailsmith.png", ufw: "ufwmanager.png" }
-const pos: Record<string, [number, number, number]> = { flashguard: [-0.82, 0.01, 0.07], mailsmith: [-0.4, 0.1, -0.05], ufw: [0.02, 0.13, 0.04] }
+const pos: Record<string, [number, number, number]> = { flashguard: [-0.82, 0.12, 0.07], mailsmith: [-0.4, 0.1, -0.05], ufw: [0.02, 0.13, 0.04] }
 export const DESK_ITEMS: DeskItem[] = [
   ...OSS_ITEMS.filter((o) => SHOT[o.id]).map((o): DeskItem => ({
     id: o.id,
@@ -58,6 +58,6 @@ export const DESK_ITEMS: DeskItem[] = [
     id: "hello", kind: "HELLO", title: "Hello", org: "who put this here", // SPIKE COPY
     stamp: "", tags: [],
     desc: "Sophomore in computer science at Texas A&M. Two terms at TwelveLabs building AI agents.",
-    img: "/img/photo.jpg", x: 0.58, z: 0.15, rot: -0.09,
+    img: "/img/photo.jpg", x: 0.46, z: 0.1, rot: -0.09,
   },
 ]
