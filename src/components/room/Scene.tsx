@@ -2,6 +2,7 @@ import { memo, useEffect, useMemo, useRef, useState } from "react"
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber"
 import { ContactShadows, Html, Line, RoundedBox } from "@react-three/drei"
 import * as THREE from "three"
+import "@fontsource/caveat/700.css"
 import MonitorOS from "./MonitorOS"
 import { HOME, PATH_BAND, PATH_GROUPS, splitTitle } from "./content"
 import { DESK_ITEMS, SEAT, stationOf, type DeskItem, type SId } from "./stations"
@@ -156,25 +157,24 @@ function Shell({ ctx }: { ctx: Ctx }) {
 }
 
 /* ---------------------------------------------------------------- monitor */
-/* a sticky note on the bottom left of the bezel: the adhesive strip is on the bezel, the rest hangs below it, so it never covers the screen.
-   It goes away once the visitor has opened the monitor this session. */
+/* a sticky note stuck on the left edge of the bezel: its right edge overlaps only the bezel frame (never the screen) and the rest overhangs.
+   Lettering is Caveat (self-hosted via @fontsource), loaded before the canvas is drawn. It goes away once the monitor has been opened this session. */
 function StickyNote({ narrow }: { narrow: boolean }) {
-  const tex = useCanvasTex(640, 256, (g) => {
-    g.fillStyle = "#F0DC82"; g.fillRect(0, 0, 640, 256)
-    g.fillStyle = "rgba(0,0,0,0.07)"; g.fillRect(0, 0, 640, 30) // the adhesive strip
-    g.fillStyle = "#3a2a1c"; g.textAlign = "left"
-    const hand = "'Segoe Print','Bradley Hand','Comic Sans MS','Comic Neue',cursive"
-    g.font = `700 74px ${hand}`; g.fillText("click the screen", 24, 120)
-    g.font = `600 38px ${hand}`; g.fillText("it's live, not a screenshot", 24, 200)
-    // arrow up toward the screen
-    g.strokeStyle = "#B73A27"; g.lineWidth = 9; g.lineCap = "round"; g.lineJoin = "round"
-    g.beginPath(); g.moveTo(590, 220); g.bezierCurveTo(600, 170, 590, 120, 580, 66); g.stroke()
-    g.beginPath(); g.moveTo(552, 92); g.lineTo(580, 62); g.lineTo(608, 88); g.stroke()
-  }, "sticky")
-  const k = narrow ? 1.1 : 1
+  const tex = useCanvasTex(384, 384, async (g) => {
+    try { await document.fonts.load("700 100px Caveat") } catch { /* falls back to cursive */ }
+    g.fillStyle = "#F0DC82"; g.fillRect(0, 0, 384, 384)
+    g.fillStyle = "rgba(0,0,0,0.07)"; g.fillRect(0, 0, 384, 36) // the adhesive strip
+    g.fillStyle = "#3a2a1c"; g.textAlign = "center"; g.textBaseline = "alphabetic"
+    g.font = "700 104px Caveat, 'Segoe Print', cursive"; g.fillText("click me", 192, 170)
+    // arrow toward the screen (to the right)
+    g.strokeStyle = "#B73A27"; g.lineWidth = 12; g.lineCap = "round"; g.lineJoin = "round"
+    g.beginPath(); g.moveTo(80, 262); g.bezierCurveTo(140, 240, 220, 244, 296, 262); g.stroke()
+    g.beginPath(); g.moveTo(262, 226); g.lineTo(304, 264); g.lineTo(256, 296); g.stroke()
+  }, "sticky2")
+  const k = narrow ? 1.2 : 1
   return (
-    <mesh position={[-0.47, 0.935 - 0.06 * k, -0.62]} rotation={[0, 0, 0.04]} scale={k}>
-      <planeGeometry args={[0.3, 0.12]} /><meshStandardMaterial map={tex} roughness={0.9} />
+    <mesh position={[-0.635 - 0.1 * k, 1.0, -0.62]} rotation={[0, 0, 0.07]} scale={k}>
+      <planeGeometry args={[0.2, 0.2]} /><meshStandardMaterial map={tex} roughness={0.9} />
     </mesh>
   )
 }

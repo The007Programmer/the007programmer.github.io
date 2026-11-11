@@ -122,14 +122,14 @@ function useWatchGeometry() {
     const now = new Date(), mn = now.getMinutes() + now.getSeconds() / 60, hr = (now.getHours() % 12) + mn / 60
     const hand = (len: number, w: number, deg: number, y: number): Part => { const a = (deg * Math.PI) / 180; return { g: rbox(w, 0.0005, len, 0.0002, 2), p: [Math.sin(a) * len * 0.45, y, -Math.cos(a) * len * 0.45], r: [0, -a, 0] } }
     steel.push(hand(0.0088, 0.0016, hr * 30, Y_DIAL + 0.0009), hand(0.0128, 0.0012, mn * 6, Y_DIAL + 0.0013))
-    // brushed three-link bracelet: a long centre link with a shorter, staggered link either side; four rows a side, drifting into a gentle S
+    // brushed three-link bracelet: a fine run of rows, each a centre link with a staggered link either side; ten rows a side, drifting into a gentle S. All merged into the one steel mesh.
     for (const side of [-1, 1]) {
-      let x = 0, z = side * (R_CASE + 0.0034), phi = 0
-      for (let i = 0; i < 4; i++) {
-        const dx = -side * Math.sin(phi), dz = side * Math.cos(phi), yaw = Math.atan2(dx, dz), k = 1 - i * 0.03
-        steel.push({ g: rbox(0.0084 * k, 0.0032, 0.0072, 0.0012, 2), p: [x, 0.0017, z], r: [0, yaw, 0] })
-        for (const o of [-1, 1]) steel.push({ g: rbox(0.0054 * k, 0.0032, 0.0072, 0.0012, 2), p: [x + dz * o * 0.0072 * k + dx * 0.0037, 0.0017, z - dx * o * 0.0072 * k + dz * 0.0037], r: [0, yaw, 0] })
-        x += dx * 0.0075; z += dz * 0.0075; phi += 0.05
+      let x = 0, z = side * (R_CASE + 0.0024), phi = 0
+      for (let i = 0; i < 10; i++) {
+        const dx = -side * Math.sin(phi), dz = side * Math.cos(phi), yaw = Math.atan2(dx, dz), k = 1 - i * 0.015
+        steel.push({ g: rbox(0.0078 * k, 0.003, 0.0042, 0.001, 2), p: [x, 0.0016, z], r: [0, yaw, 0] })
+        for (const o of [-1, 1]) steel.push({ g: rbox(0.005 * k, 0.003, 0.0042, 0.001, 2), p: [x + dz * o * 0.0067 * k + dx * 0.0023, 0.0016, z - dx * o * 0.0067 * k + dz * 0.0023], r: [0, yaw, 0] })
+        x += dx * 0.0046; z += dz * 0.0046; phi += 0.025
       }
       if (side > 0) steel.push({ g: rbox(0.0165, 0.0042, 0.011, 0.0016, 3), p: [x, 0.0021, z], r: [0, Math.atan2(-side * Math.sin(phi), side * Math.cos(phi)), 0] }) // clasp
     }
@@ -174,7 +174,7 @@ export function Watch({ ctx }: { ctx: Ctx }) {
   })
   return (
     <group
-      ref={g} position={[WATCH_AT[0], DESK_Y, WATCH_AT[1]]} rotation={[0, -0.12, 0]} scale={1.5}
+      ref={g} position={[WATCH_AT[0], DESK_Y, WATCH_AT[1]]} rotation={[0, Math.PI / 2 - 0.12, 0]} scale={1.5}
       onPointerOver={(e) => { e.stopPropagation(); want.current = 1; setCursor(true); ctx.hover("Seiko × Initial D AE86 chronograph"); invalidate() }}
       onPointerOut={() => { want.current = 0; setCursor(false); ctx.hover(null); invalidate() }}
       onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); ctx.goto("watch") }}

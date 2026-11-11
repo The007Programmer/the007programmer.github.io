@@ -5,8 +5,8 @@ type V3 = [number, number, number]
 export interface Station { id: SId; label: string; num: string; pos: V3; look: V3; label3: V3 }
 
 export const SEAT: V3 = [0, 1.3, 1.35]
-/* where the watch lies on the desk (x, z): between the camera and the front right edge of the desk */
-export const WATCH_AT: [number, number] = [0.84, 0.13]
+/* where the watch lies on the desk (x, z): in front of the FlashGuard card, lying sideways so it fits the gap before the drawer front; clear of the lamp base and the mug */
+export const WATCH_AT: [number, number] = [-0.68, 0.41]
 
 export const STATIONS: Station[] = [
   { id: "monitor", num: "01", label: "Agents & Systems", pos: [0, 1.28, 0.21], look: [0, 1.28, -0.64], label3: [0, 1.78, -0.6] },
