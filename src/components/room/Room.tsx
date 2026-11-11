@@ -170,10 +170,8 @@ export default function Room() {
       if (e.pointerType === "touch") return // touch looks by dragging, not by where the finger is
       if (tip.current) tip.current.style.transform = `translate(${e.clientX + 14}px, ${e.clientY + 16}px)`
       input.current.px = (e.clientX / innerWidth) * 2 - 1; input.current.py = (e.clientY / innerHeight) * 2 - 1; inv() }
-    // one step back, shared by Esc and right-click: inside the monitor pop an on-screen level first, then close a card, then leave the station
+    // one step back, used by Esc: inside the monitor pop an on-screen level first, then close a card, then leave the station
     const stepBack = () => { if (focus === "monitor" && osNav.depth > 0) osNav.back(); else if (card) setCard(null); else if (focus) setFocus(null) }
-    // while any station is focused the browser menu never opens: a right-click anywhere (window, capture phase, so nothing under it can swallow it) is a back step
-    const ctxMenu = (e: MouseEvent) => { if (!focus) return; e.preventDefault(); e.stopPropagation(); stepBack() }
     const key = (e: KeyboardEvent) => {
       // one Esc, one level: inside the monitor it pops the on-screen view first, and only from its home does it leave
       if (e.key === "Escape") { stepBack(); return }
@@ -193,8 +191,7 @@ export default function Room() {
     }
     window.addEventListener("pointermove", move)
     window.addEventListener("keydown", key)
-    window.addEventListener("contextmenu", ctxMenu, true)
-    return () => { window.removeEventListener("contextmenu", ctxMenu, true); window.removeEventListener("pointermove", move); window.removeEventListener("keydown", key) }
+    return () => { window.removeEventListener("pointermove", move); window.removeEventListener("keydown", key) }
   }, [focus, card, goto])
 
   const drag = useRef<{ x: number; y: number } | null>(null)

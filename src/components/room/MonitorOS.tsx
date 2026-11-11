@@ -77,7 +77,7 @@ export default function MonitorOS({ compact = false }: { compact?: boolean }) {
               <span className="size-3 rounded-full bg-signal" /><span className="size-3 rounded-full bg-edge" /><span className="size-3 rounded-full bg-line" />
               {depth > 0 && <button onClick={back} className="ml-2 font-mono text-[13px] text-signal hover:underline cursor-pointer px-1 focus-visible:outline-2 focus-visible:outline-signal">‹ back</button>}
               <span className="ml-2 font-mono text-[13px] text-chalk-2">{title}</span>
-              <span className="ml-3 font-mono text-[11px] text-mute hidden sm:inline">{depth > 0 ? "right-click or Esc to go back" : "right-click or Esc to leave"}</span>
+              <span className="ml-3 font-mono text-[11px] text-mute hidden sm:inline">{depth > 0 ? "Esc to go back" : "Esc to leave"}</span>
               {folder && <button onClick={() => go(null)} aria-label="Close window" className="ml-auto font-mono text-[14px] text-chalk-2 hover:text-signal cursor-pointer px-2 focus-visible:outline-2 focus-visible:outline-signal">×</button>}
             </div>
             <div className={`flex-1 min-h-0 overflow-y-auto ${compact ? "p-4" : "p-8"}`}>
