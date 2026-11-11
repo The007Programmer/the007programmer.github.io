@@ -631,7 +631,7 @@ export default function Scene({ ctx, input, onReady }: { ctx: Ctx; input: InputR
       <Mouse ctx={ctx} />
       <Keyboard ctx={ctx} />
       <Camera ctx={ctx} />
-      {ctx.watch && <Watch ctx={ctx} />}
+      <Watch ctx={ctx} />
       <Hot id="desk" ctx={ctx}>
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, DESK_Y + 0.001, 0.2]}><planeGeometry args={[2.6, 0.7]} /><meshBasicMaterial visible={false} /></mesh>
         {DESK_ITEMS.map((it) => <Card key={it.id} item={it} ctx={ctx} />)}

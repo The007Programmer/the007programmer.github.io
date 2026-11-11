@@ -5,9 +5,7 @@ import { PAL, applyTheme, initialTheme, type Theme } from "./theme"
 import MonitorOS from "./MonitorOS"
 import Scene, { type Ctx, type Input } from "./Scene"
 import { DESK_ITEMS, STATIONS, type SId } from "./stations"
-import { fx } from "./shared"
 
-const KONAMI = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"]
 const CONTACT = [
   { href: "mailto:aahils2019@gmail.com", label: "aahils2019@gmail.com" },
   { href: "https://github.com/The007Programmer", label: "GitHub" },
@@ -146,8 +144,6 @@ export default function Room() {
   const [theme, setTheme] = useState<Theme>(initialTheme)
   const [flash, setFlash] = useState<{ c: string; k: number } | null>(null)
   const [msg, setMsg] = useState("")
-  const [watch, setWatch] = useState(() => { try { return sessionStorage.getItem("room.watch") === "1" } catch { return false } })
-  const konami = useRef({ i: 0, t: 0 })
   const [ready, setReady] = useState(false)
   const [narrow, setNarrow] = useState(() => innerWidth < 768 || innerWidth < innerHeight)
   useEffect(() => { const f = () => setNarrow(innerWidth < 768 || innerWidth < innerHeight); window.addEventListener("resize", f); return () => window.removeEventListener("resize", f) }, [])
@@ -161,15 +157,7 @@ export default function Room() {
   const openCard = useCallback((id: string) => { setFocus("desk"); setCard(id) }, [])
   const toast = useCallback((m: string) => setMsg(m), [])
   const toggleTheme = () => { const t: Theme = theme === "dark" ? "light" : "dark"; setTheme(t); applyTheme(t, true); if (!reduced) setFlash({ c: PAL[t].bg, k: Date.now() }); setMsg(t === "light" ? "Click. Lights on." : "Click. Lights off.") } // SPIKE COPY
-  const ctx: Ctx = { focus, card, lamp, theme, watch, toggleTheme, reduced, narrow, goto, openCard, hover: setHoverLabel, toggleLamp: () => { setLamp((l) => !l); setMsg(lamp ? "Lamp off." : "Lamp on.") }, toast }
-
-  const unlockWatch = useCallback(() => {
-    if (watch) { setMsg("The watch is already on the desk."); return }
-    fx.watchDrop = true
-    setWatch(true)
-    try { sessionStorage.setItem("room.watch", "1") } catch { /* private mode: it just resets next visit */ }
-    setMsg("Konami code. Something just landed on the desk.")
-  }, [watch])
+  const ctx: Ctx = { focus, card, lamp, theme, toggleTheme, reduced, narrow, goto, openCard, hover: setHoverLabel, toggleLamp: () => { setLamp((l) => !l); setMsg(lamp ? "Lamp off." : "Lamp on.") }, toast }
 
   useEffect(() => { applyTheme(theme) }, [theme])
   useEffect(() => { if (!msg) return; const t = setTimeout(() => setMsg(""), 2400); return () => clearTimeout(t) }, [msg])
@@ -182,18 +170,6 @@ export default function Room() {
       if (tip.current) tip.current.style.transform = `translate(${e.clientX + 14}px, ${e.clientY + 16}px)`
       input.current.px = (e.clientX / innerWidth) * 2 - 1; input.current.py = (e.clientY / innerHeight) * 2 - 1; inv() }
     const key = (e: KeyboardEvent) => {
-      // up up down down left right left right B A. A key that advances the sequence is not also a look-around key;
-      // a held key (repeat) or a miss resets it, so ordinary arrow look-around is unaffected
-      if (!e.metaKey && !e.ctrlKey && !e.altKey && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) {
-        const k = e.key.length === 1 ? e.key.toLowerCase() : e.key, kn = konami.current
-        window.clearTimeout(kn.t)
-        if (!e.repeat && k === KONAMI[kn.i]) {
-          kn.i++
-          if (kn.i === KONAMI.length) { kn.i = 0; unlockWatch(); e.preventDefault(); return }
-          kn.t = window.setTimeout(() => { kn.i = 0 }, 1500)
-          if (k.startsWith("Arrow")) { e.preventDefault(); return }
-        } else kn.i = 0
-      }
       if (e.key === "Escape") { if (card) setCard(null); else if (focus) setFocus(null); return }
       // the numbers on the station bar are shortcuts: 1-6 go straight there
       if (!e.metaKey && !e.ctrlKey && !e.altKey && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) {
@@ -212,7 +188,7 @@ export default function Room() {
     window.addEventListener("pointermove", move)
     window.addEventListener("keydown", key)
     return () => { window.removeEventListener("pointermove", move); window.removeEventListener("keydown", key) }
-  }, [focus, card, goto, unlockWatch])
+  }, [focus, card, goto])
 
   const drag = useRef<{ x: number; y: number } | null>(null)
   const onDown = (e: React.PointerEvent) => { drag.current = { x: e.clientX, y: e.clientY } }

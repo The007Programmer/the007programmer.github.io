@@ -2,12 +2,11 @@ import { useEffect, useMemo, useRef } from "react"
 import { useFrame, useThree } from "@react-three/fiber"
 import * as THREE from "three"
 import { DISPLAY, MONO, f, useCanvasTex } from "./tex"
-import { glowTex } from "./proc"
 import { cyl, merge, rbox, type Part } from "./merge"
-import { DESK_Y, fx, setCursor, shadow, type Ctx } from "./shared"
+import { DESK_Y, setCursor, shadow, type Ctx } from "./shared"
 import { WATCH_AT } from "./stations"
 
-/* ============================================================ the watch (unlocked with the Konami code)
+/* ============================================================ the watch (always on the desk)
    SEIKO x INITIAL D 30th Anniversary collaboration watch, limited edition (1,995 pieces).
    FROM PUBLISHED DESCRIPTIONS (Gear Patrol, Hypebeast, Japanese Nostalgic Car, 2025): stainless case about 40 mm, 12.8 mm
    thick, 47 mm lug to lug; polished steel tachymeter bezel; panda dial, roughly the top two thirds white and the bottom
@@ -118,7 +117,7 @@ function useWatchGeometry() {
       steel.push({ g: cyl(0.0019, 0.0019, 0.0046, 14), p: [x + Math.cos(a) * 0.0017, 0.0058, z + Math.sin(a) * 0.0017], r: [0, -a, Math.PI / 2] })
       steel.push({ g: cyl(0.0028, 0.0028, 0.0013, 14), p: [x + Math.cos(a) * 0.0045, 0.0058, z + Math.sin(a) * 0.0045], r: [0, -a, Math.PI / 2] })
     }
-    // slim baton hour and minute hands, set to the time you unlocked it
+    // slim baton hour and minute hands, set to the time the page loaded
     const now = new Date(), mn = now.getMinutes() + now.getSeconds() / 60, hr = (now.getHours() % 12) + mn / 60
     const hand = (len: number, w: number, deg: number, y: number): Part => { const a = (deg * Math.PI) / 180; return { g: rbox(w, 0.0005, len, 0.0002, 2), p: [Math.sin(a) * len * 0.45, y, -Math.cos(a) * len * 0.45], r: [0, -a, 0] } }
     steel.push(hand(0.0088, 0.0016, hr * 30, Y_DIAL + 0.0009), hand(0.0128, 0.0012, mn * 6, Y_DIAL + 0.0013))
@@ -140,37 +139,19 @@ function useWatchGeometry() {
 }
 
 export function Watch({ ctx }: { ctx: Ctx }) {
-  const g = useRef<THREE.Group>(null!), lift = useRef<THREE.Group>(null!), glint = useRef<THREE.Sprite>(null!)
+  const g = useRef<THREE.Group>(null!)
   const geo = useWatchGeometry()
   const dial = useCanvasTex(1024, 1024, drawDial, "dial")
   const bezel = useCanvasTex(1024, 1024, drawBezel, "bezel")
-  const spark = useMemo(() => glowTex(), [])
   const invalidate = useThree((s) => s.invalidate)
-  const t = useRef(fx.watchDrop ? 0 : 99), h = useRef(0), want = useRef(0)
-  useEffect(() => { fx.watchDrop = false; shadow.dirty = true; invalidate() }, [invalidate])
-  const T = 0.55 // fall time
+  const h = useRef(0), want = useRef(0)
+  useEffect(() => { shadow.dirty = true; invalidate() }, [invalidate])
+  // hover lifts and tips it a little; nothing else moves, so it costs no frames at rest
   useFrame((_, dt) => {
-    let busy = false
-    if (t.current < T + 1.4) { t.current += ctx.reduced ? 99 : dt; busy = true }
-    const tt = t.current
-    // drop with a spin, two small bounces, then a glint across the crystal
-    const u = Math.min(1, tt / T), after = Math.max(0, tt - T)
-    const bounce = after < 1.2 ? 0.03 * Math.exp(-5 * after) * Math.abs(Math.sin(9 * after)) : 0
-    const fall = tt < T ? 0.42 * (1 - u * u) : 0
-    lift.current.position.y = fall + bounce
-    lift.current.rotation.set((1 - u) * 0.8, (1 - u) * (1 - u) * 2.2, 0)
     h.current += (want.current - h.current) * (ctx.reduced ? 1 : 1 - Math.exp(-dt * 12))
     g.current.position.y = DESK_Y + h.current * 0.012
     g.current.rotation.x = -h.current * 0.2
-    const gt = (tt - T - 0.12) / 0.7
-    glint.current.visible = gt > 0 && gt < 1
-    if (glint.current.visible) {
-      const k = gt * 2 - 1
-      glint.current.position.set(k * 0.019, Y_BEZEL + 0.003, -k * 0.012)
-      ;(glint.current.material as THREE.SpriteMaterial).opacity = Math.sin(gt * Math.PI) * 0.95
-      busy = true
-    }
-    if (busy || Math.abs(want.current - h.current) > 0.003) { shadow.dirty = true; invalidate() }
+    if (Math.abs(want.current - h.current) > 0.003) { shadow.dirty = true; invalidate() }
   })
   return (
     <group
@@ -179,15 +160,12 @@ export function Watch({ ctx }: { ctx: Ctx }) {
       onPointerOut={() => { want.current = 0; setCursor(false); ctx.hover(null); invalidate() }}
       onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); ctx.goto("watch") }}
     >
-      <group ref={lift}>
+      <group>
         <mesh geometry={geo.steel} castShadow receiveShadow><meshStandardMaterial color={STEEL} metalness={0.75} roughness={0.32} /></mesh>
         <mesh position={[0, Y_BEZEL + 0.0002, 0]} rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[R_DIAL, R_CASE, 64]} /><meshStandardMaterial map={bezel} roughness={0.25} metalness={0.55} polygonOffset polygonOffsetFactor={-1} /></mesh>
         <mesh position={[0, Y_DIAL, 0]} rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[R_DIAL, 64]} /><meshStandardMaterial map={dial} roughness={0.5} /></mesh>
         <mesh geometry={geo.red}><meshStandardMaterial color={RED} roughness={0.4} emissive={RED} emissiveIntensity={0.15} /></mesh>
         <mesh position={[0, Y_BEZEL + 0.0005, 0]} rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[R_DIAL, 48]} /><meshPhysicalMaterial color="#ffffff" transparent opacity={0.1} roughness={0.03} clearcoat={1} clearcoatRoughness={0.03} depthWrite={false} /></mesh>
-        <sprite ref={glint} visible={false} scale={[0.05, 0.012, 1]} raycast={() => null}>
-          <spriteMaterial map={spark} color="#fff6e0" transparent opacity={0} blending={THREE.AdditiveBlending} depthWrite={false} depthTest={false} toneMapped={false} rotation={0.7} />
-        </sprite>
       </group>
     </group>
   )

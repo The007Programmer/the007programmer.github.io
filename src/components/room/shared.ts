@@ -9,7 +9,6 @@ export interface Ctx {
   card: string | null
   lamp: boolean
   theme: Theme
-  watch: boolean
   reduced: boolean
   narrow: boolean
   goto: (id: SId) => void
@@ -38,5 +37,3 @@ export const hovFor = (ctx: Ctx, label: string) => ({
 /* which desk card the pointer is on (kept briefly after it leaves, so the camera does not flap): the rig leans toward it */
 export const cardHover = { id: null as string | null }
 
-/* the watch drops in (rather than just being there) only when it was unlocked a moment ago */
-export const fx = { watchDrop: false }
