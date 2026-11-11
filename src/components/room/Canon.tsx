@@ -21,8 +21,8 @@ const MOUNT_Z = 0.007 // front face of the body
 type V3 = [number, number, number]
 
 function lensPoints() {
-  // (radius, distance in front of the mount face) of the barrel under the focus ring, then the front rim
-  return [[0.0300, 0], [0.0315, 0.002], [0.0320, 0.013], [0.0320, 0.031], [0.0325, 0.0345], [0.0305, 0.0385], [0.0285, 0.0405], [0.0262, 0.0405], [0.0250, 0.0390], [0.0245, 0.0335], [0.0001, 0.0335]].map(([r, y]) => new THREE.Vector2(r, y))
+  // (radius, distance in front of the mount face) of the barrel shell under the rings, then the stepped front rim and the filter-thread recess
+  return [[0.0300, 0], [0.0316, 0.002], [0.0318, 0.012], [0.0318, 0.026], [0.0322, 0.0262], [0.0322, 0.0375], [0.0312, 0.0376], [0.0312, 0.0392], [0.0302, 0.0404], [0.0286, 0.0408], [0.0270, 0.0408], [0.0270, 0.0394], [0.0258, 0.0394], [0.0258, 0.0372], [0.0246, 0.0372], [0.0246, 0.0335], [0.0001, 0.0335]].map(([r, y]) => new THREE.Vector2(r, y))
 }
 
 function useCanonGeometry() {
@@ -51,8 +51,11 @@ function useCanonGeometry() {
     const knurl: Part[] = [
       { g: cyl(0.0105, 0.0105, 0.007, 40), p: [0.0435, 0.0735, -0.01] }, // mode dial
       { g: cyl(0.0068, 0.0068, 0.006, 32), p: [-0.044, 0.0725, -0.011] }, // control dial
-      { g: cyl(0.0348, 0.0348, 0.018, 64), ...lensAt(0.022) }, // focus ring
+      { g: new THREE.CylinderGeometry(0.0346, 0.0346, 0.014, 72, 1, true), ...lensAt(0.019) }, // focus ring: the fine knurling
     ]
+    // control ring (coarse ridges, its own material) and the branding / distance band between it and the focus ring
+    const ctrl: Part[] = [{ g: new THREE.CylinderGeometry(0.034, 0.034, 0.003, 64, 1, true), ...lensAt(0.036) }]
+    const band: Part[] = [{ g: new THREE.CylinderGeometry(0.0331, 0.0331, 0.005, 72, 1, true), ...lensAt(0.032) }]
     const ang = (2 * Math.PI) / 3 // 11 o'clock
     const dot = (r: number, z: number): Part => ({ g: new THREE.SphereGeometry(0.0017, 12, 8), p: [Math.cos(ang) * r, BODY_Y + Math.sin(ang) * r, MOUNT_Z + z] })
     const red: Part[] = [
@@ -63,7 +66,7 @@ function useCanonGeometry() {
     // front element: a shallow convex cap, a base on y = 0 so it sits flush in the rim
     const R = 0.04, th = Math.asin(0.0245 / R)
     const cap = new THREE.SphereGeometry(R, 40, 10, 0, Math.PI * 2, 0, th).translate(0, -R * Math.cos(th), 0).scale(1, 0.35, 1)
-    return { body: merge(body), metal: merge(metal), knurl: merge(knurl), red: merge(red), glass: merge([{ g: cap, ...lensAt(0.0335) }]) }
+    return { ctrl: merge(ctrl), band: merge(band), body: merge(body), metal: merge(metal), knurl: merge(knurl), red: merge(red), glass: merge([{ g: cap, ...lensAt(0.0335) }]) }
   }, [])
 }
 
@@ -73,7 +76,16 @@ export function Camera({ ctx }: { ctx: Ctx }) {
   const invalidate = useThree((s) => s.invalidate)
   const geo = useCanonGeometry()
   const rough = useMemo(() => noiseTex("#888888", 0.5, 3, 3, false), [])
-  const bump = useMemo(() => knurlTex(48), [])
+  const bump = useMemo(() => knurlTex(96), [])
+  const bumpCoarse = useMemo(() => knurlTex(28), [])
+  // generic markings only: lens name and a distance scale, no logos. u = 0.5 faces up on this cylinder, so the name sits there and the scale on both flanks
+  const bandTex = useCanvasTex(2048, 64, (g) => {
+    g.fillStyle = "#0b0b0c"; g.fillRect(0, 0, 2048, 64)
+    g.textBaseline = "middle"; g.textAlign = "center"; g.fillStyle = "#e8e8e8"; g.font = f(MONO, 26)
+    g.fillText("RF 50mm  1:1.8  STM", 1024, 34)
+    g.fillStyle = "#c9c9c9"; g.font = f(MONO, 20)
+    for (const cx of [512, 1536]) g.fillText("0.3   0.5   1   2   5   \u221e   m", cx, 34)
+  }, "lensband")
   const label = useCanvasTex(256, 96, (c) => {
     c.fillStyle = "#f2f2f2"; c.font = "italic 700 52px 'Bricolage Grotesque', Arial, sans-serif"; c.fillText("Canon", 10, 56)
     c.fillStyle = "#b0b0b0"; c.font = f(MONO, 20); c.fillText("EOS R8", 150, 86)
@@ -99,8 +111,10 @@ export function Camera({ ctx }: { ctx: Ctx }) {
         <mesh geometry={geo.body} castShadow><meshStandardMaterial color="#141415" roughness={0.55} roughnessMap={rough} metalness={0.15} /></mesh>
         <mesh geometry={geo.metal} castShadow><meshStandardMaterial color="#9a9ea3" metalness={0.9} roughness={0.3} /></mesh>
         <mesh geometry={geo.knurl} castShadow><meshStandardMaterial color="#1b1b1d" metalness={0.5} roughness={0.4} bumpMap={bump} bumpScale={2} /></mesh>
+        <mesh geometry={geo.ctrl} castShadow><meshStandardMaterial color="#3a3b3f" metalness={0.6} roughness={0.35} bumpMap={bumpCoarse} bumpScale={3} /></mesh>
+        <mesh geometry={geo.band}><meshStandardMaterial map={bandTex} roughness={0.55} /></mesh>
         <mesh geometry={geo.red}><meshStandardMaterial color="#c8201a" roughness={0.4} /></mesh>
-        <mesh geometry={geo.glass}><meshPhysicalMaterial color="#0a1226" metalness={1} roughness={0.05} clearcoat={1} clearcoatRoughness={0.05} emissive="#2a1048" emissiveIntensity={0.9} /></mesh>
+        <mesh geometry={geo.glass}><meshPhysicalMaterial color="#0b1a2c" metalness={0.9} roughness={0.12} clearcoat={1} clearcoatRoughness={0.05} emissive="#14281c" emissiveIntensity={0.5} /></mesh>
         <mesh position={[0.05, 0.059, MOUNT_Z + 0.0005]}><planeGeometry args={[0.03, 0.011]} /><meshBasicMaterial map={label} transparent toneMapped={false} /></mesh>
         <mesh position={[0, 0.1255, 0.0030]} rotation={[-0.15, 0, 0]}><planeGeometry args={[0.03, 0.017]} /><meshStandardMaterial color="#fff4e0" emissive="#ffe2b8" emissiveIntensity={0.84} toneMapped={false} /></mesh>
         <pointLight ref={lamp} position={[0, 0.138, 0.012]} color="#ffe6c4" intensity={0.4} distance={3.2} decay={2} />

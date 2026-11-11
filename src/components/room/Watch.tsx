@@ -155,7 +155,7 @@ export function Watch({ ctx }: { ctx: Ctx }) {
   })
   return (
     <group
-      ref={g} position={[WATCH_AT[0], DESK_Y, WATCH_AT[1]]} rotation={[0, Math.PI / 2 - 0.12, 0]} scale={1.5}
+      ref={g} position={[WATCH_AT[0], DESK_Y, WATCH_AT[1]]} rotation={[0, -0.08, 0]} scale={1.4}
       onPointerOver={(e) => { e.stopPropagation(); want.current = 1; setCursor(true); ctx.hover("Seiko × Initial D AE86 chronograph"); invalidate() }}
       onPointerOut={() => { want.current = 0; setCursor(false); ctx.hover(null); invalidate() }}
       onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); ctx.goto("watch") }}
