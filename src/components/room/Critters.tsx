@@ -9,8 +9,7 @@ const rnd = (a: number, b: number) => a + Math.random() * (b - a)
 
 /* --------------------------------------------------------- lucky cat figurine
    A still ceramic maneki-neko: lathe-turned pear body, head with inner ears, blush, whiskers, bib, collar and bell,
-   a koban coin in the resting paw, and a raised paw that waves when you touch it. One merged mesh plus the waving
-   arm. Nothing animates on its own, so it costs nothing while idle. */
+   a koban coin in the resting paw, and a raised paw that beckons (see Figurine). One merged mesh plus the beckoning arm. */
 type V = [number, number, number]
 function paint(g: THREE.BufferGeometry, color: string) {
   const c = new THREE.Color(color), n = g.attributes.position.count, a = new Float32Array(n * 3)
@@ -55,36 +54,63 @@ function buildFigurine() {
   ])!
 }
 
+/* The cat beckons forever, slowly and steadily (about one swing every 1.4 s). To keep the room at zero renders when nothing is
+   happening, this is the only thing that asks for frames on its own, and it asks politely: through the shared ticker, at about 30 fps,
+   only while the cat is inside the camera frustum and the tab is visible. Under reduced motion the paw just stays raised. A click makes
+   it hop (a little squash on take-off and landing) and beckon faster for about a second, then it settles back into the loop. */
+const _fr = new THREE.Frustum(), _pm = new THREE.Matrix4(), _sph = new THREE.Sphere(new THREE.Vector3(0.68, DESK_Y + 0.08, -0.62), 0.12)
+const PERIOD = 1.4, HOP = 0.55, BURST = 1.1
 export function Figurine({ ctx }: { ctx: Ctx }) {
-  const arm = useRef<THREE.Group>(null!), paw = useRef<THREE.Group>(null!), wave = useRef(0)
+  const cat = useRef<THREE.Group>(null!), arm = useRef<THREE.Group>(null!), paw = useRef<THREE.Group>(null!)
+  const st = useRef({ phase: 0, hop: 1, burst: 0 })
   const geo = useMemo(buildFigurine, [])
   const invalidate = useThree((s) => s.invalidate)
-  useFrame((_, dt) => {
-    if (wave.current > 0) {
-      wave.current = Math.max(0, wave.current - dt)
-      // a real beckoning cat swings the paw forward and back from the shoulder (toward you and away),
-      // with the wrist flexing the other way, not side to side
-      const a = Math.sin(wave.current * 11) * Math.min(1, wave.current * 1.5)
-      arm.current.rotation.x = 0.1 + a * 0.5
-      paw.current.rotation.x = -a * 0.7
-      shadow.dirty = true; invalidate()
-    } else if (arm.current.rotation.x !== 0.1) { arm.current.rotation.x = 0.1; paw.current.rotation.x = 0; shadow.dirty = true; invalidate() }
+  useFrame(({ camera }, dtRaw) => {
+    const s = st.current, dt = Math.min(dtRaw, 0.1) // frames are sparse by design: a long gap must not jump the swing
+    if (ctx.reduced) { // a static raised paw
+      arm.current.rotation.x = 0.1; paw.current.rotation.x = 0
+    } else {
+      s.burst = Math.max(0, s.burst - dt)
+      const fast = Math.min(1, s.burst * 3) // ease in and out of the quick beckons
+      s.phase += dt * ((Math.PI * 2) / PERIOD) * (1 + 1.4 * fast)
+      const a = Math.sin(s.phase)
+      // swing forward and back from the shoulder; the paw is a child of the forearm, so it rides the whole limb, and the wrist only adds a little counter-flex
+      arm.current.rotation.x = 0.1 + a * 0.42
+      paw.current.rotation.x = -a * 0.34
+    }
+    // hop: a few millimetres up, squash on take-off and again on landing
+    if (s.hop < 1) {
+      s.hop = Math.min(1, s.hop + dt / HOP)
+      const u = s.hop, lift = Math.sin(Math.PI * u), sq = Math.exp(-Math.pow(u / 0.1, 2)) * 0.7 + Math.exp(-Math.pow((u - 0.96) / 0.07, 2))
+      const sy = 1 + 0.035 * lift - 0.07 * sq
+      cat.current.position.y = DESK_Y + 0.007 * lift
+      cat.current.scale.set(1 / Math.sqrt(sy), sy, 1 / Math.sqrt(sy))
+      shadow.dirty = true
+      if (s.hop >= 1) { cat.current.position.y = DESK_Y; cat.current.scale.set(1, 1, 1) }
+    }
+    // ask for the next frame only while it can be seen
+    if (!ctx.reduced || s.hop < 1) {
+      _pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); _fr.setFromProjectionMatrix(_pm)
+      if (document.visibilityState === "visible" && _fr.intersectsSphere(_sph)) ambient.next = Math.min(ambient.next, 33)
+    }
   })
   const click = (e: { stopPropagation: () => void; delta: number }) => {
     if (e.delta > 6) return
-    e.stopPropagation(); wave.current = 1.8
+    e.stopPropagation()
+    if (!ctx.reduced) { st.current.hop = 0; st.current.burst = BURST }
     ctx.toast("Lucky.") // SPIKE COPY
     invalidate()
   }
   return (
-    <group position={[0.68, DESK_Y, -0.62]} rotation={[0, -0.3, 0]} onClick={click} {...hovFor(ctx, "Lucky cat")}>
+    <group ref={cat} position={[0.68, DESK_Y, -0.62]} rotation={[0, -0.3, 0]} onClick={click} {...hovFor(ctx, "Lucky cat")}>
       <mesh geometry={geo} castShadow><meshStandardMaterial vertexColors roughness={0.22} metalness={0.02} /></mesh>
-      {/* the beckoning paw: a raised forearm hinged at the shoulder, with a paw that flexes at the wrist */}
+      {/* the beckoning limb: a shoulder ball, a forearm hinged at it, and the paw as a child of the forearm, hinged at the wrist, so it is one piece at every moment of the swing */}
       <group ref={arm} position={[0.04, 0.066, 0.004]} rotation={[0.1, 0, -0.3]}>
-        <mesh position={[0.004, 0.026, 0]} castShadow><capsuleGeometry args={[0.012, 0.035, 8, 20]} /><meshStandardMaterial color={CREAM} roughness={0.22} /></mesh>
-        <group ref={paw} position={[0.004, 0.047, 0]}>
-          <mesh position={[0, 0.013, 0]} castShadow><sphereGeometry args={[0.0145, 28, 20]} /><meshStandardMaterial color={CREAM} roughness={0.22} /></mesh>
-          <mesh position={[0, 0.013, 0.0125]}><sphereGeometry args={[0.0065, 16, 12]} /><meshStandardMaterial color={PINK} roughness={0.4} /></mesh>
+        <mesh><sphereGeometry args={[0.0135, 20, 14]} /><meshStandardMaterial color={CREAM} roughness={0.22} /></mesh>
+        <mesh position={[0.004, 0.026, 0]}><capsuleGeometry args={[0.012, 0.035, 8, 20]} /><meshStandardMaterial color={CREAM} roughness={0.22} /></mesh>
+        <group ref={paw} position={[0.004, 0.05, 0]}>
+          <mesh position={[0, 0.008, 0]}><sphereGeometry args={[0.0145, 28, 20]} /><meshStandardMaterial color={CREAM} roughness={0.22} /></mesh>
+          <mesh position={[0, 0.008, 0.0125]}><sphereGeometry args={[0.0065, 16, 12]} /><meshStandardMaterial color={PINK} roughness={0.4} /></mesh>
         </group>
       </group>
     </group>

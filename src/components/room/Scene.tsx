@@ -42,6 +42,7 @@ function Rig({ ctx, input }: { ctx: Ctx; input: InputRef }) {
   const tw = useRef<{ key: string; t: number; p: THREE.Vector3; q: THREE.Quaternion } | null>(null)
   useEffect(() => { invalidate() }, [ctx.focus, invalidate])
   useFrame((state, dt) => {
+    if ((globalThis as { __camHold?: boolean }).__camHold) return // test hook: lets a script park the camera (only ever set from the console)
     const cam = state.camera as THREE.PerspectiveCamera
     // portrait screens: widen the vertical fov a little and stand back so the same things stay in frame
     const aspect = state.size.width / state.size.height
