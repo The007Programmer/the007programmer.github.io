@@ -76,7 +76,7 @@ export function Keyboard({ ctx }: { ctx: Ctx }) {
   })
   return (
     <group
-      ref={g} position={[0, DESK_Y, -0.22]} rotation={[0.1, 0, 0]}
+      ref={g} position={[0, DESK_Y, -0.28]} rotation={[0.1, 0, 0]}
       onPointerOver={(e) => { e.stopPropagation(); want.current = 1; setCursor(true); ctx.hover("Keyboard: TGR 910 GAF"); invalidate() }}
       onPointerOut={() => { want.current = 0; setCursor(false); ctx.hover(null); invalidate() }}
       onClick={(e) => { if (e.delta > 6) return; e.stopPropagation(); ctx.goto("keyboard") }}

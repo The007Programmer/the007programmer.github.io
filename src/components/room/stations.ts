@@ -18,7 +18,7 @@ export const STATIONS: Station[] = [
 ]
 /* close-up poses with no button on the station bar: reached by clicking the object itself */
 export const EXTRA: Station[] = [
-  { id: "keyboard", num: "", label: "Keyboard", pos: [0.18, 1.1, 0.25], look: [0.18, 0.83, -0.2], label3: [0, 0.95, -0.2] },
+  { id: "keyboard", num: "", label: "Keyboard", pos: [0.18, 1.1, 0.19], look: [0.18, 0.83, -0.26], label3: [0, 0.95, -0.2] },
   { id: "watch", num: "", label: "Watch", pos: [WATCH_AT[0] + 0.05, 1.0, WATCH_AT[1] + 0.07], look: [WATCH_AT[0] + 0.05, 0.8, WATCH_AT[1] - 0.005], label3: [0, 0.95, 0] },
 ]
 export const stationOf = (id: SId) => [...STATIONS, ...EXTRA].find((s) => s.id === id)!
