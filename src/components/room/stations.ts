@@ -6,7 +6,7 @@ export interface Station { id: SId; label: string; num: string; pos: V3; look: V
 
 export const SEAT: V3 = [0, 1.3, 1.35]
 /* where the watch lies on the desk (x, z): behind the FlashGuard card (toward the monitor), upright, between the card and the lamp base and mug; clear of the lamp base and the mug */
-export const WATCH_AT: [number, number] = [-0.76, -0.24]
+export const WATCH_AT: [number, number] = [-0.88, -0.3]
 
 export const STATIONS: Station[] = [
   { id: "monitor", num: "01", label: "Agents & Systems", pos: [0, 1.28, 0.21], look: [0, 1.28, -0.64], label3: [0, 1.78, -0.6] },
