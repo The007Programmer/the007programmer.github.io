@@ -95,13 +95,13 @@ export function Camera({ ctx }: { ctx: Ctx }) {
     g.current.position.y = h.current * 0.025
     g.current.rotation.x = -h.current * 0.18
     // the flash: a dim standing glow so the dark room has some fill, and a bright pop on click
-    const base = ctx.theme === "light" ? 0.06 : 0.42
+    const base = ctx.theme === "light" ? 0.04 : 0.29
     if (pop.current > 0) pop.current = Math.max(0, pop.current - dt * 3.2)
     lamp.current.intensity = base + pop.current * 9
     if (pop.current > 0 || Math.abs(want.current - h.current) > 0.003) { shadow.dirty = true; invalidate() }
   })
   return (
-    <group position={[0.98, DESK_Y, -0.12]} rotation={[0, -0.35, 0]} scale={1.15}>
+    <group position={[0.98, DESK_Y, -0.12]} rotation={[0, -0.62, 0]} scale={1.15}>
       <group
         ref={g}
         onPointerOver={(e) => { e.stopPropagation(); want.current = 1; setCursor(true); ctx.hover("Photography on Instagram ↗"); invalidate() }}
@@ -116,8 +116,8 @@ export function Camera({ ctx }: { ctx: Ctx }) {
         <mesh geometry={geo.red}><meshStandardMaterial color="#c8201a" roughness={0.4} /></mesh>
         <mesh geometry={geo.glass}><meshPhysicalMaterial color="#0b1a2c" metalness={0.9} roughness={0.12} clearcoat={1} clearcoatRoughness={0.05} emissive="#14281c" emissiveIntensity={0.5} /></mesh>
         <mesh position={[0.05, 0.059, MOUNT_Z + 0.0005]}><planeGeometry args={[0.03, 0.011]} /><meshBasicMaterial map={label} transparent toneMapped={false} /></mesh>
-        <mesh position={[0, 0.1255, 0.0030]} rotation={[-0.15, 0, 0]}><planeGeometry args={[0.03, 0.017]} /><meshStandardMaterial color="#fff4e0" emissive="#ffe2b8" emissiveIntensity={0.84} toneMapped={false} /></mesh>
-        <pointLight ref={lamp} position={[0, 0.138, 0.012]} color="#ffe6c4" intensity={0.4} distance={3.2} decay={2} />
+        <mesh position={[0, 0.1255, 0.0030]} rotation={[-0.15, 0, 0]}><planeGeometry args={[0.03, 0.017]} /><meshStandardMaterial color="#fff4e0" emissive="#ffe2b8" emissiveIntensity={0.59} toneMapped={false} /></mesh>
+        <pointLight ref={lamp} position={[0, 0.138, 0.012]} color="#ffe6c4" intensity={0.28} distance={3.2} decay={2} />
       </group>
     </group>
   )
